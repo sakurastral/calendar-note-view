@@ -29,4 +29,10 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		files: ['tests/**/*.ts'],
+		rules: {
+			'obsidianmd/no-tfile-tfolder-cast': 'off',
+		},
+	},
 );

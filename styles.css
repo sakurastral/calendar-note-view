@@ -1,8 +1,152 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
+/* @settings
+name: Calendar Note View
+id: calendar-note-view
+settings:
+  - id: calendar-note-general-heading
+    title: General
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-font-size
+    title: Calendar font size
+    type: variable-number-slider
+    default: 14
+    min: 10
+    max: 24
+    step: 1
+    format: px
+  - id: calendar-note-sidebar-heading
+    title: Sidebar Calendar
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-sidebar-cell-gap
+    title: Date cell gap
+    type: variable-number-slider
+    default: 2
+    min: 0
+    max: 12
+    step: 1
+    format: px
+  - id: calendar-note-bases-heading
+    title: Bases Calendar
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-bases-cell-gap
+    title: Date cell gap
+    type: variable-number-slider
+    default: 2
+    min: 0
+    max: 12
+    step: 1
+    format: px
+  - id: calendar-note-date-cell-heading
+    title: Date Cell
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-date-cell-radius
+    title: Corner radius
+    type: variable-number-slider
+    default: 6
+    min: 0
+    max: 20
+    step: 1
+    format: px
+  - id: calendar-note-today-heading
+    title: Today
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-today-bg
+    title: Background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+    default-light: '#e8e4ff'
+    default-dark: '#3a3455'
+  - id: calendar-note-today-text
+    title: Text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#352f55'
+    default-dark: '#eeeaff'
+  - id: calendar-note-weekend-heading
+    title: Weekend
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-weekend-text
+    title: Text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#9b4d4d'
+    default-dark: '#e4a3a3'
+  - id: calendar-note-event-heading
+    title: Event
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-event-radius
+    title: Corner radius
+    type: variable-number-slider
+    default: 4
+    min: 0
+    max: 16
+    step: 1
+    format: px
+  - id: calendar-note-task-heading
+    title: Task
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-task-opacity-completed
+    title: Completed task opacity
+    type: variable-number-slider
+    default: 60
+    min: 20
+    max: 100
+    step: 5
+    format: '%'
+  - id: calendar-note-daily-note-heading
+    title: Daily Note
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-daily-note-indicator
+    title: Indicator color
+    type: variable-themed-color
+    format: hex
+    default-light: '#6f5cc2'
+    default-dark: '#b8a9ff'
+  - id: calendar-note-navigation-heading
+    title: Navigation
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-navigation-icon-size
+    title: Icon size
+    type: variable-number-slider
+    default: 16
+    min: 12
+    max: 28
+    step: 1
+    format: px
 */
+
+body {
+	--calendar-note-font-size: var(--font-ui-small);
+	--calendar-note-sidebar-cell-gap: var(--size-2-1);
+	--calendar-note-bases-cell-gap: var(--size-2-1);
+	--calendar-note-date-cell-radius: var(--radius-s);
+	--calendar-note-today-bg: var(--background-modifier-hover);
+	--calendar-note-today-text: var(--text-normal);
+	--calendar-note-weekend-text: var(--text-muted);
+	--calendar-note-event-bg: var(--background-secondary);
+	--calendar-note-event-text: var(--text-normal);
+	--calendar-note-event-radius: var(--radius-s);
+	--calendar-note-task-opacity-completed: 60%;
+	--calendar-note-daily-note-indicator: var(--interactive-accent);
+	--calendar-note-navigation-icon-size: var(--icon-s);
+}

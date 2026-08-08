@@ -1,11 +1,9 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"id": "calendar-note-view",
+	"name": "Calendar Note View",
+	"version": "0.1.0",
+	"minAppVersion": "1.13.0",
+	"description": "View date-based notes and properties through calendar interfaces.",
+	"author": "sakurastral",
 	"isDesktopOnly": false
 }
