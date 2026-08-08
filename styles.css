@@ -36,6 +36,82 @@ settings:
     max: 12
     step: 1
     format: px
+  - id: calendar-note-bases-heading
+    title: Bases Calendar
+    type: heading
+    level: 1
+    collapsed: true
+  - id: calendar-note-bases-header-heading
+    title: Header
+    type: heading
+    level: 2
+    collapsed: true
+  - id: calendar-note-bases-header-height
+    title: Header height
+    type: variable-number-slider
+    default: 36
+    min: 28
+    max: 64
+    step: 1
+    format: px
+  - id: calendar-note-bases-weekday-heading
+    title: Weekday Header
+    type: heading
+    level: 2
+    collapsed: true
+  - id: calendar-note-bases-weekday-bg
+    title: Background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+  - id: calendar-note-bases-date-cell-heading
+    title: Date Cell
+    type: heading
+    level: 2
+    collapsed: true
+  - id: calendar-note-bases-cell-min-height
+    title: Minimum cell height
+    type: variable-number-slider
+    default: 88
+    min: 56
+    max: 180
+    step: 4
+    format: px
+  - id: calendar-note-bases-cell-border
+    title: Border color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+  - id: calendar-note-bases-multiday-heading
+    title: Multi-day Bar
+    type: heading
+    level: 2
+    collapsed: true
+  - id: calendar-note-bases-event-height
+    title: Bar height
+    type: variable-number-slider
+    default: 22
+    min: 16
+    max: 36
+    step: 1
+    format: px
+  - id: calendar-note-bases-event-gap
+    title: Bar gap
+    type: variable-number-slider
+    default: 2
+    min: 0
+    max: 8
+    step: 1
+    format: px
+  - id: calendar-note-bases-more-heading
+    title: More Indicator
+    type: heading
+    level: 2
+    collapsed: true
+  - id: calendar-note-bases-more-text
+    title: Text color
+    type: variable-themed-color
+    format: hex
   - id: calendar-note-date-cell-heading
     title: Date Cell
     type: heading
@@ -127,6 +203,15 @@ settings:
     max: 100
     step: 5
     format: '%'
+  - id: calendar-note-task-bg
+    title: Background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+  - id: calendar-note-task-text
+    title: Text color
+    type: variable-themed-color
+    format: hex
   - id: calendar-note-daily-note-heading
     title: Daily Note
     type: heading
@@ -155,6 +240,13 @@ body {
 	--calendar-note-font-size: var(--font-ui-small);
 	--calendar-note-sidebar-header-height: var(--input-height);
 	--calendar-note-sidebar-cell-gap: var(--size-2-1);
+	--calendar-note-bases-header-height: var(--input-height);
+	--calendar-note-bases-weekday-bg: var(--background-secondary);
+	--calendar-note-bases-cell-min-height: 88px;
+	--calendar-note-bases-cell-border: var(--background-modifier-border);
+	--calendar-note-bases-event-height: 22px;
+	--calendar-note-bases-event-gap: var(--size-2-1);
+	--calendar-note-bases-more-text: var(--text-muted);
 	--calendar-note-date-size: var(--font-ui-smaller);
 	--calendar-note-date-cell-radius: var(--radius-s);
 	--calendar-note-today-bg: var(--background-modifier-hover);
@@ -163,6 +255,8 @@ body {
 	--calendar-note-weekend-text: var(--text-muted);
 	--calendar-note-event-bg: var(--background-secondary);
 	--calendar-note-event-text: var(--text-normal);
+	--calendar-note-task-bg: var(--background-secondary);
+	--calendar-note-task-text: var(--text-normal);
 	--calendar-note-dot-size: 5px;
 	--calendar-note-event-icon-size: var(--icon-xs);
 	--calendar-note-event-radius: var(--radius-s);
@@ -380,6 +474,265 @@ body {
 	color: var(--text-error);
 }
 
+.calendar-note-bases {
+	min-width: 0;
+	padding: var(--size-4-2);
+	overflow: auto;
+	font-size: var(--calendar-note-font-size, var(--font-ui-small));
+}
+
+.calendar-note-bases-header {
+	display: flex;
+	min-height: var(--calendar-note-bases-header-height, var(--input-height));
+	align-items: center;
+	justify-content: center;
+	gap: var(--size-2-1);
+	margin-bottom: var(--size-4-2);
+}
+
+.calendar-note-bases-picker {
+	display: flex;
+	min-width: 0;
+	gap: var(--size-2-1);
+}
+
+.calendar-note-bases-year,
+.calendar-note-bases-month-select {
+	min-width: 0;
+	height: var(--input-height);
+}
+
+.calendar-note-bases-year {
+	width: 6em;
+}
+
+.calendar-note-bases-month-select {
+	width: 8em;
+}
+
+.calendar-note-bases-nav svg {
+	width: var(--calendar-note-navigation-icon-size, var(--icon-s));
+	height: var(--calendar-note-navigation-icon-size, var(--icon-s));
+}
+
+.calendar-note-bases-weekdays,
+.calendar-note-bases-dates,
+.calendar-note-bases-events {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-note-bases-weekday {
+	padding: var(--size-2-2);
+	background: var(--calendar-note-bases-weekday-bg, var(--background-secondary));
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-semibold);
+	text-align: center;
+}
+
+.calendar-note-bases-week {
+	position: relative;
+	min-height: max(
+		var(--calendar-note-bases-cell-min-height, 88px),
+		calc(2.2em + var(--calendar-note-week-rows, 0) * (var(--calendar-note-bases-event-height, 22px) + var(--calendar-note-bases-event-gap, var(--size-2-1))))
+	);
+}
+
+.calendar-note-bases-dates {
+	position: absolute;
+	inset: 0;
+}
+
+.calendar-note-bases-date-cell {
+	position: relative;
+	min-width: 0;
+	border-top: var(--border-width) solid var(--calendar-note-bases-cell-border, var(--background-modifier-border));
+	border-left: var(--border-width) solid var(--calendar-note-bases-cell-border, var(--background-modifier-border));
+	background: var(--background-primary);
+}
+
+.calendar-note-bases-date-cell:last-child {
+	border-right: var(--border-width) solid var(--calendar-note-bases-cell-border, var(--background-modifier-border));
+}
+
+.calendar-note-bases-week:last-child .calendar-note-bases-date-cell {
+	border-bottom: var(--border-width) solid var(--calendar-note-bases-cell-border, var(--background-modifier-border));
+}
+
+.calendar-note-bases-date-cell.is-adjacent-month {
+	background: var(--background-primary-alt);
+	color: var(--text-faint);
+}
+
+.calendar-note-bases-date-cell.is-hidden-adjacent {
+	background: var(--background-secondary-alt);
+}
+
+.calendar-note-bases-date-cell.is-weekend {
+	background: var(--calendar-note-weekend-bg, transparent);
+	color: var(--calendar-note-weekend-text, var(--text-muted));
+}
+
+.calendar-note-bases-date-cell.is-today {
+	background: var(--calendar-note-today-bg, var(--background-modifier-hover));
+	color: var(--calendar-note-today-text, var(--text-normal));
+}
+
+.calendar-note-bases-date-number,
+.calendar-note-bases-add {
+	position: relative;
+	z-index: 2;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.calendar-note-bases-date-number {
+	margin: var(--size-2-1);
+	padding: var(--size-2-1);
+	color: inherit;
+	font-size: var(--calendar-note-date-size, var(--font-ui-smaller));
+}
+
+.calendar-note-bases-date-number:hover,
+.calendar-note-bases-date-number:focus-visible {
+	background: var(--background-modifier-hover);
+}
+
+.calendar-note-bases-add {
+	position: absolute;
+	top: var(--size-2-1);
+	right: var(--size-2-1);
+	opacity: 0;
+}
+
+.calendar-note-bases-date-cell:hover .calendar-note-bases-add,
+.calendar-note-bases-add:focus-visible {
+	opacity: 1;
+}
+
+.calendar-note-bases-daily-indicator {
+	position: absolute;
+	top: var(--size-2-1);
+	left: calc(var(--size-4-6) + var(--size-2-1));
+	z-index: 2;
+	width: var(--size-2-1);
+	height: var(--size-2-1);
+	border-radius: var(--radius-round);
+	background: var(--calendar-note-daily-note-indicator, var(--interactive-accent));
+}
+
+.calendar-note-bases-events {
+	position: absolute;
+	top: 2.2em;
+	right: 0;
+	left: 0;
+	z-index: 1;
+	grid-auto-rows: var(--calendar-note-bases-event-height, 22px);
+	row-gap: var(--calendar-note-bases-event-gap, var(--size-2-1));
+	pointer-events: none;
+}
+
+.calendar-note-bases-event,
+.calendar-note-bases-more {
+	min-width: 0;
+	height: var(--calendar-note-bases-event-height, 22px);
+	margin-inline: 1px;
+	border: 0;
+	box-shadow: none;
+	pointer-events: auto;
+}
+
+.calendar-note-bases-event {
+	display: flex;
+	align-items: center;
+	gap: var(--size-2-1);
+	padding-inline: var(--size-2-2);
+	border-radius: var(--calendar-note-event-radius, var(--radius-s));
+	background: var(--calendar-note-item-bg, var(--calendar-note-event-bg, var(--background-secondary)));
+	color: var(--calendar-note-item-text, var(--calendar-note-event-text, var(--text-normal)));
+	font-size: var(--font-ui-smaller);
+	text-align: start;
+}
+
+.calendar-note-bases-event.continues-before {
+	border-start-start-radius: 0;
+	border-end-start-radius: 0;
+}
+
+.calendar-note-bases-event.continues-after {
+	border-start-end-radius: 0;
+	border-end-end-radius: 0;
+}
+
+.calendar-note-bases-event.is-completed {
+	opacity: var(--calendar-note-task-opacity-completed, 60%);
+	text-decoration: line-through;
+}
+
+.calendar-note-bases-event-icon {
+	display: inline-flex;
+	flex: 0 0 auto;
+}
+
+.calendar-note-bases-event-icon svg {
+	width: var(--calendar-note-event-icon-size, var(--icon-xs));
+	height: var(--calendar-note-event-icon-size, var(--icon-xs));
+}
+
+.calendar-note-bases-event-title {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.calendar-note-bases-more {
+	padding-inline: var(--size-2-1);
+	background: transparent;
+	color: var(--calendar-note-bases-more-text, var(--text-muted));
+	font-size: var(--font-ui-smaller);
+	text-align: start;
+}
+
+.calendar-note-empty-state {
+	padding: var(--size-4-6);
+	color: var(--text-muted);
+	text-align: center;
+}
+
+.calendar-note-diagnostics {
+	overflow-x: auto;
+}
+
+.calendar-note-diagnostics-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.calendar-note-diagnostics-table th,
+.calendar-note-diagnostics-table td {
+	padding: var(--size-4-2);
+	border-bottom: var(--border-width) solid var(--background-modifier-border);
+	text-align: start;
+	vertical-align: top;
+}
+
+.calendar-note-diagnostic-file {
+	display: inline-flex;
+	max-width: 24em;
+	align-items: center;
+	gap: var(--size-2-1);
+	overflow-wrap: anywhere;
+}
+
+.calendar-note-diagnostic-file svg {
+	flex: 0 0 auto;
+	width: var(--icon-xs);
+	height: var(--icon-xs);
+}
+
 @keyframes calendar-note-spin {
 	to {
 		transform: rotate(360deg);
@@ -411,5 +764,44 @@ body {
 	.calendar-note-create-preview-row {
 		grid-template-columns: 1fr;
 		gap: 0;
+	}
+
+	.calendar-note-bases {
+		padding: var(--size-4-1);
+	}
+
+	.calendar-note-bases-header {
+		flex-wrap: wrap;
+	}
+
+	.calendar-note-bases-picker {
+		order: -1;
+		flex-basis: 100%;
+		justify-content: center;
+	}
+
+	.calendar-note-bases-weekday {
+		padding-inline: var(--size-2-1);
+	}
+
+	.calendar-note-bases-date-cell {
+		min-width: 0;
+	}
+
+	.calendar-note-bases-add {
+		opacity: 1;
+	}
+
+	.calendar-note-bases-event {
+		padding-inline: var(--size-2-1);
+	}
+
+	.calendar-note-diagnostics-table thead {
+		display: none;
+	}
+
+	.calendar-note-diagnostics-table tr,
+	.calendar-note-diagnostics-table td {
+		display: block;
 	}
 }

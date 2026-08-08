@@ -1,5 +1,6 @@
 import type { App, EventRef, TAbstractFile, TFile } from 'obsidian';
-import { calendarDayOrdinal, isCanonicalDate } from './date';
+import { sortCalendarItems } from './calendar-sort';
+import { isCanonicalDate } from './date';
 import { createDiagnostic, CalendarDiagnosticsService } from './diagnostics';
 import { hasSourceConditions, matchesSourceProfile } from './matcher';
 import type {
@@ -222,20 +223,7 @@ export class CalendarIndexService {
 	}
 
 	private sortItems(values: Iterable<CalendarItem>): CalendarItem[] {
-		const profileOrder = new Map(this.getSettings().sourceProfiles.map((profile, index) => [profile.id, index]));
-		return [...values].sort((left, right) => {
-			const start = left.startDate.localeCompare(right.startDate);
-			if (start !== 0) return start;
-			const leftMulti = left.endDate !== left.startDate;
-			const rightMulti = right.endDate !== right.startDate;
-			if (leftMulti !== rightMulti) return leftMulti ? -1 : 1;
-			const duration = (calendarDayOrdinal(right.endDate) - calendarDayOrdinal(right.startDate)) -
-				(calendarDayOrdinal(left.endDate) - calendarDayOrdinal(left.startDate));
-			if (duration !== 0) return duration;
-			const profile = (profileOrder.get(left.sourceProfileId ?? '') ?? Number.MAX_SAFE_INTEGER) -
-				(profileOrder.get(right.sourceProfileId ?? '') ?? Number.MAX_SAFE_INTEGER);
-			return profile || left.title.localeCompare(right.title) || left.filePath.localeCompare(right.filePath) || left.id.localeCompare(right.id);
-		});
+		return sortCalendarItems(values, this.getSettings().sourceProfiles.map((profile) => profile.id));
 	}
 
 	private notify(change: CalendarIndexChange): void {

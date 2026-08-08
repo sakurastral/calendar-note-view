@@ -24,15 +24,19 @@ export class CalendarStyleResolver {
 		const diagnostics: CalendarDiagnostic[] = [];
 		const typeKey = normalizeWikiLinkTarget(item.type);
 		const rule = rules.find((candidate) => candidate.enabled && normalizeWikiLinkTarget(candidate.typeValue) === typeKey);
-		const icon = this.firstIcon([item.icon, rule?.icon, profile.defaultIcon, 'calendar'], item, profile, diagnostics);
+		const icon = this.firstIcon([item.icon, rule?.icon, profile.defaultIcon, item.kind === 'task' ? 'circle-check-big' : 'calendar'], item, profile, diagnostics);
 		const backgroundColor = this.firstColor(
-			[item.backgroundColor, rule?.backgroundColor, profile.defaultBackgroundColor, 'var(--calendar-note-event-bg, var(--background-secondary))'],
+			[item.backgroundColor, rule?.backgroundColor, profile.defaultBackgroundColor, item.kind === 'task'
+				? 'var(--calendar-note-task-bg, var(--background-secondary))'
+				: 'var(--calendar-note-event-bg, var(--background-secondary))'],
 			item,
 			profile,
 			diagnostics,
 		);
 		const textColor = this.firstColor(
-			[item.textColor, rule?.textColor, profile.defaultTextColor, 'var(--calendar-note-event-text, var(--text-normal))'],
+			[item.textColor, rule?.textColor, profile.defaultTextColor, item.kind === 'task'
+				? 'var(--calendar-note-task-text, var(--text-normal))'
+				: 'var(--calendar-note-event-text, var(--text-normal))'],
 			item,
 			profile,
 			diagnostics,

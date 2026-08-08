@@ -1,92 +1,175 @@
-# Obsidian Sample Plugin
+# Calendar Note View
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Calendar Note View adds a note-backed month calendar to Obsidian. It includes a Sidebar Calendar for events collected from across your vault and a Calendar view for Bases entries that have already been filtered by the current Base.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
+- Sidebar month calendar with independent year and month controls
+- Calendar view for Obsidian Bases
+- Date-only single-day and inclusive multi-day events
+- Continuous multi-day bars with stable lanes across weeks
+- Daily Notes indicators, opening, and confirmed creation
+- Event creation from the command palette, calendar dates, and context menus
+- Source Profiles for folder, tag, wiki-link property, and start-property matching
+- Configurable property mapping and strict property date formats
+- Event type style rules and safe note-level color overrides
+- Time zone-aware Today highlighting without shifting date-only events
+- Light, dark, custom theme, desktop, and mobile support
+- Optional Style Settings controls through CSS variables
+- Diagnostics for invalid indexed notes
 
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and outputs a Notice on click.
-- Registers a global interval which logs 'setInterval' to the console.
+## Installation
 
-## First time developing plugins?
+### Manual installation
 
-Quick starting guide for new plugin devs:
+1. Download `main.js`, `manifest.json`, and `styles.css` from the release.
+2. Create `<Vault>/.obsidian/plugins/calendar-note-view/`.
+3. Copy the three files into that folder.
+4. Reload Obsidian and enable **Calendar Note View** in **Settings → Community plugins**.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `src/main.ts` to `main.js`.
-- Make changes to `src/main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+## Sidebar Calendar
 
-## Releasing new releases
+Use the ribbon icon or run **Calendar Note View: Open sidebar calendar**. The header provides Previous Month, Next Month, Today, separate Year and Month controls, and Refresh.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+Date cells show Daily Note status and either colored event dots or icon badges. Select a date number to open or create its Daily Note. Use the plus button or date context menu to create an event. Select an event indicator to open its note.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+Refresh safely rebuilds the Sidebar event index while preserving the viewed month.
 
-## Adding your plugin to the community plugin list
+## Bases Calendar
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+Add a Base view and choose **Calendar** as its view type. Configure its property mapping in the view options.
 
-## How to use
+The Bases Calendar uses only the Entries supplied by the current Base. Base filters, formulas, properties, sorting, and limits remain authoritative. Source Profiles never rescan or filter Bases Calendar contents.
 
-- Clone this repo.
-- Make sure your NodeJS is at least v18 (`node --version`).
-- `npm i` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+The view supports:
 
-## Manually installing the plugin
+- Independent Previous Month, Next Month, Today, Year, and Month controls
+- Start, end, title, type, icon, color, text color, and completed property mapping
+- Icon, Title, or Icon + Title event display
+- First day of week and weekend selection
+- Adjacent-month date visibility
+- Maximum visible events and `+N more`
+- Hide or dim completed tasks
+- Daily Notes and event creation actions
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+Updating Base data does not reset the month being viewed.
 
-## Improve code quality with eslint
+## Daily Notes
 
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code.
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
+Calendar Note View uses the Obsidian Core Daily Notes folder, file name format, and template. It does not override those settings. When a Daily Note is missing, the plugin can ask for confirmation before creating and opening it.
 
-## Funding URL
+The Daily Notes core plugin must be enabled for these actions.
 
-You can include funding URLs where people who use your plugin can financially support it.
+## Source Profiles
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+Source Profiles control which notes appear in the Sidebar Calendar. They do not filter the contents of Bases Calendar views.
 
-```json
-{
-	"fundingUrl": "https://buymeacoffee.com"
-}
+A profile defines:
+
+- Event or task kind
+- Folder, tag, and wiki-link property matching
+- `all` or `any` matching across configured condition groups
+- Start-property-only matching when explicitly enabled
+- Property mapping and default event appearance
+- Event creation folder, template, file name, and generated title rules
+
+Values inside one condition group use OR. For example, folders `Events` and `Holidays` mean `Events OR Holidays`. Different configured groups use the profile's `all` or `any` mode. A profile with no source conditions does not scan the entire vault unless **Match start property only** is enabled.
+
+## Event properties
+
+The default Event profile uses:
+
+| Purpose | Property |
+|---|---|
+| Start date | `calendar-event-start` |
+| Inclusive end date | `calendar-event-end` |
+| Title | `calendar-event-title` |
+| Type | `calendar-event-type` |
+| Icon | `calendar-event-icon` |
+| Background color | `calendar-event-color` |
+| Text color | `calendar-event-text-color` |
+| Completed | `calendar-event-completed` |
+
+Example:
+
+```yaml
+---
+calendar-event-start: 2026-08-09
+calendar-event-end: 2026-08-11
+calendar-event-title: Summer break
+calendar-event-type: "[[Holiday]]"
+calendar-event-icon: sun
+calendar-event-color: var(--color-yellow)
+calendar-event-text-color: var(--text-normal)
+---
 ```
 
-If you have multiple URLs, you can also do:
+The end date is inclusive. Missing end dates create a single-day event. Invalid dates and ranges are excluded without changing the note.
 
-```json
-{
-	"fundingUrl": {
-		"Buy Me a Coffee": "https://buymeacoffee.com",
-		"GitHub Sponsor": "https://github.com/sponsors",
-		"Patreon": "https://www.patreon.com/"
-	}
-}
-```
+## Property mapping
 
-## API Documentation
+Each Source Profile and each Bases Calendar view maps its own properties. Bases property selectors include note, formula, and file properties exposed by the current Base. Sidebar folder and property fields provide suggestions from folders and MetadataCache without reading every Markdown file body.
 
-See https://docs.obsidian.md
+## Event creation
+
+Run **Calendar Note View: Create event**, use a calendar date's plus button, or use its context menu. Choose an enabled Source Profile, enter a title and date range, then review the generated file path and properties before creating the note.
+
+The creation service supports nested folders, frontmatter property mapping, note templates, safe file names, and automatic suffixes when a file name already exists.
+
+## Template variables
+
+File name, generated title, and note templates can use:
+
+- `{title}`
+- `{start}`
+- `{end}`
+- `{date-range}`
+- `{type}`
+- `{icon}`
+- `{profile}`
+
+Single-day `{date-range}` values use one date. Multi-day values include both the inclusive start and end dates.
+
+## Time zone and date formats
+
+**Time zone** can use System, UTC, or a validated custom IANA time zone such as `Asia/Taipei`. It affects Today highlighting and the default date in event creation. It never shifts a date-only event to another calendar date.
+
+**Display date format** controls dates in the interface, tooltips, previews, and confirmation text.
+
+**Event property date format** strictly parses and writes event properties. Internally, every calendar date remains `YYYY-MM-DD`.
+
+Daily Note file names continue to use the Core Daily Notes format.
+
+## Style Settings
+
+Calendar Note View works without the Style Settings plugin. If Style Settings is installed, open its **Calendar Note View** section to customize General, Sidebar Calendar, Bases Calendar, Date Cell, Today, Weekend, Event, Task, Daily Note, and Navigation variables.
+
+Styles prefer Calendar Note View variables, then Obsidian theme variables. This keeps the plugin compatible with light, dark, and custom themes.
+
+## Diagnostics
+
+Run **Calendar Note View: Open calendar diagnostics** to inspect indexed note issues. The dialog shows the diagnostic code, message, file, and Source Profile. Select a file to open it.
+
+## Mobile
+
+The Sidebar Calendar, Bases Calendar, date actions, event actions, and Create Event dialog use responsive layouts and public Obsidian APIs. No desktop-only Node or Electron APIs are used.
+
+## Known limitations
+
+- Version 0.1.0 provides month views only; it does not include year, week, day, or hour timelines.
+- Recurring events, reminders, external calendar sync, drag-and-drop, and event resizing are not included.
+- Tasks are property-backed notes. Markdown checkbox parsing and Tasks plugin parsing are not included.
+- Daily Notes integration uses `obsidian-daily-notes-interface` as a compatibility layer around the Core Daily Notes plugin.
+- Formula values in Bases must render to a value compatible with the configured strict event property date format.
+
+## Privacy
+
+Calendar Note View runs locally in Obsidian. It does not send vault contents, file names, settings, or usage data to external services, and it includes no telemetry or network requests.
+
+## AI development disclosure
+
+This plugin was developed with significant AI assistance. The project owner directed the design, requirements, review, and release decisions. AI-assisted changes were validated with TypeScript type checking, ESLint, automated tests, production builds, and project-owner review.
+
+## License
+
+[0BSD](LICENSE)

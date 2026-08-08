@@ -1,6 +1,8 @@
 import { Plugin, type WorkspaceLeaf } from 'obsidian';
+import { CalendarBasesView, CALENDAR_BASES_VIEW_TYPE, getBasesCalendarOptions } from './bases-view';
 import { CreateEventModal } from './create-event-modal';
 import { DailyNoteService } from './daily-notes';
+import { CalendarDiagnosticsModal } from './diagnostics-modal';
 import { CalendarDiagnosticsService } from './diagnostics';
 import { EventNoteCreationService } from './event-creation';
 import { CalendarIndexService } from './index-service';
@@ -32,6 +34,12 @@ export default class CalendarNoteViewPlugin extends Plugin {
 
 		this.addSettingTab(new CalendarNoteSettingTab(this.app, this));
 		this.registerView(CALENDAR_SIDEBAR_VIEW_TYPE, (leaf) => new CalendarSidebarView(leaf, this));
+		this.registerBasesView(CALENDAR_BASES_VIEW_TYPE, {
+			name: 'Calendar',
+			icon: 'calendar-days',
+			factory: (controller, containerEl) => new CalendarBasesView(controller, containerEl, this),
+			options: getBasesCalendarOptions,
+		});
 		this.addRibbonIcon('calendar-days', 'Open calendar note view', () => { void this.activateSidebar(); });
 		this.addCommand({
 			id: 'open-sidebar-calendar',
@@ -42,6 +50,11 @@ export default class CalendarNoteViewPlugin extends Plugin {
 			id: 'create-event',
 			name: 'Create event',
 			callback: () => new CreateEventModal(this, this.eventCreation).open(),
+		});
+		this.addCommand({
+			id: 'open-calendar-diagnostics',
+			name: 'Open calendar diagnostics',
+			callback: () => new CalendarDiagnosticsModal(this).open(),
 		});
 		this.app.workspace.onLayoutReady(() => {
 			void this.index.initialize();

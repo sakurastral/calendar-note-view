@@ -94,7 +94,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				heading: 'Diagnostics',
 				items: [{
 					name: 'Current index diagnostics',
-					desc: `${this.plugin.diagnostics.getAll().length} issues recorded. A detailed diagnostics view is planned for Stage 3.`,
+					desc: `${this.plugin.diagnostics.getAll().length} issues recorded. Use the “Open calendar diagnostics” command to inspect them.`,
 				}],
 			},
 		];
