@@ -89,6 +89,50 @@ export function getTodayCanonical(timeZone: CalendarTimeZone, now = new Date()):
 	return `${value('year')}-${value('month')}-${value('day')}`;
 }
 
+export function getCalendarDateParts(canonicalDate: string): { year: number; month: number; day: number } {
+	if (!isCanonicalDate(canonicalDate)) throw new TypeError('Expected a canonical calendar date.');
+	const [year, month, day] = canonicalDate.split('-').map(Number);
+	return { year: year ?? 0, month: month ?? 0, day: day ?? 0 };
+}
+
+export function canonicalDateFromParts(year: number, month: number, day: number): string {
+	const value = toCanonicalParts(year, month, day);
+	if (!isCanonicalDate(value)) throw new TypeError('Expected valid calendar date parts.');
+	return value;
+}
+
+export function addCalendarDays(canonicalDate: string, amount: number): string {
+	if (!Number.isInteger(amount)) throw new TypeError('Expected an integer day offset.');
+	let { year, month, day } = getCalendarDateParts(canonicalDate);
+	const direction = Math.sign(amount);
+	for (let remaining = Math.abs(amount); remaining > 0; remaining -= 1) {
+		day += direction;
+		if (day > daysInMonth(year, month)) {
+			day = 1;
+			month += 1;
+			if (month > 12) {
+				month = 1;
+				year += 1;
+			}
+		} else if (day < 1) {
+			month -= 1;
+			if (month < 1) {
+				month = 12;
+				year -= 1;
+			}
+			day = daysInMonth(year, month);
+		}
+	}
+	return canonicalDateFromParts(year, month, day);
+}
+
+export function weekdayForCalendarDate(canonicalDate: string): number {
+	let { year, month, day } = getCalendarDateParts(canonicalDate);
+	const offsets = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+	if (month < 3) year -= 1;
+	return (year + Math.floor(year / 4) - Math.floor(year / 100) + Math.floor(year / 400) + (offsets[month - 1] ?? 0) + day) % 7;
+}
+
 function toCanonicalParts(year: number, month: number, day: number): string {
 	return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }

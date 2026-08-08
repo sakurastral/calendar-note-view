@@ -10,6 +10,9 @@ describe('settings infrastructure', () => {
 		});
 		expect(result.migrated).toBe(true);
 		expect(result.settings.displayDateFormat).toBe('DD/MM/YYYY');
+		expect(result.settings.schemaVersion).toBe(2);
+		expect(result.settings.weekendDays).toEqual([0, 6]);
+		expect(result.settings.confirmBeforeCreatingDailyNote).toBe(true);
 		expect(result.settings.sourceProfiles[0]).toMatchObject({ id: 'events', startProperty: 'start', folders: ['Events'] });
 	});
 
@@ -25,6 +28,7 @@ describe('settings infrastructure', () => {
 		expect(result.settings.firstDayOfWeek).toBe(0);
 		expect(result.settings.timeZone).toEqual({ mode: 'system' });
 		expect(result.settings.displayDateFormat).toBe('YYYY-MM-DD');
+		expect(result.settings.maxIndicatorsPerDay).toBe(3);
 		expect(result.settings.sourceProfiles).toEqual([]);
 		expect(result.warnings.length).toBeGreaterThan(0);
 	});

@@ -30,6 +30,22 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 						key: 'firstDayOfWeek',
 						options: { '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday' },
 					},
+				}, {
+					name: 'Weekend days',
+					desc: 'Comma-separated weekday numbers: Sunday is 0 and Saturday is 6.',
+					control: { type: 'text', key: 'weekendDays', placeholder: '0, 6', validate: validateWeekendDays },
+				}, {
+					name: 'Confirm before creating daily note',
+					desc: 'Ask before a missing daily note is created from the calendar.',
+					control: { type: 'toggle', key: 'confirmBeforeCreatingDailyNote' },
+				}, {
+					name: 'Sidebar indicators',
+					desc: 'Show event colors as dots or display event icons.',
+					control: { type: 'dropdown', key: 'sidebarIndicatorMode', options: { dots: 'Colored dots', icons: 'Icon badges' } },
+				}, {
+					name: 'Maximum indicators per date',
+					desc: 'Additional events are summarized as +N.',
+					control: { type: 'slider', key: 'maxIndicatorsPerDay', min: 1, max: 8, step: 1 },
 				}],
 			},
 			{
@@ -87,6 +103,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	getControlValue(key: string): unknown {
 		switch (key) {
 			case 'firstDayOfWeek': return String(this.plugin.settings.firstDayOfWeek);
+			case 'weekendDays': return this.plugin.settings.weekendDays.join(', ');
+			case 'confirmBeforeCreatingDailyNote': return this.plugin.settings.confirmBeforeCreatingDailyNote;
+			case 'sidebarIndicatorMode': return this.plugin.settings.sidebarIndicatorMode;
+			case 'maxIndicatorsPerDay': return this.plugin.settings.maxIndicatorsPerDay;
 			case 'timeZoneMode': return this.plugin.settings.timeZone.mode;
 			case 'customTimeZone': return this.plugin.settings.timeZone.mode === 'custom' ? this.plugin.settings.timeZone.timeZone : 'Asia/Taipei';
 			case 'displayDateFormat': return this.plugin.settings.displayDateFormat;
@@ -100,6 +120,20 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		switch (key) {
 			case 'firstDayOfWeek':
 				this.plugin.settings.firstDayOfWeek = Number(value);
+				break;
+			case 'weekendDays': {
+				if (typeof value !== 'string' || validateWeekendDays(value)) return;
+				this.plugin.settings.weekendDays = parseWeekendDays(value);
+				break;
+			}
+			case 'confirmBeforeCreatingDailyNote':
+				this.plugin.settings.confirmBeforeCreatingDailyNote = value === true;
+				break;
+			case 'sidebarIndicatorMode':
+				this.plugin.settings.sidebarIndicatorMode = value === 'icons' ? 'icons' : 'dots';
+				break;
+			case 'maxIndicatorsPerDay':
+				this.plugin.settings.maxIndicatorsPerDay = Math.min(8, Math.max(1, Number(value)));
 				break;
 			case 'timeZoneMode':
 				this.plugin.settings.timeZone = value === 'utc'
@@ -182,10 +216,19 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				],
 			}, {
 				type: 'group',
-				heading: 'Defaults',
+				heading: 'Defaults & event creation',
 				items: [
+					this.profileToggle(profile, 'Allow event creation', 'Make this profile available in the Create Event modal.', 'allowCreate'),
+					this.profileText(profile, 'Default type', 'Initial type used by event creation.', 'defaultType'),
 					this.profileText(profile, 'Default icon', 'Used when the note has no icon override.', 'defaultIcon'),
-					this.profileText(profile, 'Create folder', 'Reused by event creation in Stage 2.', 'createFolder', 'folder'),
+					this.profileText(profile, 'Default background color', 'Initial background color used by event creation.', 'defaultBackgroundColor'),
+					this.profileText(profile, 'Default text color', 'Initial text color used by event creation.', 'defaultTextColor'),
+					this.profileText(profile, 'Create folder', 'Folder used for newly created event notes.', 'createFolder', 'folder'),
+					this.profileText(profile, 'Note template path', 'Optional Markdown template used for new event notes.', 'noteTemplatePath'),
+					this.profileText(profile, 'File name template', 'Supports event template variables.', 'fileNameTemplate'),
+					this.profileText(profile, 'Generated title property', 'Property that receives the generated title.', 'generatedTitleProperty', 'property'),
+					this.profileText(profile, 'Generated title template', 'Supports event template variables.', 'generatedTitleTemplate'),
+					this.profileText(profile, 'Title date format', 'Date format used by title and filename variables.', 'titleDateFormat'),
 				],
 			}],
 		};
@@ -379,14 +422,33 @@ type ProfileStringKey =
 	| 'colorProperty'
 	| 'textColorProperty'
 	| 'completedProperty'
+	| 'defaultType'
 	| 'defaultIcon'
-	| 'createFolder';
+	| 'defaultBackgroundColor'
+	| 'defaultTextColor'
+	| 'createFolder'
+	| 'noteTemplatePath'
+	| 'fileNameTemplate'
+	| 'generatedTitleProperty'
+	| 'generatedTitleTemplate'
+	| 'titleDateFormat';
 
-type ProfileBooleanKey = 'enabled' | 'matchFilesWithStartPropertyOnly';
+type ProfileBooleanKey = 'enabled' | 'matchFilesWithStartPropertyOnly' | 'allowCreate';
 type RuleStringKey = 'typeValue' | 'icon' | 'backgroundColor' | 'textColor';
 
 function validateDateFormat(value: string): string | undefined {
 	return isSupportedDateFormat(value) ? undefined : 'The format must contain YYYY, MM, and DD exactly once.';
+}
+
+function validateWeekendDays(value: string): string | undefined {
+	const parts = value.split(',').map((entry) => entry.trim()).filter(Boolean);
+	return parts.length > 0 && parts.every((entry) => /^[0-6]$/.test(entry))
+		? undefined
+		: 'Enter one or more weekday numbers from 0 through 6.';
+}
+
+function parseWeekendDays(value: string): number[] {
+	return [...new Set(value.split(',').map((entry) => Number(entry.trim())))].sort((left, right) => left - right);
 }
 
 function createId(prefix: string): string {

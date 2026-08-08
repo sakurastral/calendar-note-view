@@ -1,9 +1,13 @@
-import { Plugin } from 'obsidian';
+import { Plugin, type WorkspaceLeaf } from 'obsidian';
+import { CreateEventModal } from './create-event-modal';
+import { DailyNoteService } from './daily-notes';
 import { CalendarDiagnosticsService } from './diagnostics';
+import { EventNoteCreationService } from './event-creation';
 import { CalendarIndexService } from './index-service';
 import type { CalendarSettings } from './models';
 import { loadCalendarSettings } from './settings-data';
 import { CalendarNoteSettingTab } from './settings';
+import { CALENDAR_SIDEBAR_VIEW_TYPE, CalendarSidebarView } from './sidebar-view';
 import { CalendarSuggestionProvider } from './suggestions';
 
 export default class CalendarNoteViewPlugin extends Plugin {
@@ -11,6 +15,8 @@ export default class CalendarNoteViewPlugin extends Plugin {
 	diagnostics!: CalendarDiagnosticsService;
 	index!: CalendarIndexService;
 	suggestions!: CalendarSuggestionProvider;
+	dailyNotes!: DailyNoteService;
+	eventCreation!: EventNoteCreationService;
 
 	async onload(): Promise<void> {
 		const loaded = loadCalendarSettings(await this.loadData());
@@ -21,8 +27,22 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		this.suggestions = new CalendarSuggestionProvider(this.app);
 		this.suggestions.initialize();
 		this.index = new CalendarIndexService(this.app, () => this.settings, this.diagnostics);
+		this.dailyNotes = new DailyNoteService(this.app, () => this.settings.confirmBeforeCreatingDailyNote);
+		this.eventCreation = new EventNoteCreationService(this.app, () => this.settings, this.index);
 
 		this.addSettingTab(new CalendarNoteSettingTab(this.app, this));
+		this.registerView(CALENDAR_SIDEBAR_VIEW_TYPE, (leaf) => new CalendarSidebarView(leaf, this));
+		this.addRibbonIcon('calendar-days', 'Open calendar note view', () => { void this.activateSidebar(); });
+		this.addCommand({
+			id: 'open-sidebar-calendar',
+			name: 'Open sidebar calendar',
+			callback: () => { void this.activateSidebar(); },
+		});
+		this.addCommand({
+			id: 'create-event',
+			name: 'Create event',
+			callback: () => new CreateEventModal(this, this.eventCreation).open(),
+		});
 		this.app.workspace.onLayoutReady(() => {
 			void this.index.initialize();
 		});
@@ -36,5 +56,18 @@ export default class CalendarNoteViewPlugin extends Plugin {
 	async saveSettings(previous: CalendarSettings): Promise<void> {
 		await this.saveData(this.settings);
 		await this.index.handleSettingsChanged(previous, this.settings);
+		for (const leaf of this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)) {
+			if (leaf.view instanceof CalendarSidebarView) leaf.view.renderCalendar();
+		}
+	}
+
+	async activateSidebar(): Promise<void> {
+		let leaf: WorkspaceLeaf | null = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)[0] ?? null;
+		if (!leaf) {
+			leaf = this.app.workspace.getRightLeaf(false);
+			if (!leaf) return;
+			await leaf.setViewState({ type: CALENDAR_SIDEBAR_VIEW_TYPE, active: true });
+		}
+		await this.app.workspace.revealLeaf(leaf);
 	}
 }

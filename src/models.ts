@@ -62,11 +62,15 @@ export type CalendarTimeZone =
 	| { mode: 'custom'; timeZone: string };
 
 export interface CalendarSettings {
-	schemaVersion: 1;
+	schemaVersion: 2;
 	firstDayOfWeek: number;
+	weekendDays: number[];
 	timeZone: CalendarTimeZone;
 	displayDateFormat: string;
 	eventPropertyDateFormat: string;
+	confirmBeforeCreatingDailyNote: boolean;
+	sidebarIndicatorMode: 'icons' | 'dots';
+	maxIndicatorsPerDay: number;
 	sourceProfiles: CalendarSourceProfile[];
 	typeStyleRules: CalendarTypeStyleRule[];
 }

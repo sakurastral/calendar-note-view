@@ -35,11 +35,15 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 };
 
 export const DEFAULT_SETTINGS: CalendarSettings = {
-	schemaVersion: 1,
+	schemaVersion: 2,
 	firstDayOfWeek: 0,
+	weekendDays: [0, 6],
 	timeZone: { mode: 'system' },
 	displayDateFormat: 'YYYY-MM-DD',
 	eventPropertyDateFormat: 'YYYY-MM-DD',
+	confirmBeforeCreatingDailyNote: true,
+	sidebarIndicatorMode: 'dots',
+	maxIndicatorsPerDay: 3,
 	sourceProfiles: [DEFAULT_EVENT_PROFILE],
 	typeStyleRules: [],
 };
@@ -68,17 +72,21 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		? Number(raw.firstDayOfWeek)
 		: DEFAULT_SETTINGS.firstDayOfWeek;
 	const settings: CalendarSettings = {
-		schemaVersion: 1,
+		schemaVersion: 2,
 		firstDayOfWeek,
+		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
 		timeZone: normalizeTimeZone(raw.timeZone, warnings),
 		displayDateFormat,
 		eventPropertyDateFormat,
+		confirmBeforeCreatingDailyNote: boolean(raw.confirmBeforeCreatingDailyNote, true),
+		sidebarIndicatorMode: raw.sidebarIndicatorMode === 'icons' ? 'icons' : 'dots',
+		maxIndicatorsPerDay: integerInRange(raw.maxIndicatorsPerDay, 1, 8, DEFAULT_SETTINGS.maxIndicatorsPerDay),
 		sourceProfiles,
 		typeStyleRules,
 	};
 	return {
 		settings,
-		migrated: raw.schemaVersion !== 1 || JSON.stringify(settings) !== JSON.stringify(raw),
+		migrated: raw.schemaVersion !== 2 || JSON.stringify(settings) !== JSON.stringify(raw),
 		warnings,
 	};
 }
@@ -177,6 +185,17 @@ function stringArray(value: unknown): string[] {
 
 function boolean(value: unknown, fallback: boolean): boolean {
 	return typeof value === 'boolean' ? value : fallback;
+}
+
+function integerInRange(value: unknown, minimum: number, maximum: number, fallback: number): number {
+	return Number.isInteger(value) && Number(value) >= minimum && Number(value) <= maximum ? Number(value) : fallback;
+}
+
+function weekdayArray(value: unknown, fallback: number[]): number[] {
+	if (!Array.isArray(value)) return [...fallback];
+	const result = [...new Set(value.filter((entry): entry is number =>
+		Number.isInteger(entry) && entry >= 0 && entry <= 6))].sort((left, right) => left - right);
+	return result.length > 0 ? result : [...fallback];
 }
 
 function isDefined<T>(value: T | undefined): value is T {
