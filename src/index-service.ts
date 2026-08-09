@@ -158,6 +158,16 @@ export class CalendarIndexService {
 	}
 
 	private addProfileDiagnostic(profile: CalendarSourceProfile): void {
+		if (profile.enabled && !profile.startProperty.trim()) {
+			this.diagnostics.replaceForFileAndProfile('', profile.id, [createDiagnostic({
+				code: 'missing-start-property',
+				severity: 'warning',
+				message: 'Choose a start property before enabling this source profile.',
+				filePath: '',
+				sourceProfileId: profile.id,
+			})]);
+			return;
+		}
 		if (!profile.enabled || hasSourceConditions(profile) || profile.matchFilesWithStartPropertyOnly) return;
 		this.diagnostics.replaceForFileAndProfile('', profile.id, [createDiagnostic({
 			code: 'empty-source-profile',

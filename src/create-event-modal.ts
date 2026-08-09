@@ -14,7 +14,7 @@ export class CreateEventModal extends Modal {
 		initialDate = getTodayCanonical(plugin.settings.timeZone),
 	) {
 		super(plugin.app);
-		const profile = plugin.settings.sourceProfiles.find((candidate) => candidate.enabled && candidate.allowCreate);
+		const profile = plugin.settings.sourceProfiles.find((candidate) => candidate.enabled && candidate.allowCreate && candidate.startProperty.trim());
 		this.input = {
 			profileId: profile?.id ?? '',
 			title: '',
@@ -31,7 +31,7 @@ export class CreateEventModal extends Modal {
 	onOpen(): void {
 		this.setTitle('Create event');
 		this.modalEl.addClass('calendar-note-create-modal');
-		const profiles = this.plugin.settings.sourceProfiles.filter((profile) => profile.enabled && profile.allowCreate);
+		const profiles = this.plugin.settings.sourceProfiles.filter((profile) => profile.enabled && profile.allowCreate && profile.startProperty.trim());
 		if (profiles.length === 0) {
 			this.contentEl.createEl('p', { text: 'No enabled source profile allows event creation.' });
 			return;

@@ -61,7 +61,7 @@ export class EventNoteCreationService {
 
 	private validate(input: CreateEventInput): ValidatedEventInput {
 		const profile = this.getSettings().sourceProfiles.find((candidate) =>
-			candidate.id === input.profileId && candidate.enabled && candidate.allowCreate);
+			candidate.id === input.profileId && candidate.enabled && candidate.allowCreate && candidate.startProperty.trim());
 		if (!profile) throw new Error('Choose a source profile that allows event creation.');
 		const title = input.title.trim();
 		if (!title) throw new Error('Event title is required.');
@@ -77,7 +77,7 @@ export class EventNoteCreationService {
 			startDate: input.startDate,
 			endDate,
 			writeEndDate: Boolean(input.endDate?.trim()),
-			values: { title, startDate: input.startDate, endDate, type: input.type, profile },
+			values: { title, startDate: input.startDate, endDate, type: input.type, icon: input.icon, profile },
 			input,
 		};
 	}

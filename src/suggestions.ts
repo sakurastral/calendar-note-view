@@ -4,6 +4,7 @@ import { rankSuggestions } from './suggestion-ranking';
 export class CalendarSuggestionProvider {
 	private folders: string[] = [];
 	private properties: string[] = [];
+	private wikiLinks: string[] = [];
 	private refs: Array<{ owner: 'vault' | 'metadata'; ref: EventRef }> = [];
 
 	constructor(private readonly app: App) {}
@@ -11,10 +12,11 @@ export class CalendarSuggestionProvider {
 	initialize(): void {
 		this.refreshFolders();
 		this.refreshProperties();
+		this.refreshWikiLinks();
 		this.refs.push(
-			{ owner: 'vault', ref: this.app.vault.on('create', () => this.refreshFolders()) },
-			{ owner: 'vault', ref: this.app.vault.on('delete', () => this.refreshFolders()) },
-			{ owner: 'vault', ref: this.app.vault.on('rename', () => this.refreshFolders()) },
+			{ owner: 'vault', ref: this.app.vault.on('create', () => this.refreshVaultSuggestions()) },
+			{ owner: 'vault', ref: this.app.vault.on('delete', () => this.refreshVaultSuggestions()) },
+			{ owner: 'vault', ref: this.app.vault.on('rename', () => this.refreshVaultSuggestions()) },
 			{ owner: 'metadata', ref: this.app.metadataCache.on('changed', () => this.refreshProperties()) },
 		);
 	}
@@ -35,6 +37,16 @@ export class CalendarSuggestionProvider {
 		return rankSuggestions(query, this.properties);
 	}
 
+	getWikiLinkSuggestions(query: string): string[] {
+		const normalized = query.replace(/^\[\[/, '').replace(/\]\]$/, '').trim();
+		return rankSuggestions(normalized, this.wikiLinks);
+	}
+
+	private refreshVaultSuggestions(): void {
+		this.refreshFolders();
+		this.refreshWikiLinks();
+	}
+
 	refreshFolders(): void {
 		this.folders = this.app.vault.getAllLoadedFiles()
 			.filter((file): file is TFolder => file instanceof TFolder && file.path.length > 0)
@@ -53,6 +65,12 @@ export class CalendarSuggestionProvider {
 		}
 		this.properties = [...properties].sort((left, right) => left.localeCompare(right));
 	}
+
+	refreshWikiLinks(): void {
+		this.wikiLinks = this.app.vault.getMarkdownFiles()
+			.map((file) => `[[${file.path.replace(/\.md$/i, '')}]]`)
+			.sort((left, right) => left.localeCompare(right));
+	}
 }
 
 export class CalendarInputSuggest extends AbstractInputSuggest<string> {
@@ -60,6 +78,7 @@ export class CalendarInputSuggest extends AbstractInputSuggest<string> {
 		app: App,
 		input: HTMLInputElement,
 		private readonly getValues: (query: string) => string[],
+		private readonly applySelection: (value: string, inputValue: string) => string = (value) => value,
 	) {
 		super(app, input);
 		this.limit = 50;
@@ -74,7 +93,7 @@ export class CalendarInputSuggest extends AbstractInputSuggest<string> {
 	}
 
 	selectSuggestion(value: string): void {
-		this.setValue(value);
+		this.setValue(this.applySelection(value, this.getValue()));
 		this.close();
 	}
 }

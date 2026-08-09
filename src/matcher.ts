@@ -4,7 +4,7 @@ import { normalizeWikiLinkTarget } from './value-normalizers';
 export function hasSourceConditions(profile: CalendarSourceProfile): boolean {
 	return normalizedList(profile.folders).length > 0 ||
 		normalizedTags(profile.tags).length > 0 ||
-		(Boolean(profile.wikiLinkProperty?.trim()) && normalizedList(profile.wikiLinkTargets).length > 0);
+		normalizedWikiLinks(profile.wikiLinks).length > 0;
 }
 
 export function matchesSourceProfile(
@@ -26,16 +26,10 @@ export function matchesSourceProfile(
 		checks.push(expectedTags.some((tag) => actualTags.has(tag)));
 	}
 
-	const targets = normalizedList(profile.wikiLinkTargets)
-		.map(normalizeWikiLinkTarget)
-		.filter((target): target is string => target !== null);
-	const property = profile.wikiLinkProperty?.trim();
-	if (property && targets.length > 0) {
-		const raw = metadata.frontmatter[property];
-		const actual = (Array.isArray(raw) ? raw : [raw])
-			.map(normalizeWikiLinkTarget)
-			.filter((target): target is string => target !== null);
-		checks.push(targets.some((target) => actual.includes(target)));
+	const expectedWikiLinks = normalizedWikiLinks(profile.wikiLinks);
+	if (expectedWikiLinks.length > 0) {
+		const actualWikiLinks = collectWikiLinks(metadata);
+		checks.push(expectedWikiLinks.some((target) => actualWikiLinks.has(target)));
 	}
 
 	if (checks.length === 0) return profile.matchFilesWithStartPropertyOnly === true;
@@ -74,6 +68,19 @@ function normalizedList(values: string[]): string[] {
 
 function normalizedTags(values: string[]): string[] {
 	return values.map(normalizeTag).filter((tag): tag is string => tag !== null);
+}
+
+function normalizedWikiLinks(values: string[]): string[] {
+	return values.map(normalizeWikiLinkTarget).filter((target): target is string => target !== null);
+}
+
+function collectWikiLinks(metadata: CalendarMetadata): Set<string> {
+	const links = new Set<string>();
+	for (const reference of [...metadata.links ?? [], ...metadata.frontmatterLinks ?? []]) {
+		const target = normalizeWikiLinkTarget(reference.link);
+		if (target) links.add(target);
+	}
+	return links;
 }
 
 function normalizeTag(value: unknown): string | null {

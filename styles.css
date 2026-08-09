@@ -15,11 +15,29 @@ settings:
     max: 24
     step: 1
     format: px
+  - id: calendar-note-calendar-text
+    title: Calendar text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#2e3338'
+    default-dark: '#dcddde'
   - id: calendar-note-sidebar-heading
     title: Sidebar Calendar
     type: heading
     level: 1
     collapsed: true
+  - id: calendar-note-sidebar-bg
+    title: Background color
+    type: variable-themed-color
+    format: hex
+    default-light: '#f5f6f8'
+    default-dark: '#202020'
+  - id: calendar-note-sidebar-weekday-text
+    title: Weekday text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#6b7280'
+    default-dark: '#a1a1aa'
   - id: calendar-note-sidebar-header-height
     title: Header height
     type: variable-number-slider
@@ -54,6 +72,19 @@ settings:
     max: 64
     step: 1
     format: px
+  - id: calendar-note-bases-header-bg
+    title: Background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+    default-light: '#00000000'
+    default-dark: '#00000000'
+  - id: calendar-note-bases-header-text
+    title: Text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#2e3338'
+    default-dark: '#dcddde'
   - id: calendar-note-bases-weekday-heading
     title: Weekday Header
     type: heading
@@ -64,6 +95,14 @@ settings:
     type: variable-themed-color
     format: hex
     opacity: true
+    default-light: '#f5f6f8ff'
+    default-dark: '#262626ff'
+  - id: calendar-note-bases-weekday-text
+    title: Text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#6b7280'
+    default-dark: '#a1a1aa'
   - id: calendar-note-bases-date-cell-heading
     title: Date Cell
     type: heading
@@ -77,11 +116,20 @@ settings:
     max: 180
     step: 4
     format: px
+  - id: calendar-note-bases-cell-bg
+    title: Background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+    default-light: '#ffffffff'
+    default-dark: '#1e1e1eff'
   - id: calendar-note-bases-cell-border
     title: Border color
     type: variable-themed-color
     format: hex
     opacity: true
+    default-light: '#dcdddeff'
+    default-dark: '#404040ff'
   - id: calendar-note-bases-multiday-heading
     title: Multi-day Bar
     type: heading
@@ -112,11 +160,46 @@ settings:
     title: Text color
     type: variable-themed-color
     format: hex
+    default-light: '#6b7280'
+    default-dark: '#a1a1aa'
   - id: calendar-note-date-cell-heading
     title: Date Cell
     type: heading
     level: 1
     collapsed: true
+  - id: calendar-note-date-cell-bg
+    title: Background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+    default-light: '#00000000'
+    default-dark: '#00000000'
+  - id: calendar-note-date-text
+    title: Text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#2e3338'
+    default-dark: '#dcddde'
+  - id: calendar-note-date-hover-bg
+    title: Hover background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+    default-light: '#e9e9e9ff'
+    default-dark: '#2a2a2aff'
+  - id: calendar-note-adjacent-bg
+    title: Adjacent month background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+    default-light: '#f8f8f8ff'
+    default-dark: '#242424ff'
+  - id: calendar-note-adjacent-text
+    title: Adjacent month text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#9a9a9a'
+    default-dark: '#777777'
   - id: calendar-note-date-size
     title: Date size
     type: variable-number-slider
@@ -143,10 +226,14 @@ settings:
     type: variable-themed-color
     format: hex
     opacity: true
+    default-light: '#e6f0ffff'
+    default-dark: '#253b5aff'
   - id: calendar-note-today-text
     title: Text color
     type: variable-themed-color
     format: hex
+    default-light: '#1f2937'
+    default-dark: '#f3f4f6'
   - id: calendar-note-weekend-heading
     title: Weekend
     type: heading
@@ -157,15 +244,32 @@ settings:
     type: variable-themed-color
     format: hex
     opacity: true
+    default-light: '#00000000'
+    default-dark: '#00000000'
   - id: calendar-note-weekend-text
     title: Text color
     type: variable-themed-color
     format: hex
+    default-light: '#6b7280'
+    default-dark: '#a1a1aa'
   - id: calendar-note-event-heading
     title: Event
     type: heading
     level: 1
     collapsed: true
+  - id: calendar-note-event-bg
+    title: Background color
+    type: variable-themed-color
+    format: hex
+    opacity: true
+    default-light: '#e9e9e9ff'
+    default-dark: '#363636ff'
+  - id: calendar-note-event-text
+    title: Text color
+    type: variable-themed-color
+    format: hex
+    default-light: '#222222'
+    default-dark: '#dadada'
   - id: calendar-note-dot-size
     title: Dot size
     type: variable-number-slider
@@ -208,10 +312,14 @@ settings:
     type: variable-themed-color
     format: hex
     opacity: true
+    default-light: '#e9e9e9ff'
+    default-dark: '#363636ff'
   - id: calendar-note-task-text
     title: Text color
     type: variable-themed-color
     format: hex
+    default-light: '#222222'
+    default-dark: '#dadada'
   - id: calendar-note-daily-note-heading
     title: Daily Note
     type: heading
@@ -221,11 +329,19 @@ settings:
     title: Indicator color
     type: variable-themed-color
     format: hex
+    default-light: '#7c3aed'
+    default-dark: '#a78bfa'
   - id: calendar-note-navigation-heading
     title: Navigation
     type: heading
     level: 1
     collapsed: true
+  - id: calendar-note-navigation-text
+    title: Icon color
+    type: variable-themed-color
+    format: hex
+    default-light: '#5f6368'
+    default-dark: '#b6b6b6'
   - id: calendar-note-navigation-icon-size
     title: Icon size
     type: variable-number-slider
@@ -238,15 +354,27 @@ settings:
 
 body {
 	--calendar-note-font-size: var(--font-ui-small);
+	--calendar-note-calendar-text: var(--text-normal);
+	--calendar-note-sidebar-bg: var(--background-secondary);
+	--calendar-note-sidebar-weekday-text: var(--text-muted);
 	--calendar-note-sidebar-header-height: var(--input-height);
 	--calendar-note-sidebar-cell-gap: var(--size-2-1);
 	--calendar-note-bases-header-height: var(--input-height);
+	--calendar-note-bases-header-bg: transparent;
+	--calendar-note-bases-header-text: var(--text-normal);
 	--calendar-note-bases-weekday-bg: var(--background-secondary);
+	--calendar-note-bases-weekday-text: var(--text-muted);
 	--calendar-note-bases-cell-min-height: 88px;
+	--calendar-note-bases-cell-bg: var(--background-primary);
 	--calendar-note-bases-cell-border: var(--background-modifier-border);
 	--calendar-note-bases-event-height: 22px;
 	--calendar-note-bases-event-gap: var(--size-2-1);
 	--calendar-note-bases-more-text: var(--text-muted);
+	--calendar-note-date-cell-bg: transparent;
+	--calendar-note-date-text: var(--text-normal);
+	--calendar-note-date-hover-bg: var(--background-modifier-hover);
+	--calendar-note-adjacent-bg: var(--background-primary-alt);
+	--calendar-note-adjacent-text: var(--text-faint);
 	--calendar-note-date-size: var(--font-ui-smaller);
 	--calendar-note-date-cell-radius: var(--radius-s);
 	--calendar-note-today-bg: var(--background-modifier-hover);
@@ -262,10 +390,13 @@ body {
 	--calendar-note-event-radius: var(--radius-s);
 	--calendar-note-task-opacity-completed: 60%;
 	--calendar-note-daily-note-indicator: var(--interactive-accent);
+	--calendar-note-navigation-text: var(--text-muted);
 	--calendar-note-navigation-icon-size: var(--icon-s);
 }
 
 .calendar-note-sidebar {
+	background: var(--calendar-note-sidebar-bg, var(--background-secondary));
+	color: var(--calendar-note-calendar-text, var(--text-normal));
 	font-size: var(--calendar-note-font-size, var(--font-ui-small));
 	padding: var(--size-4-2);
 }
@@ -280,6 +411,7 @@ body {
 
 .calendar-note-nav-button {
 	flex: 0 0 auto;
+	color: var(--calendar-note-navigation-text, var(--text-muted));
 }
 
 .calendar-note-nav-button svg {
@@ -320,7 +452,7 @@ body {
 }
 
 .calendar-note-weekday {
-	color: var(--text-muted);
+	color: var(--calendar-note-sidebar-weekday-text, var(--text-muted));
 	font-size: var(--font-ui-smaller);
 	font-weight: var(--font-semibold);
 	padding-block: var(--size-2-1);
@@ -344,15 +476,15 @@ body {
 	padding: var(--size-2-1);
 	border: 0;
 	border-radius: var(--calendar-note-date-cell-radius, var(--radius-s));
-	background: transparent;
-	color: var(--text-normal);
+	background: var(--calendar-note-date-cell-bg, transparent);
+	color: var(--calendar-note-date-text, var(--text-normal));
 	box-shadow: none;
 	cursor: pointer;
 }
 
 .calendar-note-date-button:hover,
 .calendar-note-date-button:focus-visible {
-	background: var(--background-modifier-hover);
+	background: var(--calendar-note-date-hover-bg, var(--background-modifier-hover));
 }
 
 .calendar-note-date-number {
@@ -361,7 +493,8 @@ body {
 }
 
 .calendar-note-date-cell.is-adjacent-month .calendar-note-date-button {
-	color: var(--text-faint);
+	background: var(--calendar-note-adjacent-bg, var(--background-primary-alt));
+	color: var(--calendar-note-adjacent-text, var(--text-faint));
 }
 
 .calendar-note-date-cell.is-weekend .calendar-note-date-button {
@@ -476,6 +609,8 @@ body {
 
 .calendar-note-bases {
 	min-width: 0;
+	background: var(--calendar-note-bases-cell-bg, var(--background-primary));
+	color: var(--calendar-note-calendar-text, var(--text-normal));
 	padding: var(--size-4-2);
 	overflow: auto;
 	font-size: var(--calendar-note-font-size, var(--font-ui-small));
@@ -488,6 +623,8 @@ body {
 	justify-content: center;
 	gap: var(--size-2-1);
 	margin-bottom: var(--size-4-2);
+	background: var(--calendar-note-bases-header-bg, transparent);
+	color: var(--calendar-note-bases-header-text, var(--text-normal));
 }
 
 .calendar-note-bases-picker {
@@ -515,6 +652,10 @@ body {
 	height: var(--calendar-note-navigation-icon-size, var(--icon-s));
 }
 
+.calendar-note-bases-nav {
+	color: var(--calendar-note-navigation-text, var(--text-muted));
+}
+
 .calendar-note-bases-weekdays,
 .calendar-note-bases-dates,
 .calendar-note-bases-events {
@@ -525,7 +666,7 @@ body {
 .calendar-note-bases-weekday {
 	padding: var(--size-2-2);
 	background: var(--calendar-note-bases-weekday-bg, var(--background-secondary));
-	color: var(--text-muted);
+	color: var(--calendar-note-bases-weekday-text, var(--text-muted));
 	font-size: var(--font-ui-smaller);
 	font-weight: var(--font-semibold);
 	text-align: center;
@@ -549,7 +690,8 @@ body {
 	min-width: 0;
 	border-top: var(--border-width) solid var(--calendar-note-bases-cell-border, var(--background-modifier-border));
 	border-left: var(--border-width) solid var(--calendar-note-bases-cell-border, var(--background-modifier-border));
-	background: var(--background-primary);
+	background: var(--calendar-note-bases-cell-bg, var(--background-primary));
+	color: var(--calendar-note-date-text, var(--text-normal));
 }
 
 .calendar-note-bases-date-cell:last-child {
@@ -561,8 +703,8 @@ body {
 }
 
 .calendar-note-bases-date-cell.is-adjacent-month {
-	background: var(--background-primary-alt);
-	color: var(--text-faint);
+	background: var(--calendar-note-adjacent-bg, var(--background-primary-alt));
+	color: var(--calendar-note-adjacent-text, var(--text-faint));
 }
 
 .calendar-note-bases-date-cell.is-hidden-adjacent {
@@ -597,7 +739,7 @@ body {
 
 .calendar-note-bases-date-number:hover,
 .calendar-note-bases-date-number:focus-visible {
-	background: var(--background-modifier-hover);
+	background: var(--calendar-note-date-hover-bg, var(--background-modifier-hover));
 }
 
 .calendar-note-bases-add {

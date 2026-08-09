@@ -10,7 +10,7 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 - Continuous multi-day bars with stable lanes across weeks
 - Daily Notes indicators, opening, and confirmed creation
 - Event creation from the command palette, calendar dates, and context menus
-- Source Profiles for folder, tag, wiki-link property, and start-property matching
+- Source Profiles for folder, tag, outgoing wiki-link, and start-property matching
 - Configurable property mapping and strict property date formats
 - Event type style rules and safe note-level color overrides
 - Time zone-aware Today highlighting without shifting date-only events
@@ -67,40 +67,42 @@ Source Profiles control which notes appear in the Sidebar Calendar. They do not 
 A profile defines:
 
 - Event or task kind
-- Folder, tag, and wiki-link property matching
+- Folder, tag, and wiki-link matching from note content or properties
 - `all` or `any` matching across configured condition groups
 - Start-property-only matching when explicitly enabled
 - Property mapping and default event appearance
 - Event creation folder, template, file name, and generated title rules
 
-Values inside one condition group use OR. For example, folders `Events` and `Holidays` mean `Events OR Holidays`. Different configured groups use the profile's `all` or `any` mode. A profile with no source conditions does not scan the entire vault unless **Match start property only** is enabled.
+Values inside one condition group use OR. For example, folders `Events` and `Holidays` mean `Events OR Holidays`; multiple configured Wiki Links also use OR. Different configured groups use the profile's `all` or `any` mode. A profile with no source conditions does not scan the entire vault unless **Match start property only** is enabled.
+
+Wiki Link matching uses Obsidian's Metadata Cache. It matches links in Markdown content and Properties without reading every note body with a regular expression. Enter multiple links as a comma-separated list, such as `[[Holiday]], [[Vacation]]`.
 
 ## Event properties
 
-The default Event profile uses:
+Calendar Note View does not impose property names. New Source Profiles and Bases Calendar views start with blank mappings, and property fields provide suggestions from the vault or current Base. A possible mapping is:
 
 | Purpose | Property |
 |---|---|
-| Start date | `calendar-event-start` |
-| Inclusive end date | `calendar-event-end` |
-| Title | `calendar-event-title` |
-| Type | `calendar-event-type` |
-| Icon | `calendar-event-icon` |
-| Background color | `calendar-event-color` |
-| Text color | `calendar-event-text-color` |
-| Completed | `calendar-event-completed` |
+| Start date | `start` |
+| Inclusive end date | `end` |
+| Title | `event-title` |
+| Type | `type` |
+| Icon | `icon` |
+| Background color | `color` |
+| Text color | `text-color` |
+| Completed | `completed` |
 
 Example:
 
 ```yaml
 ---
-calendar-event-start: 2026-08-09
-calendar-event-end: 2026-08-11
-calendar-event-title: Summer break
-calendar-event-type: "[[Holiday]]"
-calendar-event-icon: sun
-calendar-event-color: var(--color-yellow)
-calendar-event-text-color: var(--text-normal)
+start: 2026-08-09
+end: 2026-08-11
+event-title: Summer break
+type: "[[Holiday]]"
+icon: sun
+color: var(--color-yellow)
+text-color: var(--text-normal)
 ---
 ```
 
@@ -108,7 +110,7 @@ The end date is inclusive. Missing end dates create a single-day event. Invalid 
 
 ## Property mapping
 
-Each Source Profile and each Bases Calendar view maps its own properties. Bases property selectors include note, formula, and file properties exposed by the current Base. Sidebar folder and property fields provide suggestions from folders and MetadataCache without reading every Markdown file body.
+Each Source Profile and each Bases Calendar view maps its own properties. Bases property selectors provide native searchable selection for note, formula, and file properties exposed by the current Base. Source Profile property fields provide suggestions from MetadataCache, and folder and Wiki Link fields provide vault-aware suggestions.
 
 ## Event creation
 
@@ -123,12 +125,18 @@ File name, generated title, and note templates can use:
 - `{title}`
 - `{start}`
 - `{end}`
+- `{start-date}`
+- `{end-date}`
 - `{date-range}`
+- `{year}`
+- `{month}`
+- `{day}`
 - `{type}`
+- `{type-name}`
 - `{icon}`
 - `{profile}`
 
-Single-day `{date-range}` values use one date. Multi-day values include both the inclusive start and end dates.
+`{start}` and `{start-date}` are equivalent, as are `{end}` and `{end-date}`. `{type-name}` removes wiki-link syntax and aliases. Single-day `{date-range}` values use one date; multi-day values include both the inclusive start and end dates. The default file name and generated title template is `{date-range} {title}`.
 
 ## Time zone and date formats
 
@@ -142,7 +150,7 @@ Daily Note file names continue to use the Core Daily Notes format.
 
 ## Style Settings
 
-Calendar Note View works without the Style Settings plugin. If Style Settings is installed, open its **Calendar Note View** section to customize General, Sidebar Calendar, Bases Calendar, Date Cell, Today, Weekend, Event, Task, Daily Note, and Navigation variables.
+Calendar Note View works without the Style Settings plugin. If Style Settings is installed, open its **Calendar Note View** section to customize light and dark colors for the calendar, Sidebar, Bases header and cells, weekday labels, adjacent dates, hover state, Today, Weekend, Event, Task, Daily Note, and Navigation, together with size and spacing controls.
 
 Styles prefer Calendar Note View variables, then Obsidian theme variables. This keeps the plugin compatible with light, dark, and custom themes.
 
@@ -156,7 +164,7 @@ The Sidebar Calendar, Bases Calendar, date actions, event actions, and Create Ev
 
 ## Known limitations
 
-- Version 0.1.x provides month views only; it does not include year, week, day, or hour timelines.
+- Version 0.2.x provides month views only; it does not include year, week, day, or hour timelines.
 - Recurring events, reminders, external calendar sync, drag-and-drop, and event resizing are not included.
 - Tasks are property-backed notes. Markdown checkbox parsing and Tasks plugin parsing are not included.
 - Daily Notes integration uses `obsidian-daily-notes-interface` as a compatibility layer around the Core Daily Notes plugin.

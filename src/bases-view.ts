@@ -3,9 +3,9 @@ import {
 	Menu,
 	moment,
 	setIcon,
-	type BasesAllOptions,
 	type QueryController,
 } from 'obsidian';
+export { getBasesCalendarOptions } from './bases-options';
 import { BasesCalendarNormalizer, type BasesCalendarPropertyMap } from './bases-normalizer';
 import { buildCalendarMonthGrid, moveCalendarMonth } from './calendar-grid';
 import { sortCalendarItems } from './calendar-sort';
@@ -44,40 +44,11 @@ const BASES_STYLE_PROFILE: CalendarSourceProfile = {
 	matchMode: 'all',
 	folders: [],
 	tags: [],
-	wikiLinkTargets: [],
+	wikiLinks: [],
 	startProperty: '',
 	allowCreate: false,
 	defaultIcon: 'calendar',
 };
-
-export function getBasesCalendarOptions(): BasesAllOptions[] {
-	return [{
-		type: 'group',
-		displayName: 'Property mapping',
-		items: [
-			{ type: 'property', key: 'startProperty', displayName: 'Start property', default: 'note.calendar-event-start' },
-			{ type: 'property', key: 'endProperty', displayName: 'End property', default: 'note.calendar-event-end' },
-			{ type: 'property', key: 'titleProperty', displayName: 'Title property', default: 'note.calendar-event-title' },
-			{ type: 'property', key: 'typeProperty', displayName: 'Type property', default: 'note.calendar-event-type' },
-			{ type: 'property', key: 'iconProperty', displayName: 'Icon property', default: 'note.calendar-event-icon' },
-			{ type: 'property', key: 'backgroundColorProperty', displayName: 'Background color property', default: 'note.calendar-event-color' },
-			{ type: 'property', key: 'textColorProperty', displayName: 'Text color property', default: 'note.calendar-event-text-color' },
-			{ type: 'property', key: 'completedProperty', displayName: 'Completed property', default: 'note.calendar-event-completed' },
-		],
-	}, {
-		type: 'group',
-		displayName: 'Calendar behavior',
-		items: [
-			{ type: 'dropdown', key: 'eventDisplayMode', displayName: 'Event display mode', default: 'icon-title', options: { icon: 'Icon', title: 'Title', 'icon-title': 'Icon + title' } },
-			{ type: 'dropdown', key: 'firstDayOfWeek', displayName: 'First day of week', default: '0', options: { '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday' } },
-			{ type: 'multitext', key: 'weekendDays', displayName: 'Weekend days', default: ['0', '6'] },
-			{ type: 'toggle', key: 'showAdjacentMonthDates', displayName: 'Show adjacent month dates', default: true },
-			{ type: 'slider', key: 'maximumVisibleEvents', displayName: 'Maximum visible events', default: 3, min: 1, max: 8, step: 1 },
-			{ type: 'toggle', key: 'hideCompletedTasks', displayName: 'Hide completed tasks', default: false },
-			{ type: 'toggle', key: 'dimCompletedTasks', displayName: 'Dim completed tasks', default: true },
-		],
-	}];
-}
 
 export class CalendarBasesView extends BasesView {
 	readonly type = CALENDAR_BASES_VIEW_TYPE;

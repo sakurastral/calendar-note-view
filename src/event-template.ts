@@ -7,6 +7,7 @@ export interface EventTemplateValues {
 	startDate: string;
 	endDate: string;
 	type?: string;
+	icon?: string;
 	profile: CalendarSourceProfile;
 }
 
@@ -30,12 +31,15 @@ export function applyEventTemplate(template: string, values: EventTemplateValues
 		'{title}': values.title.trim(),
 		'{start-date}': start,
 		'{end-date}': end,
+		'{start}': start,
+		'{end}': end,
 		'{date-range}': dateRange,
 		'{year}': String(year).padStart(4, '0'),
 		'{month}': String(month).padStart(2, '0'),
 		'{day}': String(day).padStart(2, '0'),
 		'{type}': values.type?.trim() ?? '',
 		'{type-name}': normalizeWikiLinkTarget(values.type) ?? '',
+		'{icon}': values.icon?.trim() ?? '',
 		'{profile}': values.profile.name,
 	};
 	return Object.entries(replacements).reduce(
@@ -45,8 +49,8 @@ export function applyEventTemplate(template: string, values: EventTemplateValues
 }
 
 export function getEventTemplatePreview(values: EventTemplateValues): EventTemplatePreview {
-	const titleTemplate = values.profile.generatedTitleTemplate ?? '{date-range}《{title}》';
-	const fileTemplate = values.profile.fileNameTemplate ?? '{date-range}《{title}》';
+	const titleTemplate = values.profile.generatedTitleTemplate ?? '{date-range} {title}';
+	const fileTemplate = values.profile.fileNameTemplate ?? '{date-range} {title}';
 	return {
 		generatedTitle: applyEventTemplate(titleTemplate, values),
 		fileName: `${sanitizeFileName(applyEventTemplate(fileTemplate, values))}.md`,

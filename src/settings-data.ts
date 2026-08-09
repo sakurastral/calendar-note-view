@@ -9,33 +9,25 @@ import type {
 export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 	id: 'default-events',
 	name: 'Calendar events',
-	enabled: true,
+	enabled: false,
 	kind: 'event',
 	matchMode: 'all',
 	folders: [],
 	tags: [],
-	wikiLinkProperty: 'calendar-event-type',
-	wikiLinkTargets: [],
-	matchFilesWithStartPropertyOnly: true,
-	startProperty: 'calendar-event-start',
-	endProperty: 'calendar-event-end',
-	titleProperty: 'calendar-event-title',
-	typeProperty: 'calendar-event-type',
-	iconProperty: 'calendar-event-icon',
-	colorProperty: 'calendar-event-color',
-	textColorProperty: 'calendar-event-text-color',
-	completedProperty: 'calendar-event-completed',
+	wikiLinks: [],
+	matchFilesWithStartPropertyOnly: false,
+	startProperty: '',
 	defaultIcon: 'calendar',
-	allowCreate: true,
+	allowCreate: false,
 	createFolder: 'Events',
-	fileNameTemplate: '{date-range}《{title}》',
+	fileNameTemplate: '{date-range} {title}',
 	generatedTitleProperty: 'title',
-	generatedTitleTemplate: '{date-range}《{title}》',
+	generatedTitleTemplate: '{date-range} {title}',
 	titleDateFormat: 'YYYY-MM-DD',
 };
 
 export const DEFAULT_SETTINGS: CalendarSettings = {
-	schemaVersion: 2,
+	schemaVersion: 3,
 	firstDayOfWeek: 0,
 	weekendDays: [0, 6],
 	timeZone: { mode: 'system' },
@@ -72,7 +64,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		? Number(raw.firstDayOfWeek)
 		: DEFAULT_SETTINGS.firstDayOfWeek;
 	const settings: CalendarSettings = {
-		schemaVersion: 2,
+		schemaVersion: 3,
 		firstDayOfWeek,
 		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
 		timeZone: normalizeTimeZone(raw.timeZone, warnings),
@@ -86,7 +78,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	};
 	return {
 		settings,
-		migrated: raw.schemaVersion !== 2 || JSON.stringify(settings) !== JSON.stringify(raw),
+		migrated: raw.schemaVersion !== 3 || JSON.stringify(settings) !== JSON.stringify(raw),
 		warnings,
 	};
 }
@@ -98,11 +90,7 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 	}
 	const fallbackId = `profile-${index + 1}`;
 	const id = text(raw.id) ?? fallbackId;
-	const startProperty = text(raw.startProperty);
-	if (!startProperty) {
-		warnings.push(`Source profile ${id} was ignored because it has no start property.`);
-		return undefined;
-	}
+	const startProperty = text(raw.startProperty) ?? '';
 	return {
 		id,
 		name: text(raw.name) ?? id,
@@ -111,8 +99,7 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 		matchMode: raw.matchMode === 'any' ? 'any' : 'all',
 		folders: stringArray(raw.folders),
 		tags: stringArray(raw.tags),
-		wikiLinkProperty: text(raw.wikiLinkProperty),
-		wikiLinkTargets: stringArray(raw.wikiLinkTargets),
+		wikiLinks: stringArray(raw.wikiLinks ?? raw.wikiLinkTargets),
 		matchFilesWithStartPropertyOnly: boolean(raw.matchFilesWithStartPropertyOnly, false),
 		startProperty,
 		endProperty: text(raw.endProperty),
@@ -129,9 +116,9 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 		allowCreate: boolean(raw.allowCreate, false),
 		createFolder: text(raw.createFolder),
 		noteTemplatePath: text(raw.noteTemplatePath),
-		fileNameTemplate: text(raw.fileNameTemplate),
+		fileNameTemplate: migrateEventTemplate(raw.fileNameTemplate),
 		generatedTitleProperty: text(raw.generatedTitleProperty),
-		generatedTitleTemplate: text(raw.generatedTitleTemplate),
+		generatedTitleTemplate: migrateEventTemplate(raw.generatedTitleTemplate),
 		titleDateFormat: text(raw.titleDateFormat),
 	};
 }
@@ -177,6 +164,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function text(value: unknown): string | undefined {
 	return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function migrateEventTemplate(value: unknown): string | undefined {
+	const template = text(value);
+	return template === '{date-range}《{title}》' ? '{date-range} {title}' : template;
 }
 
 function stringArray(value: unknown): string[] {

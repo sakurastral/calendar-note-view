@@ -32,6 +32,7 @@ export default defineConfig(
 	{
 		files: ['tests/**/*.ts'],
 		rules: {
+			'obsidianmd/no-nodejs-modules': 'off',
 			'obsidianmd/no-tfile-tfolder-cast': 'off',
 		},
 	},

@@ -12,6 +12,11 @@ import type { CalendarSettings, CalendarSourceProfile, CalendarTypeStyleRule } f
 import { DEFAULT_EVENT_PROFILE } from './settings-data';
 import { CalendarInputSuggest } from './suggestions';
 
+const EVENT_TEMPLATE_VARIABLES = [
+	'{title}', '{start}', '{end}', '{start-date}', '{end-date}', '{date-range}',
+	'{year}', '{month}', '{day}', '{type}', '{type-name}', '{icon}', '{profile}',
+].join(', ');
+
 export class CalendarNoteSettingTab extends PluginSettingTab {
 	constructor(app: App, private readonly plugin: CalendarNoteViewPlugin) {
 		super(app, plugin);
@@ -189,16 +194,15 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileText(profile, 'Name', 'A label used in settings and event creation.', 'name'),
 					this.profileToggle(profile, 'Enabled', 'Include this profile in the Sidebar Calendar index.', 'enabled'),
 					this.profileDropdown(profile, 'Kind', 'Choose whether matching notes represent events or tasks.', 'kind', { event: 'Event', task: 'Task' }),
-					this.profileDropdown(profile, 'Match mode', 'Values within one group use OR; this controls how groups combine.', 'matchMode', { all: 'All configured groups', any: 'Any configured group' }),
 				],
 			}, {
 				type: 'group',
 				heading: 'Source matching',
 				items: [
+					this.profileDropdown(profile, 'Match mode', 'Values within one group use OR; this controls how folders, tags, and wiki links combine.', 'matchMode', { all: 'All configured groups', any: 'Any configured group' }),
 					this.profileList(profile, 'Folders', 'Comma-separated folders. Nested folders are included.', 'folders', 'folder'),
 					this.profileList(profile, 'Tags', 'Comma-separated tags matched exactly.', 'tags'),
-					this.profileText(profile, 'Wiki link property', 'Only this frontmatter property is inspected.', 'wikiLinkProperty', 'property'),
-					this.profileList(profile, 'Wiki link targets', 'Comma-separated link targets.', 'wikiLinkTargets'),
+					this.profileList(profile, 'Wiki links', 'Comma-separated wiki links. A note matches when its content or properties contain any listed link.', 'wikiLinks', 'wikilink'),
 					this.profileToggle(profile, 'Match start property only', 'Allow matching by the start property when no source conditions exist.', 'matchFilesWithStartPropertyOnly'),
 				],
 			}, {
@@ -224,10 +228,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileText(profile, 'Default background color', 'Initial background color used by event creation.', 'defaultBackgroundColor'),
 					this.profileText(profile, 'Default text color', 'Initial text color used by event creation.', 'defaultTextColor'),
 					this.profileText(profile, 'Create folder', 'Folder used for newly created event notes.', 'createFolder', 'folder'),
-					this.profileText(profile, 'Note template path', 'Optional Markdown template used for new event notes.', 'noteTemplatePath'),
-					this.profileText(profile, 'File name template', 'Supports event template variables.', 'fileNameTemplate'),
+					this.profileText(profile, 'Note template path', `Optional Markdown template used for new event notes. Its content may use: ${EVENT_TEMPLATE_VARIABLES}`, 'noteTemplatePath'),
+					this.profileText(profile, 'File name template', `Available variables: ${EVENT_TEMPLATE_VARIABLES}`, 'fileNameTemplate'),
 					this.profileText(profile, 'Generated title property', 'Property that receives the generated title.', 'generatedTitleProperty', 'property'),
-					this.profileText(profile, 'Generated title template', 'Supports event template variables.', 'generatedTitleTemplate'),
+					this.profileText(profile, 'Generated title template', `Available variables: ${EVENT_TEMPLATE_VARIABLES}`, 'generatedTitleTemplate'),
 					this.profileText(profile, 'Title date format', 'Date format used by title and filename variables.', 'titleDateFormat'),
 				],
 			}],
@@ -288,8 +292,8 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		profile: CalendarSourceProfile,
 		name: string,
 		desc: string,
-		key: 'folders' | 'tags' | 'wikiLinkTargets',
-		suggest?: 'folder',
+		key: 'folders' | 'tags' | 'wikiLinks',
+		suggest?: 'folder' | 'wikilink',
 	): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
 			let inputSuggest: CalendarInputSuggest | undefined;
@@ -298,6 +302,12 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					profile[key] = value.split(',').map((entry) => entry.trim()).filter(Boolean);
 				}));
 				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getFolderSuggestions(query));
+				if (suggest === 'wikilink') inputSuggest = new CalendarInputSuggest(
+					this.app,
+					text.inputEl,
+					(query) => this.plugin.suggestions.getWikiLinkSuggestions(query.split(',').at(-1)?.trim() ?? ''),
+					(value, inputValue) => replaceLastListValue(inputValue, value),
+				);
 			});
 			return () => inputSuggest?.close();
 		});
@@ -413,7 +423,6 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 
 type ProfileStringKey =
 	| 'name'
-	| 'wikiLinkProperty'
 	| 'startProperty'
 	| 'endProperty'
 	| 'titleProperty'
@@ -453,4 +462,10 @@ function parseWeekendDays(value: string): number[] {
 
 function createId(prefix: string): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function replaceLastListValue(input: string, value: string): string {
+	const values = input.split(',');
+	values[values.length - 1] = ` ${value}`;
+	return values.map((entry) => entry.trim()).filter(Boolean).join(', ');
 }

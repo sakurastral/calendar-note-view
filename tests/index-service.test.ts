@@ -69,7 +69,10 @@ function toFile(path: string): FakeFile {
 }
 
 function profile(id: string, overrides: Partial<CalendarSourceProfile> = {}): CalendarSourceProfile {
-	return { ...structuredClone(DEFAULT_EVENT_PROFILE), id, folders: ['Events'], matchFilesWithStartPropertyOnly: false, ...overrides };
+	return {
+		...structuredClone(DEFAULT_EVENT_PROFILE), id, enabled: true, folders: ['Events'], startProperty: 'start',
+		endProperty: 'end', titleProperty: 'event-title', matchFilesWithStartPropertyOnly: false, ...overrides,
+	};
 }
 
 function settings(profiles: CalendarSourceProfile[]): CalendarSettings {
@@ -79,7 +82,7 @@ function settings(profiles: CalendarSourceProfile[]): CalendarSettings {
 describe('calendar index', () => {
 	it('builds initially, indexes multiple profiles, and avoids duplicate items', async () => {
 		const app = new FakeApp();
-		app.add('Events/A.md', { 'calendar-event-start': '2024-07-24' });
+		app.add('Events/A.md', { start: '2024-07-24' });
 		const current = settings([profile('one'), profile('two')]);
 		const service = new CalendarIndexService(app as unknown as App, () => current, new CalendarDiagnosticsService());
 		await service.initialize();
@@ -91,24 +94,24 @@ describe('calendar index', () => {
 
 	it('incrementally updates, renames, moves, and deletes without stale paths', async () => {
 		const app = new FakeApp();
-		const original = app.add('Events/A.md', { 'calendar-event-start': '2024-07-24' });
+		const original = app.add('Events/A.md', { start: '2024-07-24' });
 		const current = settings([profile('events')]);
 		const diagnostics = new CalendarDiagnosticsService();
 		const service = new CalendarIndexService(app as unknown as App, () => current, diagnostics);
 		await service.initialize();
 
-		app.caches.set(original.path, { frontmatter: { 'calendar-event-start': '2024-07-25' } });
+		app.caches.set(original.path, { frontmatter: { start: '2024-07-25' } });
 		await service.reindexFile(original as unknown as TFile);
 		expect(service.getAllItems()[0]?.startDate).toBe('2024-07-25');
 
 		app.remove(original.path);
-		const renamed = app.add('Events/Renamed.md', { 'calendar-event-start': '2024-07-25' });
+		const renamed = app.add('Events/Renamed.md', { start: '2024-07-25' });
 		await service.renameFile(renamed as unknown as TFile, original.path);
 		expect(service.getAllItems().map((item) => item.filePath)).toEqual(['Events/Renamed.md']);
 		expect(diagnostics.getByFile(original.path)).toEqual([]);
 
 		app.remove(renamed.path);
-		const moved = app.add('Archive/Renamed.md', { 'calendar-event-start': '2024-07-25' });
+		const moved = app.add('Archive/Renamed.md', { start: '2024-07-25' });
 		await service.renameFile(moved as unknown as TFile, renamed.path);
 		expect(service.getAllItems()).toEqual([]);
 
@@ -119,10 +122,10 @@ describe('calendar index', () => {
 
 	it('queries inclusive ranges and applies stable documented sorting', async () => {
 		const app = new FakeApp();
-		app.add('Events/Single.md', { 'calendar-event-start': '2024-07-24', 'calendar-event-title': 'Single' });
-		app.add('Events/Long.md', { 'calendar-event-start': '2024-07-24', 'calendar-event-end': '2024-07-27', 'calendar-event-title': 'Long' });
-		app.add('Events/Short.md', { 'calendar-event-start': '2024-07-24', 'calendar-event-end': '2024-07-25', 'calendar-event-title': 'Short' });
-		app.add('Events/Previous.md', { 'calendar-event-start': '2024-07-20', 'calendar-event-end': '2024-07-24', 'calendar-event-title': 'Previous' });
+		app.add('Events/Single.md', { start: '2024-07-24', 'event-title': 'Single' });
+		app.add('Events/Long.md', { start: '2024-07-24', end: '2024-07-27', 'event-title': 'Long' });
+		app.add('Events/Short.md', { start: '2024-07-24', end: '2024-07-25', 'event-title': 'Short' });
+		app.add('Events/Previous.md', { start: '2024-07-20', end: '2024-07-24', 'event-title': 'Previous' });
 		const current = settings([profile('events')]);
 		const service = new CalendarIndexService(app as unknown as App, () => current, new CalendarDiagnosticsService());
 		await service.initialize();
@@ -134,7 +137,7 @@ describe('calendar index', () => {
 
 	it('refreshes safely and sends exactly one notification', async () => {
 		const app = new FakeApp();
-		app.add('Events/A.md', { 'calendar-event-start': '2024-07-24' });
+		app.add('Events/A.md', { start: '2024-07-24' });
 		const current = settings([profile('events')]);
 		const service = new CalendarIndexService(app as unknown as App, () => current, new CalendarDiagnosticsService());
 		await service.initialize();
@@ -148,7 +151,7 @@ describe('calendar index', () => {
 
 	it('rebuilds for relevant settings changes only', async () => {
 		const app = new FakeApp();
-		app.add('Events/A.md', { 'calendar-event-start': '2024-07-24' });
+		app.add('Events/A.md', { start: '2024-07-24' });
 		let current = settings([profile('events')]);
 		const service = new CalendarIndexService(app as unknown as App, () => current, new CalendarDiagnosticsService());
 		await service.initialize();

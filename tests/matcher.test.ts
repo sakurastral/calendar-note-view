@@ -6,51 +6,59 @@ import { DEFAULT_EVENT_PROFILE } from '../src/settings-data';
 const file = { path: 'Events/Holidays/Test.md', basename: 'Test', extension: 'md' };
 
 function profile(overrides: Partial<CalendarSourceProfile>): CalendarSourceProfile {
-	return { ...structuredClone(DEFAULT_EVENT_PROFILE), matchFilesWithStartPropertyOnly: false, ...overrides };
+	return {
+		...structuredClone(DEFAULT_EVENT_PROFILE), enabled: true, startProperty: 'start',
+		matchFilesWithStartPropertyOnly: false, ...overrides,
+	};
 }
 
-function metadata(frontmatter: Record<string, unknown>, tags: string[] = []): CalendarMetadata {
-	return { frontmatter, tags: tags.map((tag) => ({ tag })) };
+function metadata(frontmatter: Record<string, unknown>, tags: string[] = [], links: string[] = [], frontmatterLinks: string[] = []): CalendarMetadata {
+	return {
+		frontmatter,
+		tags: tags.map((tag) => ({ tag })),
+		links: links.map((link) => ({ link })),
+		frontmatterLinks: frontmatterLinks.map((link) => ({ link })),
+	};
 }
 
 describe('source matching', () => {
 	it('matches folders including nested paths but not similar names', () => {
 		const source = profile({ folders: ['Events'] });
-		expect(matchesSourceProfile(file, metadata({ 'calendar-event-start': '2024-07-24' }), source)).toBe(true);
-		expect(matchesSourceProfile({ ...file, path: 'Events-Archive/Test.md' }, metadata({ 'calendar-event-start': '2024-07-24' }), source)).toBe(false);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }), source)).toBe(true);
+		expect(matchesSourceProfile({ ...file, path: 'Events-Archive/Test.md' }, metadata({ start: '2024-07-24' }), source)).toBe(false);
 	});
 
 	it('matches frontmatter and inline tags exactly', () => {
 		const source = profile({ tags: ['#calendar'] });
-		expect(matchesSourceProfile(file, metadata({ 'calendar-event-start': '2024-07-24', tags: ['calendar'] }), source)).toBe(true);
-		expect(matchesSourceProfile(file, metadata({ 'calendar-event-start': '2024-07-24' }, ['#calendar']), source)).toBe(true);
-		expect(matchesSourceProfile(file, metadata({ 'calendar-event-start': '2024-07-24' }, ['#calendar/holiday']), source)).toBe(false);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24', tags: ['calendar'] }), source)).toBe(true);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, ['#calendar']), source)).toBe(true);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, ['#calendar/holiday']), source)).toBe(false);
 	});
 
-	it('matches wiki-link strings, arrays, aliases, and plain targets', () => {
-		const source = profile({ wikiLinkProperty: 'type', wikiLinkTargets: ['國定假日'] });
-		for (const value of ['[[國定假日]]', '[[國定假日|假日]]', '國定假日', ['Other', '[[國定假日]]']]) {
-			expect(matchesSourceProfile(file, metadata({ 'calendar-event-start': '2024-07-24', type: value }), source)).toBe(true);
-		}
+	it('matches any configured wiki link from note content or properties', () => {
+		const source = profile({ wikiLinks: ['[[國定假日]]', '[[Holiday]]'] });
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, [], ['國定假日']), source)).toBe(true);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, [], [], ['Holiday']), source)).toBe(true);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, [], ['Other']), source)).toBe(false);
 	});
 
 	it('uses all and any only across configured condition groups', () => {
-		const cache = metadata({ 'calendar-event-start': '2024-07-24', tags: ['calendar'] });
+		const cache = metadata({ start: '2024-07-24', tags: ['calendar'] });
 		expect(matchesSourceProfile(file, cache, profile({ folders: ['Events'], tags: ['calendar'], matchMode: 'all' }))).toBe(true);
 		expect(matchesSourceProfile(file, cache, profile({ folders: ['Work'], tags: ['calendar'], matchMode: 'all' }))).toBe(false);
 		expect(matchesSourceProfile(file, cache, profile({ folders: ['Work'], tags: ['calendar'], matchMode: 'any' }))).toBe(true);
 	});
 
 	it('requires explicit start-property-only matching when no source condition exists', () => {
-		const cache = metadata({ 'calendar-event-start': '2024-07-24' });
+		const cache = metadata({ start: '2024-07-24' });
 		expect(matchesSourceProfile(file, cache, profile({}))).toBe(false);
 		expect(matchesSourceProfile(file, cache, profile({ matchFilesWithStartPropertyOnly: true }))).toBe(true);
 	});
 
 	it('rejects disabled profiles, non-markdown files, missing frontmatter, and missing starts', () => {
 		expect(matchesSourceProfile(file, metadata({}), profile({ matchFilesWithStartPropertyOnly: true }))).toBe(false);
-		expect(matchesSourceProfile({ ...file, extension: 'canvas' }, metadata({ 'calendar-event-start': '2024-07-24' }), profile({ matchFilesWithStartPropertyOnly: true }))).toBe(false);
+		expect(matchesSourceProfile({ ...file, extension: 'canvas' }, metadata({ start: '2024-07-24' }), profile({ matchFilesWithStartPropertyOnly: true }))).toBe(false);
 		expect(matchesSourceProfile(file, null, profile({ matchFilesWithStartPropertyOnly: true }))).toBe(false);
-		expect(matchesSourceProfile(file, metadata({ 'calendar-event-start': '2024-07-24' }), profile({ enabled: false, matchFilesWithStartPropertyOnly: true }))).toBe(false);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }), profile({ enabled: false, matchFilesWithStartPropertyOnly: true }))).toBe(false);
 	});
 });

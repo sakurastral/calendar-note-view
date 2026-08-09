@@ -23,8 +23,7 @@ export interface CalendarSourceProfile {
 	matchMode: 'all' | 'any';
 	folders: string[];
 	tags: string[];
-	wikiLinkProperty?: string;
-	wikiLinkTargets: string[];
+	wikiLinks: string[];
 	matchFilesWithStartPropertyOnly?: boolean;
 	startProperty: string;
 	endProperty?: string;
@@ -62,7 +61,7 @@ export type CalendarTimeZone =
 	| { mode: 'custom'; timeZone: string };
 
 export interface CalendarSettings {
-	schemaVersion: 2;
+	schemaVersion: 3;
 	firstDayOfWeek: number;
 	weekendDays: number[];
 	timeZone: CalendarTimeZone;
@@ -107,6 +106,8 @@ export interface CalendarFileData {
 export interface CalendarMetadata {
 	frontmatter?: Record<string, unknown>;
 	tags?: Array<{ tag: string }>;
+	links?: Array<{ link: string }>;
+	frontmatterLinks?: Array<{ link: string }>;
 }
 
 export interface ResolvedCalendarItemStyle {

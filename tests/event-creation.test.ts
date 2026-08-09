@@ -44,7 +44,11 @@ class FakeEventApp {
 }
 
 function profile(overrides: Partial<CalendarSourceProfile> = {}): CalendarSourceProfile {
-	return { ...structuredClone(DEFAULT_EVENT_PROFILE), ...overrides };
+	return {
+		...structuredClone(DEFAULT_EVENT_PROFILE), enabled: true, allowCreate: true,
+		startProperty: 'start', endProperty: 'end', titleProperty: 'event-title', typeProperty: 'type',
+		iconProperty: 'icon', colorProperty: 'color', textColorProperty: 'text-color', ...overrides,
+	};
 }
 
 function settings(sourceProfile: CalendarSourceProfile): CalendarSettings {
@@ -59,16 +63,16 @@ describe('event templates', () => {
 	it('formats every supported variable and separates link display names', () => {
 		const sourceProfile = profile({ name: 'Holidays' });
 		const result = applyEventTemplate(
-			'{date-range}|{start-date}|{end-date}|{year}|{month}|{day}|{title}|{type}|{type-name}|{profile}',
-			{ title: 'Typhoon day', startDate: '2024-07-24', endDate: '2024-07-26', type: '[[Holiday|Public holiday]]', profile: sourceProfile },
+			'{date-range}|{start}|{end}|{start-date}|{end-date}|{year}|{month}|{day}|{title}|{type}|{type-name}|{icon}|{profile}',
+			{ title: 'Typhoon day', startDate: '2024-07-24', endDate: '2024-07-26', type: '[[Holiday|Public holiday]]', icon: 'cloud-rain', profile: sourceProfile },
 		);
-		expect(result).toBe('2024-07-24～2024-07-26|2024-07-24|2024-07-26|2024|07|24|Typhoon day|[[Holiday|Public holiday]]|Holiday|Holidays');
+		expect(result).toBe('2024-07-24～2024-07-26|2024-07-24|2024-07-26|2024-07-24|2024-07-26|2024|07|24|Typhoon day|[[Holiday|Public holiday]]|Holiday|cloud-rain|Holidays');
 	});
 
 	it('previews sanitized filenames and profile paths', () => {
-		const sourceProfile = profile({ createFolder: '/Events//Holidays/', fileNameTemplate: '{date-range}《{title}》' });
+		const sourceProfile = profile({ createFolder: '/Events//Holidays/' });
 		const preview = getEventTemplatePreview({ title: 'Storm: day?', startDate: '2024-07-24', endDate: '2024-07-24', profile: sourceProfile });
-		expect(preview).toMatchObject({ fileName: '2024-07-24《Storm- day-》.md', createFolder: 'Events/Holidays' });
+		expect(preview).toMatchObject({ fileName: '2024-07-24 Storm- day-.md', createFolder: 'Events/Holidays' });
 		expect(sanitizeFileName('  ')).toBe('Untitled event');
 	});
 });
@@ -95,17 +99,17 @@ describe('event note creation', () => {
 			backgroundColor: '#123456',
 		});
 
-		expect(result.path).toBe('Events/Holidays/2024-07-24～2024-07-26《Typhoon day》.md');
+		expect(result.path).toBe('Events/Holidays/2024-07-24～2024-07-26 Typhoon day.md');
 		expect(app.folders).toEqual(new Set(['Events', 'Events/Holidays']));
 		expect(app.files.get(result.path)?.content).toBe('# Typhoon day\n2024-07-24～2024-07-26');
 		expect(app.frontmatter.get(result.path)).toMatchObject({
-			title: '2024-07-24～2024-07-26《Typhoon day》',
-			'calendar-event-start': '24/07/2024',
-			'calendar-event-end': '26/07/2024',
-			'calendar-event-title': 'Typhoon day',
-			'calendar-event-type': '[[Holiday]]',
-			'calendar-event-icon': 'cloud-rain',
-			'calendar-event-color': '#123456',
+			title: '2024-07-24～2024-07-26 Typhoon day',
+			start: '24/07/2024',
+			end: '26/07/2024',
+			'event-title': 'Typhoon day',
+			type: '[[Holiday]]',
+			icon: 'cloud-rain',
+			color: '#123456',
 		});
 		expect(app.reindexed).toEqual([result.path]);
 	});
@@ -114,13 +118,13 @@ describe('event note creation', () => {
 		const app = new FakeEventApp();
 		const sourceProfile = profile();
 		const current = settings(sourceProfile);
-		const original = 'Events/2024-07-24《Existing》.md';
+		const original = 'Events/2024-07-24 Existing.md';
 		app.folders.add('Events');
 		app.add(original);
 		const index = { reindexFile: async (): Promise<void> => undefined };
 		const service = new EventNoteCreationService(app as unknown as App, () => current, index as never);
 		const appended = await service.create({ profileId: sourceProfile.id, title: 'Existing', startDate: '2024-07-24' });
-		expect(appended.path).toBe('Events/2024-07-24《Existing》 2.md');
+		expect(appended.path).toBe('Events/2024-07-24 Existing 2.md');
 		const cancelled = await service.create({ profileId: sourceProfile.id, title: 'Existing', startDate: '2024-07-24', collision: 'cancel' });
 		expect(cancelled.status).toBe('cancelled');
 		expect(app.files.get(original)?.content).toBe('');
@@ -133,7 +137,7 @@ describe('event note creation', () => {
 		const index = { reindexFile: async (): Promise<void> => undefined };
 		const service = new EventNoteCreationService(app as unknown as App, () => current, index as never);
 		const result = await service.create({ profileId: sourceProfile.id, title: 'Single', startDate: '2024-07-24', endDate: '' });
-		expect(app.frontmatter.get(result.path)).not.toHaveProperty('calendar-event-end');
+		expect(app.frontmatter.get(result.path)).not.toHaveProperty('end');
 		expect(() => service.preview({
 			profileId: sourceProfile.id,
 			title: 'Unsafe',

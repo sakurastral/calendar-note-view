@@ -8,19 +8,23 @@ import { isSafeCssColor, normalizeCompletedValue, normalizeWikiLinkTarget } from
 const file = { path: 'Events/Holiday.md', basename: 'Holiday', extension: 'md' };
 
 function source(overrides: Partial<CalendarSourceProfile> = {}): CalendarSourceProfile {
-	return { ...structuredClone(DEFAULT_EVENT_PROFILE), ...overrides };
+	return {
+		...structuredClone(DEFAULT_EVENT_PROFILE), enabled: true, startProperty: 'start', endProperty: 'end',
+		titleProperty: 'event-title', typeProperty: 'type', iconProperty: 'icon', colorProperty: 'color',
+		textColorProperty: 'text-color', ...overrides,
+	};
 }
 
 describe('calendar item normalization', () => {
 	it('normalizes dates, titles, types, styles, and inclusive ends', () => {
 		const result = new CalendarItemNormalizer().normalize(file, { frontmatter: {
-			'calendar-event-start': '24/07/2024',
-			'calendar-event-end': '26/07/2024',
-			'calendar-event-title': ' Typhoon holiday ',
-			'calendar-event-type': [' ', '[[國定假日|假日]]'],
-			'calendar-event-icon': 'calendar-days',
-			'calendar-event-color': '#abc',
-			'calendar-event-text-color': 'var(--text-normal)',
+			start: '24/07/2024',
+			end: '26/07/2024',
+			'event-title': ' Typhoon holiday ',
+			type: [' ', '[[國定假日|假日]]'],
+			icon: 'calendar-days',
+			color: '#abc',
+			'text-color': 'var(--text-normal)',
 		} }, source(), 'DD/MM/YYYY');
 		expect(result.item).toMatchObject({
 			startDate: '2024-07-24', endDate: '2024-07-26', title: 'Typhoon holiday',
@@ -30,24 +34,24 @@ describe('calendar item normalization', () => {
 
 	it('falls back to frontmatter title then basename and records the fallback', () => {
 		const normalizer = new CalendarItemNormalizer();
-		expect(normalizer.normalize(file, { frontmatter: { 'calendar-event-start': '2024-07-24', title: 'Frontmatter' } }, source(), 'YYYY-MM-DD').item?.title).toBe('Frontmatter');
-		const fallback = normalizer.normalize(file, { frontmatter: { 'calendar-event-start': '2024-07-24' } }, source(), 'YYYY-MM-DD');
+		expect(normalizer.normalize(file, { frontmatter: { start: '2024-07-24', title: 'Frontmatter' } }, source(), 'YYYY-MM-DD').item?.title).toBe('Frontmatter');
+		const fallback = normalizer.normalize(file, { frontmatter: { start: '2024-07-24' } }, source(), 'YYYY-MM-DD');
 		expect(fallback.item?.title).toBe('Holiday');
 		expect(fallback.diagnostics.map((item) => item.code)).toContain('missing-title-fallback');
 	});
 
 	it('uses the start for an empty end and rejects invalid ranges', () => {
 		const normalizer = new CalendarItemNormalizer();
-		const single = normalizer.normalize(file, { frontmatter: { 'calendar-event-start': '2024-07-24', 'calendar-event-end': '' } }, source(), 'YYYY-MM-DD');
+		const single = normalizer.normalize(file, { frontmatter: { start: '2024-07-24', end: '' } }, source(), 'YYYY-MM-DD');
 		expect(single.item?.endDate).toBe('2024-07-24');
-		const reversed = normalizer.normalize(file, { frontmatter: { 'calendar-event-start': '2024-07-24', 'calendar-event-end': '2024-07-23' } }, source(), 'YYYY-MM-DD');
+		const reversed = normalizer.normalize(file, { frontmatter: { start: '2024-07-24', end: '2024-07-23' } }, source(), 'YYYY-MM-DD');
 		expect(reversed.item).toBeUndefined();
 		expect(reversed.diagnostics[0]?.code).toBe('end-before-start');
 	});
 
 	it('ignores unsafe colors without invalidating the event', () => {
 		const result = new CalendarItemNormalizer().normalize(file, { frontmatter: {
-			'calendar-event-start': '2024-07-24', 'calendar-event-color': 'red; background:url(x)',
+			start: '2024-07-24', color: 'red; background:url(x)',
 		} }, source(), 'YYYY-MM-DD');
 		expect(result.item).toBeDefined();
 		expect(result.item?.backgroundColor).toBeUndefined();

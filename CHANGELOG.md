@@ -2,6 +2,26 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.0
+
+### Added
+
+- Working light and dark Style Settings color controls for Sidebar and Bases calendars
+- Property suggestions for Source Profile mappings and searchable Bases property selectors
+- Event template variable references in Source Profile settings
+- Multiple Wiki Link suggestions and matching through Obsidian Metadata Cache
+
+### Changed
+
+- Start new Source Profiles and Bases Calendar views with blank property mappings
+- Use `{date-range} {title}` for default file names and generated titles
+- Move Match mode into Source matching
+- Match configured Wiki Links in note content and Properties instead of reading one configured frontmatter property
+
+### Fixed
+
+- Supply required light and dark defaults for every themed Style Settings color control
+
 ## 0.1.1
 
 ### Fixed
