@@ -156,7 +156,7 @@ The Sidebar Calendar, Bases Calendar, date actions, event actions, and Create Ev
 
 ## Known limitations
 
-- Version 0.1.0 provides month views only; it does not include year, week, day, or hour timelines.
+- Version 0.1.x provides month views only; it does not include year, week, day, or hour timelines.
 - Recurring events, reminders, external calendar sync, drag-and-drop, and event resizing are not included.
 - Tasks are property-backed notes. Markdown checkbox parsing and Tasks plugin parsing are not included.
 - Daily Notes integration uses `obsidian-daily-notes-interface` as a compatibility layer around the Core Daily Notes plugin.

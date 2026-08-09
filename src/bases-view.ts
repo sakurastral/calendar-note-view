@@ -83,15 +83,17 @@ export class CalendarBasesView extends BasesView {
 	readonly type = CALENDAR_BASES_VIEW_TYPE;
 	private readonly normalizer = new BasesCalendarNormalizer();
 	private readonly styleResolver = new CalendarStyleResolver();
+	private readonly containerEl: HTMLElement;
 	private year: number;
 	private month: number;
 
 	constructor(
 		controller: QueryController,
-		private readonly containerEl: HTMLElement,
+		parentEl: HTMLElement,
 		private readonly plugin: CalendarNoteViewPlugin,
 	) {
 		super(controller);
+		this.containerEl = parentEl.createDiv({ cls: 'calendar-note-bases' });
 		const today = getCalendarDateParts(getTodayCanonical(plugin.settings.timeZone));
 		this.year = today.year;
 		this.month = today.month;
@@ -101,13 +103,8 @@ export class CalendarBasesView extends BasesView {
 		this.renderCalendar();
 	}
 
-	onunload(): void {
-		this.containerEl.empty();
-	}
-
 	private renderCalendar(): void {
 		this.containerEl.empty();
-		this.containerEl.addClass('calendar-note-bases');
 		const options = this.readOptions();
 		this.renderHeader();
 		if (!options.properties) {

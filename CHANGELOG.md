@@ -2,6 +2,12 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.1.1
+
+### Fixed
+
+- Preserve the Bases Calendar and its view controls when switching to another tab and back
+
 ## 0.1.0
 
 Initial release.
