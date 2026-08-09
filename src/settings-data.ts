@@ -83,6 +83,13 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	};
 }
 
+export function removeSourceProfile(settings: CalendarSettings, profileId: string): boolean {
+	const index = settings.sourceProfiles.findIndex((profile) => profile.id === profileId);
+	if (index < 0) return false;
+	settings.sourceProfiles.splice(index, 1);
+	return true;
+}
+
 function normalizeProfile(raw: unknown, index: number, warnings: string[]): CalendarSourceProfile | undefined {
 	if (!isRecord(raw)) {
 		warnings.push(`Source profile ${index + 1} was ignored because it is invalid.`);

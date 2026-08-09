@@ -25,6 +25,32 @@ describe('Style Settings colors', () => {
 			expect(css.slice(settings.length)).toContain(`--${id}`);
 		}
 	});
+
+	it('pairs every custom color with an Obsidian variable selector', () => {
+		const controls = settings.split(/\n\s{2}- id: /).slice(1);
+		const customColors = controls.filter((control) => control.includes('type: variable-themed-color'));
+		const colorSources = controls.filter((control) => control.includes('type: variable-select') && control.split('\n', 1)[0]?.endsWith('-source'));
+		expect(colorSources).toHaveLength(customColors.length);
+
+		for (const source of colorSources) {
+			const sourceId = source.split('\n', 1)[0]?.trim();
+			const colorId = sourceId?.replace(/-source$/, '');
+			expect(colorId).toBeTruthy();
+			expect(source).toContain(`default: 'var(--${colorId})'`);
+			expect(source).toContain("value: 'var(--background-primary)'");
+			expect(source).toContain("value: 'var(--interactive-accent)'");
+			expect(source).toContain("value: 'var(--color-blue)'");
+			expect(css.slice(settings.length)).toContain(`--${colorId}-resolved: var(--${sourceId}, var(--${colorId}))`);
+		}
+	});
+
+	it('makes Bases date numbers circular with an adjustable radius', () => {
+		expect(settings).toContain('id: calendar-note-bases-date-radius');
+		expect(settings).toContain('default: 50');
+		expect(settings).toContain("format: '%'");
+		expect(css.slice(settings.length)).toContain('border-radius: var(--calendar-note-bases-date-radius, 50%);');
+		expect(css.slice(settings.length)).toContain('.calendar-note-bases-date-cell.is-today .calendar-note-bases-date-number');
+	});
 });
 
 describe('Bases property mapping options', () => {

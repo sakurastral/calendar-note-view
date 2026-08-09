@@ -1,7 +1,8 @@
 import {
 	type App,
+	Modal,
 	PluginSettingTab,
-	type Setting,
+	Setting,
 	type SettingDefinition,
 	type SettingDefinitionItem,
 	type SettingDefinitionPage,
@@ -9,7 +10,7 @@ import {
 import { isSupportedDateFormat, isValidIanaTimeZone } from './date';
 import type CalendarNoteViewPlugin from './main';
 import type { CalendarSettings, CalendarSourceProfile, CalendarTypeStyleRule } from './models';
-import { DEFAULT_EVENT_PROFILE } from './settings-data';
+import { DEFAULT_EVENT_PROFILE, removeSourceProfile } from './settings-data';
 import { CalendarInputSuggest } from './suggestions';
 
 const EVENT_TEMPLATE_VARIABLES = [
@@ -176,7 +177,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				name: 'Add source profile',
 				action: () => { void this.addSourceProfile(); },
 			},
-			onDelete: (index) => { void this.deleteSourceProfile(index); },
+			onDelete: (index) => {
+				const profile = this.plugin.settings.sourceProfiles[index];
+				if (profile) this.confirmDeleteSourceProfile(profile);
+			},
 			onReorder: (oldIndex, newIndex) => { void this.reorder(this.plugin.settings.sourceProfiles, oldIndex, newIndex); },
 		};
 	}
@@ -234,6 +238,19 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileText(profile, 'Generated title template', `Available variables: ${EVENT_TEMPLATE_VARIABLES}`, 'generatedTitleTemplate'),
 					this.profileText(profile, 'Title date format', 'Date format used by title and filename variables.', 'titleDateFormat'),
 				],
+			}, {
+				type: 'group',
+				heading: 'Profile actions',
+				items: [this.renderDefinition(
+					'Delete source profile',
+					'Remove this profile and its indexed Sidebar Calendar items.',
+					(setting) => {
+						setting.addButton((button) => button
+							.setButtonText('Delete profile')
+							.setDestructive()
+							.onClick(() => this.confirmDeleteSourceProfile(profile)));
+					},
+				)],
 			}],
 		};
 	}
@@ -375,9 +392,15 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		this.update();
 	}
 
-	private async deleteSourceProfile(index: number): Promise<void> {
+	private confirmDeleteSourceProfile(profile: CalendarSourceProfile): void {
+		new ConfirmDeleteSourceProfileModal(this.app, profile.name, () => {
+			void this.deleteSourceProfile(profile.id);
+		}).open();
+	}
+
+	private async deleteSourceProfile(profileId: string): Promise<void> {
 		const previous = this.snapshot();
-		this.plugin.settings.sourceProfiles.splice(index, 1);
+		if (!removeSourceProfile(this.plugin.settings, profileId)) return;
 		await this.plugin.saveSettings(previous);
 		this.update();
 	}
@@ -418,6 +441,38 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 
 	private snapshot(): CalendarSettings {
 		return structuredClone(this.plugin.settings);
+	}
+}
+
+class ConfirmDeleteSourceProfileModal extends Modal {
+	constructor(
+		app: App,
+		private readonly profileName: string,
+		private readonly onConfirm: () => void,
+	) {
+		super(app);
+	}
+
+	onOpen(): void {
+		this.setTitle('Delete source profile?');
+		this.contentEl.createEl('p', {
+			text: `“${this.profileName}” will be removed from Calendar Note View. Event notes in your vault will not be deleted.`,
+		});
+		new Setting(this.contentEl)
+			.addButton((button) => button
+				.setButtonText('Cancel')
+				.onClick(() => this.close()))
+			.addButton((button) => button
+				.setButtonText('Delete')
+				.setDestructive()
+				.onClick(() => {
+					this.close();
+					this.onConfirm();
+				}));
+	}
+
+	onClose(): void {
+		this.contentEl.empty();
 	}
 }
 

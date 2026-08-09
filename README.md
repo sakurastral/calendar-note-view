@@ -77,6 +77,8 @@ Values inside one condition group use OR. For example, folders `Events` and `Hol
 
 Wiki Link matching uses Obsidian's Metadata Cache. It matches links in Markdown content and Properties without reading every note body with a regular expression. Enter multiple links as a comma-separated list, such as `[[Holiday]], [[Vacation]]`.
 
+Delete a Source Profile from its list trash button or from **Profile actions → Delete profile** inside the profile. Calendar Note View asks for confirmation and removes only the profile, its indexed Sidebar items, and related diagnostics; it never deletes event notes from the vault.
+
 ## Event properties
 
 Calendar Note View does not impose property names. New Source Profiles and Bases Calendar views start with blank mappings, and property fields provide suggestions from the vault or current Base. A possible mapping is:
@@ -150,9 +152,9 @@ Daily Note file names continue to use the Core Daily Notes format.
 
 ## Style Settings
 
-Calendar Note View works without the Style Settings plugin. If Style Settings is installed, open its **Calendar Note View** section to customize light and dark colors for the calendar, Sidebar, Bases header and cells, weekday labels, adjacent dates, hover state, Today, Weekend, Event, Task, Daily Note, and Navigation, together with size and spacing controls.
+Calendar Note View works without the Style Settings plugin. If Style Settings is installed, open its **Calendar Note View** section to customize the calendar, Sidebar, Bases header and cells, weekday labels, adjacent dates, hover state, Today, Weekend, Event, Task, Daily Note, and Navigation.
 
-Styles prefer Calendar Note View variables, then Obsidian theme variables. This keeps the plugin compatible with light, dark, and custom themes.
+Each color control can follow an Obsidian semantic or extended color variable—such as Primary background, Interactive accent, Normal text, or Blue—or use custom light and dark colors. The Bases date number is circular by default, and **Bases Calendar → Date Cell → Date number border radius** can change it from square to round. Styles resolve the selected Calendar Note View value through Obsidian theme variables before using a fallback, keeping light, dark, and custom themes compatible.
 
 ## Diagnostics
 

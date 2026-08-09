@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_EVENT_PROFILE, loadCalendarSettings } from '../src/settings-data';
+import { DEFAULT_EVENT_PROFILE, loadCalendarSettings, removeSourceProfile } from '../src/settings-data';
 import { rankSuggestions } from '../src/suggestion-ranking';
 
 describe('settings infrastructure', () => {
@@ -75,6 +75,20 @@ describe('settings infrastructure', () => {
 		expect(DEFAULT_EVENT_PROFILE.fileNameTemplate).toBe('{date-range} {title}');
 		expect(DEFAULT_EVENT_PROFILE.generatedTitleTemplate).toBe('{date-range} {title}');
 		expect(JSON.stringify(DEFAULT_EVENT_PROFILE)).not.toContain('calendar-event-');
+	});
+
+	it('removes one source profile by its stable ID', () => {
+		const settings = loadCalendarSettings({
+			schemaVersion: 3,
+			sourceProfiles: [
+				{ id: 'events', name: 'Events', startProperty: 'start' },
+				{ id: 'tasks', name: 'Tasks', startProperty: 'due', kind: 'task' },
+			],
+		}).settings;
+
+		expect(removeSourceProfile(settings, 'events')).toBe(true);
+		expect(settings.sourceProfiles.map((profile) => profile.id)).toEqual(['tasks']);
+		expect(removeSourceProfile(settings, 'missing')).toBe(false);
 	});
 });
 

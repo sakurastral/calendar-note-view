@@ -2,6 +2,19 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.1
+
+### Added
+
+- Visible Source Profile deletion with confirmation from both the profile list and detail page
+- Obsidian semantic and extended color variable presets for every Style Settings color control
+- Adjustable Bases date-number border radius
+
+### Changed
+
+- Render Bases date numbers as circles by default, including Today and hover backgrounds
+- Prefer theme-aware Obsidian variables while retaining custom light and dark color pickers
+
 ## 0.2.0
 
 ### Added
