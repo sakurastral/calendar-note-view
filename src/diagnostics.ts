@@ -9,46 +9,80 @@ export function createDiagnostic(
 	};
 }
 
+type DiagnosticScope = 'normalization' | 'style';
+
 export class CalendarDiagnosticsService {
-	private readonly diagnostics = new Map<string, CalendarDiagnostic>();
+	private readonly diagnosticsByScope = new Map<string, Map<string, CalendarDiagnostic>>();
 
 	getAll(): CalendarDiagnostic[] {
-		return this.sorted(this.diagnostics.values());
+		return this.sorted(this.aggregate().values());
 	}
 
 	getByFile(filePath: string): CalendarDiagnostic[] {
-		return this.sorted([...this.diagnostics.values()].filter((item) => item.filePath === filePath));
+		return this.sorted([...this.aggregate().values()].filter((item) => item.filePath === filePath));
 	}
 
 	getByProfile(profileId: string): CalendarDiagnostic[] {
-		return this.sorted([...this.diagnostics.values()].filter((item) => item.sourceProfileId === profileId));
+		return this.sorted([...this.aggregate().values()].filter((item) => item.sourceProfileId === profileId));
 	}
 
 	getBySeverity(severity: CalendarDiagnosticSeverity): CalendarDiagnostic[] {
-		return this.sorted([...this.diagnostics.values()].filter((item) => item.severity === severity));
+		return this.sorted([...this.aggregate().values()].filter((item) => item.severity === severity));
 	}
 
 	replaceForFileAndProfile(filePath: string, profileId: string, diagnostics: CalendarDiagnostic[]): void {
-		for (const item of this.diagnostics.values()) {
-			if (item.filePath === filePath && item.sourceProfileId === profileId) this.diagnostics.delete(item.id);
-		}
-		for (const diagnostic of diagnostics) this.diagnostics.set(diagnostic.id, diagnostic);
+		this.replaceScope('normalization', filePath, profileId, diagnostics);
+	}
+
+	replaceStyleForFileAndProfile(filePath: string, profileId: string, diagnostics: CalendarDiagnostic[]): void {
+		this.replaceScope('style', filePath, profileId, diagnostics);
+	}
+
+	removeStyleForProfile(profileId: string): void {
+		this.removeMatching((_diagnostic, scope) => scope.startsWith(`style::`) && scope.endsWith(`::${profileId}`));
 	}
 
 	removeForFile(filePath: string): void {
-		for (const diagnostic of this.diagnostics.values()) {
-			if (diagnostic.filePath === filePath) this.diagnostics.delete(diagnostic.id);
-		}
+		this.removeMatching((diagnostic) => diagnostic.filePath === filePath);
 	}
 
 	removeForProfile(profileId: string): void {
-		for (const diagnostic of this.diagnostics.values()) {
-			if (diagnostic.sourceProfileId === profileId) this.diagnostics.delete(diagnostic.id);
-		}
+		this.removeMatching((diagnostic) => diagnostic.sourceProfileId === profileId);
 	}
 
 	clear(): void {
-		this.diagnostics.clear();
+		this.diagnosticsByScope.clear();
+	}
+
+	private replaceScope(
+		scope: DiagnosticScope,
+		filePath: string,
+		profileId: string,
+		diagnostics: CalendarDiagnostic[],
+	): void {
+		const key = `${scope}::${filePath}::${profileId}`;
+		if (diagnostics.length === 0) {
+			this.diagnosticsByScope.delete(key);
+			return;
+		}
+		this.diagnosticsByScope.set(key, new Map(diagnostics.map((diagnostic) => [diagnostic.id, diagnostic])));
+	}
+
+	private aggregate(): Map<string, CalendarDiagnostic> {
+		const result = new Map<string, CalendarDiagnostic>();
+		for (const diagnostics of this.diagnosticsByScope.values()) {
+			for (const diagnostic of diagnostics.values()) result.set(diagnostic.id, diagnostic);
+		}
+		return result;
+	}
+
+	private removeMatching(predicate: (diagnostic: CalendarDiagnostic, scope: string) => boolean): void {
+		for (const [scope, diagnostics] of this.diagnosticsByScope) {
+			for (const [id, diagnostic] of diagnostics) {
+				if (predicate(diagnostic, scope)) diagnostics.delete(id);
+			}
+			if (diagnostics.size === 0) this.diagnosticsByScope.delete(scope);
+		}
 	}
 
 	private sorted(values: Iterable<CalendarDiagnostic>): CalendarDiagnostic[] {

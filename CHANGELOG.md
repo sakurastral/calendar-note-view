@@ -2,6 +2,25 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.5
+
+### Changed
+
+- Remove Task as a current data model, Sidebar, Bases, style, option, and runtime concept; all calendar entries are events
+- Restore Wiki Link source matching to the explicit `wikiLinkProperty` and `wikiLinkTargets` model
+- Debounce and coalesce settings writes, flush edits when leaving settings, and classify index, render-only, and save-only changes
+- Allow Source Profile background and text defaults to inherit the Style Settings Event fallback
+- Read Bases `DateValue`, `ListValue`, and `LinkValue` through their public Value APIs while continuing to use only `this.data.data`
+
+### Fixed
+
+- Persist the latest Source Profile and Event Type values through slow writes, navigation, settings reopening, and plugin reload
+- Prevent Profile names, creation templates, display settings, and Event Type styles from causing unnecessary full Vault rebuilds
+- Match folders, cached tags, and configured frontmatter Wiki Links with correct All, Any, and Start-only boundaries
+- Remove ghost items, diagnostics, and reverse-index paths after file or folder rename and move operations
+- Store Sidebar and Bases style diagnostics and validate icons against Obsidian's installed icon set
+- Avoid rendering profile-level diagnostics as empty file buttons
+
 ## 0.2.4
 
 ### Changed
@@ -17,6 +36,8 @@ All notable changes to Calendar Note View are documented in this file.
 - Match normalized Folder paths and descendants without matching similarly prefixed folders
 - Reindex notes when Obsidian finishes resolving outgoing links so Wiki Link matches do not remain stale
 - Prevent same-name notes in different folders from matching the wrong resolved Wiki Link
+- Persist Folder, Property, and Icon suggestions through their settings callbacks instead of relying on synthetic input events
+- Replace a partial query such as `eve` with the selected `Events` value immediately and retain it after reopening settings
 
 ## 0.2.3
 

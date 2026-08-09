@@ -1,9 +1,6 @@
-export type CalendarItemKind = 'event' | 'task';
-
 export interface CalendarItem {
 	id: string;
 	filePath: string;
-	kind: CalendarItemKind;
 	startDate: string;
 	endDate: string;
 	title: string;
@@ -11,19 +8,18 @@ export interface CalendarItem {
 	icon?: string;
 	backgroundColor?: string;
 	textColor?: string;
-	completed?: boolean;
-	sourceProfileId?: string;
+	sourceProfileId: string;
 }
 
 export interface CalendarSourceProfile {
 	id: string;
 	name: string;
 	enabled: boolean;
-	kind: CalendarItemKind;
 	matchMode: 'all' | 'any';
 	folders: string[];
 	tags: string[];
-	wikiLinks: string[];
+	wikiLinkProperty?: string;
+	wikiLinkTargets: string[];
 	matchFilesWithStartPropertyOnly?: boolean;
 	startProperty: string;
 	endProperty?: string;
@@ -32,7 +28,6 @@ export interface CalendarSourceProfile {
 	iconProperty?: string;
 	colorProperty?: string;
 	textColorProperty?: string;
-	completedProperty?: string;
 	defaultType?: string;
 	defaultIcon?: string;
 	defaultBackgroundColor?: string;
@@ -61,7 +56,7 @@ export type CalendarTimeZone =
 	| { mode: 'custom'; timeZone: string };
 
 export interface CalendarSettings {
-	schemaVersion: 4;
+	schemaVersion: 5;
 	firstDayOfWeek: number;
 	weekendDays: number[];
 	timeZone: CalendarTimeZone;
@@ -106,9 +101,6 @@ export interface CalendarFileData {
 export interface CalendarMetadata {
 	frontmatter?: Record<string, unknown>;
 	tags?: Array<{ tag: string }>;
-	links?: Array<{ link: string }>;
-	embeds?: Array<{ link: string }>;
-	frontmatterLinks?: Array<{ link: string }>;
 }
 
 export interface ResolvedCalendarItemStyle {

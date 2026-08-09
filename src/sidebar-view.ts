@@ -145,7 +145,9 @@ export class CalendarSidebarView extends ItemView {
 		for (const item of items.slice(0, maximum)) {
 			const profile = this.plugin.settings.sourceProfiles.find((candidate) => candidate.id === item.sourceProfileId);
 			if (!profile) continue;
-			const resolved = this.styleResolver.resolve(item, profile, this.plugin.settings.typeStyleRules).style;
+			const resolution = this.styleResolver.resolve(item, profile, this.plugin.settings.typeStyleRules);
+			this.plugin.diagnostics.replaceStyleForFileAndProfile(item.filePath, profile.id, resolution.diagnostics);
+			const resolved = resolution.style;
 			const indicator = indicators.createSpan({
 				cls: `calendar-note-indicator is-${this.plugin.settings.sidebarIndicatorMode}`,
 				attr: { title: item.title, 'aria-label': item.title },

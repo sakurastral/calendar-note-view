@@ -21,4 +21,17 @@ describe('calendar diagnostics', () => {
 		service.removeForFile('A.md');
 		expect(service.getAll()).toEqual([]);
 	});
+
+	it('keeps style diagnostics alongside normalization diagnostics', () => {
+		const service = new CalendarDiagnosticsService();
+		service.replaceForFileAndProfile('A.md', 'events', [createDiagnostic({
+			code: 'invalid-start-date', severity: 'error', message: 'Invalid date', filePath: 'A.md', sourceProfileId: 'events',
+		})]);
+		service.replaceStyleForFileAndProfile('A.md', 'events', [createDiagnostic({
+			code: 'unknown-icon', severity: 'warning', message: 'Unknown icon', filePath: 'A.md', sourceProfileId: 'events',
+		})]);
+		expect(service.getByFile('A.md').map((diagnostic) => diagnostic.code)).toEqual(['invalid-start-date', 'unknown-icon']);
+		service.replaceStyleForFileAndProfile('A.md', 'events', []);
+		expect(service.getByFile('A.md').map((diagnostic) => diagnostic.code)).toEqual(['invalid-start-date']);
+	});
 });

@@ -108,9 +108,7 @@ export class CalendarIndexService {
 	}
 
 	async handleSettingsChanged(previous: CalendarSettings, next: CalendarSettings): Promise<void> {
-		const indexChanged = JSON.stringify(previous.sourceProfiles) !== JSON.stringify(next.sourceProfiles) ||
-			JSON.stringify(previous.typeStyleRules) !== JSON.stringify(next.typeStyleRules) ||
-			previous.eventPropertyDateFormat !== next.eventPropertyDateFormat;
+		const indexChanged = JSON.stringify(indexSettings(previous)) !== JSON.stringify(indexSettings(next));
 		if (indexChanged) await this.rebuildInternal('settings-change');
 	}
 
@@ -172,6 +170,18 @@ export class CalendarIndexService {
 			})]);
 			return;
 		}
+		const hasWikiLinkProperty = Boolean(profile.wikiLinkProperty?.trim());
+		const hasWikiLinkTargets = profile.wikiLinkTargets.some((target) => target.trim());
+		if (profile.enabled && hasWikiLinkProperty !== hasWikiLinkTargets) {
+			this.diagnostics.replaceForFileAndProfile('', profile.id, [createDiagnostic({
+				code: 'empty-source-profile',
+				severity: 'warning',
+				message: 'Wiki Link matching requires both a property and at least one target.',
+				filePath: '',
+				sourceProfileId: profile.id,
+			})]);
+			return;
+		}
 		if (!profile.enabled || hasSourceConditions(profile) || profile.matchFilesWithStartPropertyOnly) return;
 		this.diagnostics.replaceForFileAndProfile('', profile.id, [createDiagnostic({
 			code: 'empty-source-profile',
@@ -208,7 +218,7 @@ export class CalendarIndexService {
 			{ owner: 'metadata', ref: this.app.metadataCache.on('changed', (file) => this.schedule(file, 'file-change')) },
 			{ owner: 'metadata', ref: this.app.metadataCache.on('resolve', (file) => this.schedule(file, 'file-change')) },
 			{ owner: 'vault', ref: this.app.vault.on('create', (file) => this.scheduleAbstract(file, 'file-create')) },
-			{ owner: 'vault', ref: this.app.vault.on('delete', (file) => this.removeFile(file.path)) },
+			{ owner: 'vault', ref: this.app.vault.on('delete', (file) => this.removeAbstract(file)) },
 			{ owner: 'vault', ref: this.app.vault.on('rename', (file, oldPath) => this.renameAbstract(file, oldPath)) },
 		);
 	}
@@ -219,7 +229,34 @@ export class CalendarIndexService {
 
 	private renameAbstract(file: TAbstractFile, oldPath: string): void {
 		if (isMarkdownFile(file)) void this.renameFile(file, oldPath);
-		else this.removeFile(oldPath);
+		else void this.renameFolder(file.path, oldPath);
+	}
+
+	private removeAbstract(file: TAbstractFile): void {
+		if (isMarkdownFile(file)) {
+			this.removeFile(file.path);
+			return;
+		}
+		const paths = this.trackedFilePaths().filter((path) => isPathInsideFolder(path, file.path));
+		for (const path of paths) {
+			this.cancelPending(path);
+			this.removeFileData(path);
+		}
+		this.notify({ reason: 'file-delete', filePaths: paths.length > 0 ? paths : [file.path] });
+	}
+
+	private async renameFolder(newPath: string, oldPath: string): Promise<void> {
+		const oldFilePaths = this.trackedFilePaths().filter((path) => isPathInsideFolder(path, oldPath));
+		for (const path of oldFilePaths) {
+			this.cancelPending(path);
+			this.removeFileData(path);
+		}
+		const newFiles = this.app.vault.getMarkdownFiles().filter((file) => isPathInsideFolder(file.path, newPath));
+		for (const file of newFiles) {
+			this.cancelPending(file.path);
+			await this.reindexFile(file, 'file-rename', false);
+		}
+		this.notify({ reason: 'file-rename', filePaths: [...oldFilePaths, ...newFiles.map((file) => file.path)] });
 	}
 
 	private schedule(file: TFile, reason: 'file-create' | 'file-change'): void {
@@ -235,6 +272,14 @@ export class CalendarIndexService {
 		const pending = this.pending.get(filePath);
 		if (pending) window.clearTimeout(pending.timer);
 		this.pending.delete(filePath);
+	}
+
+	private trackedFilePaths(): string[] {
+		return [...new Set([
+			...this.itemIdsByFile.keys(),
+			...this.pending.keys(),
+			...this.diagnostics.getAll().map((diagnostic) => diagnostic.filePath).filter(Boolean),
+		])];
 	}
 
 	private sortItems(values: Iterable<CalendarItem>): CalendarItem[] {
@@ -261,4 +306,33 @@ function isMarkdownFile(file: TAbstractFile): file is TFile {
 
 function toFileData(file: TFile): CalendarFileData {
 	return { path: file.path, basename: file.basename, extension: file.extension };
+}
+
+function isPathInsideFolder(filePath: string, folderPath: string): boolean {
+	const normalizedFile = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+	const normalizedFolder = folderPath.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+	return Boolean(normalizedFolder) && normalizedFile.startsWith(`${normalizedFolder}/`);
+}
+
+function indexSettings(settings: CalendarSettings): unknown {
+	return {
+		eventPropertyDateFormat: settings.eventPropertyDateFormat,
+		sourceProfiles: settings.sourceProfiles.map((profile) => ({
+			id: profile.id,
+			enabled: profile.enabled,
+			matchMode: profile.matchMode,
+			folders: profile.folders,
+			tags: profile.tags,
+			wikiLinkProperty: profile.wikiLinkProperty,
+			wikiLinkTargets: profile.wikiLinkTargets,
+			matchFilesWithStartPropertyOnly: profile.matchFilesWithStartPropertyOnly,
+			startProperty: profile.startProperty,
+			endProperty: profile.endProperty,
+			titleProperty: profile.titleProperty,
+			typeProperty: profile.typeProperty,
+			iconProperty: profile.iconProperty,
+			colorProperty: profile.colorProperty,
+			textColorProperty: profile.textColorProperty,
+		})).sort((left, right) => left.id.localeCompare(right.id)),
+	};
 }

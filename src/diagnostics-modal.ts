@@ -24,11 +24,15 @@ export class CalendarDiagnosticsModal extends Modal {
 			row.insertCell().setText(diagnostic.code);
 			row.insertCell().setText(diagnostic.message);
 			const fileCell = row.insertCell();
-			const fileButton = fileCell.createEl('button', { cls: 'calendar-note-diagnostic-file' });
-			const icon = fileButton.createSpan();
-			setIcon(icon, 'file-text');
-			fileButton.createSpan({ text: diagnostic.filePath });
-			fileButton.addEventListener('click', () => { void this.openFile(diagnostic.filePath); });
+			if (diagnostic.filePath) {
+				const fileButton = fileCell.createEl('button', { cls: 'calendar-note-diagnostic-file' });
+				const icon = fileButton.createSpan();
+				setIcon(icon, 'file-text');
+				fileButton.createSpan({ text: diagnostic.filePath });
+				fileButton.addEventListener('click', () => { void this.openFile(diagnostic.filePath); });
+			} else {
+				fileCell.setText('Profile setting');
+			}
 			const profile = this.plugin.settings.sourceProfiles.find((candidate) => candidate.id === diagnostic.sourceProfileId);
 			row.insertCell().setText(profile?.name ?? diagnostic.sourceProfileId);
 		}

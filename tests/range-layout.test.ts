@@ -50,5 +50,5 @@ describe('Bases calendar range layout', () => {
 });
 
 function event(id: string, startDate: string, endDate: string): CalendarItem {
-	return { id, filePath: `${id}.md`, kind: 'event', startDate, endDate, title: id };
+	return { id, filePath: `${id}.md`, startDate, endDate, title: id, sourceProfileId: 'bases-calendar' };
 }

@@ -31,8 +31,6 @@ interface BasesCalendarViewOptions {
 	weekendDays: number[];
 	showAdjacentMonthDates: boolean;
 	maximumVisibleEvents: number;
-	hideCompletedTasks: boolean;
-	dimCompletedTasks: boolean;
 	eventDisplayMode: EventDisplayMode;
 }
 
@@ -40,11 +38,10 @@ const BASES_STYLE_PROFILE: CalendarSourceProfile = {
 	id: 'bases-calendar',
 	name: 'Bases calendar',
 	enabled: true,
-	kind: 'event',
 	matchMode: 'all',
 	folders: [],
 	tags: [],
-	wikiLinks: [],
+	wikiLinkTargets: [],
 	startProperty: '',
 	allowCreate: false,
 	defaultIcon: 'calendar',
@@ -76,6 +73,7 @@ export class CalendarBasesView extends BasesView {
 
 	private renderCalendar(): void {
 		this.containerEl.empty();
+		this.plugin.diagnostics.removeStyleForProfile(BASES_STYLE_PROFILE.id);
 		const options = this.readOptions();
 		this.renderHeader();
 		if (!options.properties) {
@@ -187,12 +185,13 @@ export class CalendarBasesView extends BasesView {
 		week.style.setProperty('--calendar-note-week-rows', String(Math.min(options.maximumVisibleEvents, Math.max(0, ...segments.map((segment) => segment.lane + 1))) +
 			(segments.some((segment) => segment.lane >= options.maximumVisibleEvents) ? 1 : 0)));
 		for (const segment of visible) {
-			const style = this.styleResolver.resolve(segment.item, BASES_STYLE_PROFILE, this.plugin.settings.typeStyleRules).style;
+			const resolution = this.styleResolver.resolve(segment.item, BASES_STYLE_PROFILE, this.plugin.settings.typeStyleRules);
+			this.plugin.diagnostics.replaceStyleForFileAndProfile(segment.item.filePath, BASES_STYLE_PROFILE.id, resolution.diagnostics);
+			const style = resolution.style;
 			const eventButton = layer.createEl('button', {
-				cls: `calendar-note-bases-event is-${segment.item.kind}`,
+				cls: 'calendar-note-bases-event',
 				attr: { title: segment.item.title, 'aria-label': segment.item.title },
 			});
-			eventButton.toggleClass('is-completed', segment.item.completed === true && options.dimCompletedTasks);
 			eventButton.toggleClass('continues-before', segment.continuesBefore);
 			eventButton.toggleClass('continues-after', segment.continuesAfter);
 			eventButton.style.gridColumn = `${segment.startColumn + 1} / ${segment.endColumn + 2}`;
@@ -241,14 +240,11 @@ export class CalendarBasesView extends BasesView {
 				icon: this.config.getAsPropertyId('iconProperty'),
 				backgroundColor: this.config.getAsPropertyId('backgroundColorProperty'),
 				textColor: this.config.getAsPropertyId('textColorProperty'),
-				completed: this.config.getAsPropertyId('completedProperty'),
 			} : undefined,
 			firstDayOfWeek: integerOption(this.config.get('firstDayOfWeek'), 0, 6, this.plugin.settings.firstDayOfWeek),
 			weekendDays: weekdayOptions(this.config.get('weekendDays'), this.plugin.settings.weekendDays),
 			showAdjacentMonthDates: booleanOption(this.config.get('showAdjacentMonthDates'), true),
 			maximumVisibleEvents: integerOption(this.config.get('maximumVisibleEvents'), 1, 8, 3),
-			hideCompletedTasks: booleanOption(this.config.get('hideCompletedTasks'), false),
-			dimCompletedTasks: booleanOption(this.config.get('dimCompletedTasks'), true),
 			eventDisplayMode: displayMode(this.config.get('eventDisplayMode')),
 		};
 	}
@@ -257,8 +253,7 @@ export class CalendarBasesView extends BasesView {
 		if (!options.properties) return [];
 		const items = this.data.data
 			.map((entry) => this.normalizer.normalize(entry, options.properties!, this.plugin.settings.eventPropertyDateFormat))
-			.filter((item): item is CalendarItem => item !== undefined)
-			.filter((item) => !(options.hideCompletedTasks && item.kind === 'task' && item.completed));
+			.filter((item): item is CalendarItem => item !== undefined);
 		return sortCalendarItems(items);
 	}
 

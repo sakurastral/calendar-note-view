@@ -102,8 +102,8 @@ const settings = [
 	...color('calendar-note-bases-cell-border', 'Grid border color', 'Applies to the lines between Bases day cells.', 'var(--background-modifier-border)', '#d8d8d8', '#3a3a3a', borderOptions),
 	...color('calendar-note-bases-date-bg', 'Date badge background', 'Fills ordinary Bases date-number badges; Today and hover can override it.', 'var(--background-secondary)', '#e5e7eb', '#303030', backgroundOptions),
 	slider('calendar-note-bases-date-radius', 'Date badge corner radius', 50, 0, 50, 1, '%', 'Controls the Bases date-number badge. Use 50% for a circle and 0% for a square.'),
-	slider('calendar-note-bases-event-height', 'Event bar height', 22, 16, 40, 1, 'px', 'Sets the height of event and task bars in Bases.'),
-	slider('calendar-note-bases-event-gap', 'Gap between event bars', 2, 0, 12, 1, 'px', 'Sets vertical spacing between event and task bars in Bases.'),
+	slider('calendar-note-bases-event-height', 'Event bar height', 22, 16, 40, 1, 'px', 'Sets the height of event bars in Bases.'),
+	slider('calendar-note-bases-event-gap', 'Gap between event bars', 2, 0, 12, 1, 'px', 'Sets vertical spacing between event bars in Bases.'),
 	...color('calendar-note-bases-more-text', 'Overflow count text color', 'Applies to the +N more indicator in Bases.', 'var(--text-muted)', '#6b7280', '#a1a1aa', textOptions),
 
 	heading('calendar-note-date-cell-heading', 'Date appearance and states'),
@@ -120,12 +120,9 @@ const settings = [
 	heading('calendar-note-event-heading', 'Items and indicators'),
 	...color('calendar-note-event-bg', 'Event fallback background', 'Used only when an event has no note, type-rule, or Source Profile color override.', 'var(--background-secondary)', '#e5e7eb', '#303030', backgroundOptions),
 	...color('calendar-note-event-text', 'Event fallback text', 'Used only when an event has no note, type-rule, or Source Profile text-color override.', 'var(--text-normal)', '#222222', '#dadada', textOptions),
-	...color('calendar-note-task-bg', 'Task fallback background', 'Used only when a task has no note, type-rule, or Source Profile color override.', 'var(--background-secondary)', '#e5e7eb', '#303030', backgroundOptions),
-	...color('calendar-note-task-text', 'Task fallback text', 'Used only when a task has no note, type-rule, or Source Profile text-color override.', 'var(--text-normal)', '#222222', '#dadada', textOptions),
-	slider('calendar-note-task-opacity-completed', 'Completed task opacity', 60, 20, 100, 5, '%', 'Applies when the Bases view option to dim completed tasks is enabled.'),
 	slider('calendar-note-dot-size', 'Sidebar event dot size', 5, 3, 12, 1, 'px', 'Applies when the Sidebar indicator mode is Colored dots.'),
 	slider('calendar-note-event-icon-size', 'Event icon size', 12, 8, 22, 1, 'px', 'Applies to Sidebar icon indicators and Bases event icons.'),
-	slider('calendar-note-event-radius', 'Event and task corner radius', 4, 0, 16, 1, 'px', 'Applies to Sidebar indicators and Bases event or task bars.'),
+	slider('calendar-note-event-radius', 'Event corner radius', 4, 0, 16, 1, 'px', 'Applies to Sidebar indicators and Bases event bars.'),
 	...color('calendar-note-daily-note-indicator', 'Daily Note indicator color', 'Applies to the small dot that marks an existing Daily Note.', 'var(--interactive-accent)', '#7c3aed', '#a78bfa', indicatorOptions),
 ];
 

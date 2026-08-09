@@ -1,7 +1,7 @@
-import type { BasesEntry, BasesPropertyId, ListValue, Value } from 'obsidian';
+import type { BasesEntry, BasesPropertyId, Value } from 'obsidian';
 import { compareCalendarDates, parseCalendarDate } from './date';
-import type { CalendarItem, CalendarItemKind } from './models';
-import { isSafeCssColor, normalizeCompletedValue, normalizeDisplayValue, normalizeWikiLinkTarget } from './value-normalizers';
+import type { CalendarItem } from './models';
+import { isSafeCssColor, normalizeDisplayValue, normalizeWikiLinkTarget } from './value-normalizers';
 
 export interface BasesCalendarPropertyMap {
 	start: BasesPropertyId;
@@ -11,7 +11,6 @@ export interface BasesCalendarPropertyMap {
 	icon?: BasesPropertyId | null;
 	backgroundColor?: BasesPropertyId | null;
 	textColor?: BasesPropertyId | null;
-	completed?: BasesPropertyId | null;
 }
 
 export interface BasesEntryLike {
@@ -31,10 +30,6 @@ export class BasesCalendarNormalizer {
 		const endDate = isBlank(endRaw) ? startDate : parseCalendarDate(endRaw, propertyDateFormat);
 		if (!endDate || compareCalendarDates(endDate, startDate) < 0) return undefined;
 
-		const completed = properties.completed
-			? normalizeCompletedValue(valueToRaw(entry.getValue(properties.completed)))
-			: undefined;
-		const kind: CalendarItemKind = completed === undefined ? 'event' : 'task';
 		const title = properties.title
 			? normalizeDisplayValue(valueToRaw(entry.getValue(properties.title))) ?? entry.file.basename
 			: entry.file.basename;
@@ -42,7 +37,6 @@ export class BasesCalendarNormalizer {
 		return {
 			id: `bases:${entry.file.path}`,
 			filePath: entry.file.path,
-			kind,
 			startDate,
 			endDate,
 			title,
@@ -50,7 +44,6 @@ export class BasesCalendarNormalizer {
 			icon: properties.icon ? normalizeDisplayValue(valueToRaw(entry.getValue(properties.icon))) ?? undefined : undefined,
 			backgroundColor: this.color(entry, properties.backgroundColor),
 			textColor: this.color(entry, properties.textColor),
-			completed,
 			sourceProfileId: 'bases-calendar',
 		};
 	}
@@ -62,15 +55,23 @@ export class BasesCalendarNormalizer {
 	}
 }
 
-function valueToRaw(value: Value | null): unknown {
+export function basesValueToRaw(value: Value | null): unknown {
 	if (!value) return undefined;
-	const list = value as ListValue;
-	if (typeof list.length === 'function' && typeof list.get === 'function') {
-		const values: string[] = [];
-		for (let index = 0; index < list.length(); index += 1) values.push(list.get(index).toString());
+	if (isListValue(value)) {
+		const values: unknown[] = [];
+		for (let index = 0; index < value.length(); index += 1) values.push(basesValueToRaw(value.get(index)));
 		return values;
 	}
 	return value.toString();
+}
+
+function valueToRaw(value: Value | null): unknown {
+	return basesValueToRaw(value);
+}
+
+function isListValue(value: Value): value is Value & { length(): number; get(index: number): Value } {
+	const candidate = value as Value & { length?: unknown; get?: unknown };
+	return typeof candidate.length === 'function' && typeof candidate.get === 'function';
 }
 
 function isBlank(value: unknown): boolean {

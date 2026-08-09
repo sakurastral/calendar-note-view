@@ -1,0 +1,87 @@
+import type { CalendarSettings } from './models';
+
+export type CalendarSettingsImpact = 'save' | 'render' | 'index';
+
+export interface CalendarSettingsPersistenceOptions {
+	getSettings: () => CalendarSettings;
+	saveData: (settings: CalendarSettings) => Promise<void>;
+	applyImpact: (
+		previous: CalendarSettings,
+		next: CalendarSettings,
+		impact: CalendarSettingsImpact,
+	) => Promise<void> | void;
+	debounceMilliseconds?: number;
+}
+
+interface PendingSettingsSave {
+	previous: CalendarSettings;
+	impact: CalendarSettingsImpact;
+}
+
+/** Coalesces UI edits and serializes writes so an older save can never win. */
+export class CalendarSettingsPersistence {
+	private pending?: PendingSettingsSave;
+	private timer?: number;
+	private running?: Promise<void>;
+	private readonly debounceMilliseconds: number;
+
+	constructor(private readonly options: CalendarSettingsPersistenceOptions) {
+		this.debounceMilliseconds = options.debounceMilliseconds ?? 220;
+	}
+
+	schedule(previous: CalendarSettings, impact: CalendarSettingsImpact): void {
+		if (!this.pending) {
+			this.pending = { previous: structuredClone(previous), impact };
+		} else {
+			this.pending.impact = mergeImpact(this.pending.impact, impact);
+		}
+		if (this.timer !== undefined) window.clearTimeout(this.timer);
+		this.timer = window.setTimeout(() => {
+			this.timer = undefined;
+			void this.flush();
+		}, this.debounceMilliseconds);
+	}
+
+	async flush(): Promise<void> {
+		if (this.timer !== undefined) {
+			window.clearTimeout(this.timer);
+			this.timer = undefined;
+		}
+		if (!this.running) {
+			this.running = this.drain().finally(() => {
+				this.running = undefined;
+			});
+		}
+		await this.running;
+	}
+
+	hasPendingChanges(): boolean {
+		return this.pending !== undefined || this.running !== undefined;
+	}
+
+	private async drain(): Promise<void> {
+		while (this.pending) {
+			const pending = this.pending;
+			this.pending = undefined;
+			const next = structuredClone(this.options.getSettings());
+			await this.options.saveData(next);
+			const newerPending = this.getPending();
+			if (newerPending) {
+				newerPending.previous = pending.previous;
+				newerPending.impact = mergeImpact(pending.impact, newerPending.impact);
+				continue;
+			}
+			await this.options.applyImpact(pending.previous, next, pending.impact);
+		}
+	}
+
+	private getPending(): PendingSettingsSave | undefined {
+		return this.pending;
+	}
+}
+
+function mergeImpact(left: CalendarSettingsImpact, right: CalendarSettingsImpact): CalendarSettingsImpact {
+	if (left === 'index' || right === 'index') return 'index';
+	if (left === 'render' || right === 'render') return 'render';
+	return 'save';
+}

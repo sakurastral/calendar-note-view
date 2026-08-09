@@ -9,7 +9,6 @@ import type {
 } from './models';
 import {
 	isSafeCssColor,
-	normalizeCompletedValue,
 	normalizeDisplayValue,
 	normalizeWikiLinkTarget,
 	stringifyScalar,
@@ -68,15 +67,10 @@ export class CalendarItemNormalizer {
 		const icon = profile.iconProperty ? normalizeDisplayValue(frontmatter[profile.iconProperty]) ?? undefined : undefined;
 		const backgroundColor = this.normalizeColor(frontmatter, profile.colorProperty, file, profile, diagnostics);
 		const textColor = this.normalizeColor(frontmatter, profile.textColorProperty, file, profile, diagnostics);
-		const completed = profile.kind === 'task' && profile.completedProperty
-			? normalizeCompletedValue(frontmatter[profile.completedProperty])
-			: undefined;
-
 		return {
 			item: {
 				id: `${profile.id}:${file.path}`,
 				filePath: file.path,
-				kind: profile.kind,
 				startDate,
 				endDate,
 				title,
@@ -84,7 +78,6 @@ export class CalendarItemNormalizer {
 				icon,
 				backgroundColor,
 				textColor,
-				completed,
 				sourceProfileId: profile.id,
 			},
 			diagnostics,

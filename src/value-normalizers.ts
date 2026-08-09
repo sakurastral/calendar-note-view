@@ -32,16 +32,6 @@ export function normalizeDisplayValue(value: unknown): string | null {
 	return text || null;
 }
 
-export function normalizeCompletedValue(value: unknown): boolean | undefined {
-	if (value === true || value === 1) return true;
-	if (value === false || value === 0) return false;
-	if (typeof value !== 'string') return undefined;
-	const normalized = value.trim().toLowerCase();
-	if (['true', 'done', 'completed', '1'].includes(normalized)) return true;
-	if (['false', 'open', 'todo', '0'].includes(normalized)) return false;
-	return undefined;
-}
-
 export function isSafeCssColor(value: unknown): boolean {
 	if (typeof value !== 'string') return false;
 	const color = value.trim();

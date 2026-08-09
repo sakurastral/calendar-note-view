@@ -1,7 +1,5 @@
 import { isSupportedDateFormat, isValidIanaTimeZone } from './date';
 import {
-	DEFAULT_PROFILE_BACKGROUND_COLOR,
-	DEFAULT_PROFILE_TEXT_COLOR,
 	normalizeObsidianColor,
 	OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
 	OBSIDIAN_TEXT_COLOR_OPTIONS,
@@ -17,16 +15,13 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 	id: 'default-events',
 	name: 'Calendar events',
 	enabled: false,
-	kind: 'event',
 	matchMode: 'all',
 	folders: [],
 	tags: [],
-	wikiLinks: [],
+	wikiLinkTargets: [],
 	matchFilesWithStartPropertyOnly: false,
 	startProperty: '',
 	defaultIcon: 'calendar',
-	defaultBackgroundColor: DEFAULT_PROFILE_BACKGROUND_COLOR,
-	defaultTextColor: DEFAULT_PROFILE_TEXT_COLOR,
 	allowCreate: false,
 	createFolder: 'Events',
 	fileNameTemplate: '{date-range} {title}',
@@ -36,7 +31,7 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 };
 
 export const DEFAULT_SETTINGS: CalendarSettings = {
-	schemaVersion: 4,
+	schemaVersion: 5,
 	firstDayOfWeek: 0,
 	weekendDays: [0, 6],
 	timeZone: { mode: 'system' },
@@ -73,7 +68,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		? Number(raw.firstDayOfWeek)
 		: DEFAULT_SETTINGS.firstDayOfWeek;
 	const settings: CalendarSettings = {
-		schemaVersion: 4,
+		schemaVersion: 5,
 		firstDayOfWeek,
 		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
 		timeZone: normalizeTimeZone(raw.timeZone, warnings),
@@ -87,7 +82,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	};
 	return {
 		settings,
-		migrated: raw.schemaVersion !== 4 || JSON.stringify(settings) !== JSON.stringify(raw),
+		migrated: raw.schemaVersion !== 5 || JSON.stringify(settings) !== JSON.stringify(raw),
 		warnings,
 	};
 }
@@ -137,11 +132,11 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 		id,
 		name: text(raw.name) ?? id,
 		enabled: boolean(raw.enabled, true),
-		kind: 'event',
 		matchMode: raw.matchMode === 'any' ? 'any' : 'all',
 		folders: stringArray(raw.folders),
 		tags: stringArray(raw.tags),
-		wikiLinks: stringArray(raw.wikiLinks ?? raw.wikiLinkTargets),
+		wikiLinkProperty: text(raw.wikiLinkProperty),
+		wikiLinkTargets: stringArray(raw.wikiLinkTargets ?? raw.wikiLinks),
 		matchFilesWithStartPropertyOnly: boolean(raw.matchFilesWithStartPropertyOnly, false),
 		startProperty,
 		endProperty: text(raw.endProperty),
@@ -150,19 +145,10 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 		iconProperty: text(raw.iconProperty),
 		colorProperty: text(raw.colorProperty),
 		textColorProperty: text(raw.textColorProperty),
-		completedProperty: undefined,
 		defaultType: text(raw.defaultType),
 		defaultIcon: text(raw.defaultIcon) ?? 'calendar',
-		defaultBackgroundColor: normalizeObsidianColor(
-			raw.defaultBackgroundColor,
-			DEFAULT_PROFILE_BACKGROUND_COLOR,
-			OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
-		),
-		defaultTextColor: normalizeObsidianColor(
-			raw.defaultTextColor,
-			DEFAULT_PROFILE_TEXT_COLOR,
-			OBSIDIAN_TEXT_COLOR_OPTIONS,
-		),
+		defaultBackgroundColor: normalizeObsidianColor(raw.defaultBackgroundColor, OBSIDIAN_BACKGROUND_COLOR_OPTIONS),
+		defaultTextColor: normalizeObsidianColor(raw.defaultTextColor, OBSIDIAN_TEXT_COLOR_OPTIONS),
 		allowCreate: boolean(raw.allowCreate, false),
 		createFolder: text(raw.createFolder),
 		noteTemplatePath: text(raw.noteTemplatePath),

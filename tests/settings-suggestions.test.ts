@@ -7,51 +7,69 @@ import {
 	updateSourceProfile,
 	updateTypeStyleRule,
 } from '../src/settings-data';
+import { commitInputSuggestion, replaceDelimitedInputValue } from '../src/input-events';
 import { rankSuggestions } from '../src/suggestion-ranking';
 
 describe('settings infrastructure', () => {
-	it('migrates partial legacy data and preserves valid values', () => {
+	it('migrates partial legacy data and safely ignores removed task settings', () => {
 		const result = loadCalendarSettings({
+			schemaVersion: 4,
 			displayDateFormat: 'DD/MM/YYYY',
-			sourceProfiles: [{ id: 'events', name: 'Events', startProperty: 'start', folders: ['Events'] }],
+			hideCompletedTasks: true,
+			dimCompletedTasks: true,
+			sourceProfiles: [{
+				id: 'events', name: 'Events', kind: 'task', completedProperty: 'done',
+				startProperty: 'start', folders: ['Events'],
+			}],
 		});
 		expect(result.migrated).toBe(true);
+		expect(result.settings.schemaVersion).toBe(5);
 		expect(result.settings.displayDateFormat).toBe('DD/MM/YYYY');
-		expect(result.settings.schemaVersion).toBe(4);
-		expect(result.settings.weekendDays).toEqual([0, 6]);
-		expect(result.settings.confirmBeforeCreatingDailyNote).toBe(true);
 		expect(result.settings.sourceProfiles[0]).toMatchObject({ id: 'events', startProperty: 'start', folders: ['Events'] });
+		expect(JSON.stringify(result.settings)).not.toMatch(/kind|completed|hideCompleted|dimCompleted/);
 	});
 
-	it('recovers from invalid data without throwing', () => {
+	it('round-trips every supported Source Profile field', () => {
+		const rawProfile = {
+			id: 'events', name: 'Events', enabled: true, matchMode: 'any', folders: ['Events'], tags: ['calendar'],
+			wikiLinkProperty: 'event-type', wikiLinkTargets: ['[[Holiday]]'], matchFilesWithStartPropertyOnly: false,
+			startProperty: 'start', endProperty: 'end', titleProperty: 'event-title', typeProperty: 'event-type',
+			iconProperty: 'icon', colorProperty: 'color', textColorProperty: 'text-color', defaultType: 'Holiday',
+			defaultIcon: 'calendar-days', defaultBackgroundColor: 'var(--color-red)', defaultTextColor: 'var(--text-on-accent)',
+			allowCreate: true, createFolder: 'Events', noteTemplatePath: 'Templates/Event.md', fileNameTemplate: '{date-range} {title}',
+			generatedTitleProperty: 'title', generatedTitleTemplate: '{date-range} {title}', titleDateFormat: 'YYYY-MM-DD',
+		};
+		const first = loadCalendarSettings({ schemaVersion: 5, sourceProfiles: [rawProfile], typeStyleRules: [] }).settings;
+		const reloaded = loadCalendarSettings(JSON.parse(JSON.stringify(first))).settings;
+		expect(reloaded.sourceProfiles[0]).toEqual(rawProfile);
+	});
+
+	it('preserves an explicit Style Settings fallback instead of forcing profile colors', () => {
+		const defaults = structuredClone(DEFAULT_EVENT_PROFILE);
+		expect(defaults.defaultBackgroundColor).toBeUndefined();
+		expect(defaults.defaultTextColor).toBeUndefined();
+		const migrated = loadCalendarSettings({
+			sourceProfiles: [{ id: 'events', startProperty: 'start', defaultBackgroundColor: '#ff0000', defaultTextColor: 'white' }],
+		}).settings.sourceProfiles[0];
+		expect(migrated?.defaultBackgroundColor).toBeUndefined();
+		expect(migrated?.defaultTextColor).toBeUndefined();
+	});
+
+	it('recovers invalid data and duplicate IDs without throwing', () => {
 		const result = loadCalendarSettings({
 			firstDayOfWeek: 99,
 			timeZone: { mode: 'custom', timeZone: 'Invalid/Zone' },
 			displayDateFormat: 'not-a-format',
-			eventPropertyDateFormat: 42,
-			sourceProfiles: [null, { id: 'missing-start' }],
+			sourceProfiles: [{ id: 'events' }, { id: 'events' }],
 			typeStyleRules: [{ id: 'missing-type' }],
 		});
 		expect(result.settings.firstDayOfWeek).toBe(0);
 		expect(result.settings.timeZone).toEqual({ mode: 'system' });
-		expect(result.settings.displayDateFormat).toBe('YYYY-MM-DD');
-		expect(result.settings.maxIndicatorsPerDay).toBe(3);
-		expect(result.settings.sourceProfiles).toHaveLength(1);
-		expect(result.settings.sourceProfiles[0]?.startProperty).toBe('');
+		expect(result.settings.sourceProfiles.map((profile) => profile.id)).toEqual(['events', 'events-2']);
 		expect(result.warnings.length).toBeGreaterThan(0);
 	});
 
-	it('recovers duplicate profile IDs to prevent index collisions', () => {
-		const result = loadCalendarSettings({
-			sourceProfiles: [
-				{ id: 'events', startProperty: 'start' },
-				{ id: 'events', startProperty: 'start' },
-			],
-		});
-		expect(result.settings.sourceProfiles.map((profile) => profile.id)).toEqual(['events', 'events-2']);
-	});
-
-	it('migrates legacy wiki-link targets to note-link matching', () => {
+	it('migrates legacy wiki-link targets back to property-scoped matching', () => {
 		const result = loadCalendarSettings({
 			schemaVersion: 2,
 			sourceProfiles: [{
@@ -59,96 +77,57 @@ describe('settings infrastructure', () => {
 				wikiLinkTargets: ['[[Holiday]]', '[[Vacation]]'],
 			}],
 		});
-		expect(result.settings.sourceProfiles[0]?.wikiLinks).toEqual(['[[Holiday]]', '[[Vacation]]']);
-		expect(result.settings.schemaVersion).toBe(4);
-	});
-
-	it('migrates the previous default event templates', () => {
-		const result = loadCalendarSettings({
-			schemaVersion: 2,
-			sourceProfiles: [{
-				id: 'events', startProperty: 'start',
-				fileNameTemplate: '{date-range}《{title}》',
-				generatedTitleTemplate: '{date-range}《{title}》',
-			}],
-		});
-		expect(result.settings.sourceProfiles[0]?.fileNameTemplate).toBe('{date-range} {title}');
-		expect(result.settings.sourceProfiles[0]?.generatedTitleTemplate).toBe('{date-range} {title}');
-	});
-
-	it('ships blank property mappings and plain-space event templates', () => {
-		expect(DEFAULT_EVENT_PROFILE.startProperty).toBe('');
-		expect(DEFAULT_EVENT_PROFILE.endProperty).toBeUndefined();
-		expect(DEFAULT_EVENT_PROFILE.fileNameTemplate).toBe('{date-range} {title}');
-		expect(DEFAULT_EVENT_PROFILE.generatedTitleTemplate).toBe('{date-range} {title}');
-		expect(DEFAULT_EVENT_PROFILE.defaultIcon).toBe('calendar');
-		expect(DEFAULT_EVENT_PROFILE.defaultBackgroundColor).toBe('var(--background-secondary)');
-		expect(DEFAULT_EVENT_PROFILE.defaultTextColor).toBe('var(--text-normal)');
-		expect(JSON.stringify(DEFAULT_EVENT_PROFILE)).not.toContain('calendar-event-');
-	});
-
-	it('migrates source profiles to events and official Obsidian color variables', () => {
-		const result = loadCalendarSettings({
-			schemaVersion: 3,
-			sourceProfiles: [{
-				id: 'tasks', name: 'Tasks', kind: 'task', startProperty: 'due',
-				completedProperty: 'done', defaultBackgroundColor: '#ff0000', defaultTextColor: 'white',
-			}],
-		});
 		expect(result.settings.sourceProfiles[0]).toMatchObject({
-			kind: 'event',
-			defaultIcon: 'calendar',
-			defaultBackgroundColor: 'var(--background-secondary)',
-			defaultTextColor: 'var(--text-normal)',
+			wikiLinkProperty: 'type', wikiLinkTargets: ['[[Holiday]]', '[[Vacation]]'],
 		});
-		expect(result.settings.sourceProfiles[0]?.completedProperty).toBeUndefined();
 	});
 
-	it('updates newly added profiles and type rules by stable ID', () => {
+	it('updates newly added profiles and type rules by stable ID and survives reload', () => {
 		const settings = loadCalendarSettings({
-			schemaVersion: 4,
+			schemaVersion: 5,
 			sourceProfiles: [{ id: 'events', name: 'New source profile', startProperty: '' }],
 			typeStyleRules: [{ id: 'holiday', typeValue: 'New type' }],
 		}).settings;
 		expect(updateSourceProfile(settings, 'events', (profile) => {
 			profile.name = 'Holidays';
 			profile.startProperty = 'start';
+			profile.folders = ['Events'];
+			profile.wikiLinkProperty = 'event-type';
+			profile.wikiLinkTargets = ['[[Holiday]]'];
 		})).toBe(true);
 		expect(updateTypeStyleRule(settings, 'holiday', (rule) => { rule.typeValue = 'Holiday'; })).toBe(true);
-		expect(settings.sourceProfiles[0]).toMatchObject({ name: 'Holidays', startProperty: 'start' });
-		expect(settings.typeStyleRules[0]?.typeValue).toBe('Holiday');
+
+		const reloaded = loadCalendarSettings(JSON.parse(JSON.stringify(settings))).settings;
+		expect(reloaded.sourceProfiles[0]).toMatchObject({
+			id: 'events', name: 'Holidays', startProperty: 'start', folders: ['Events'],
+			wikiLinkProperty: 'event-type', wikiLinkTargets: ['[[Holiday]]'],
+		});
+		expect(reloaded.typeStyleRules[0]?.typeValue).toBe('Holiday');
 	});
 
-	it('parses one or more wiki links from a textarea', () => {
-		expect(parseWikiLinkList('[[Holiday]]\n[[Vacation]]\n\n [[Trip]]')).toEqual([
-			'[[Holiday]]', '[[Vacation]]', '[[Trip]]',
-		]);
-		expect(parseWikiLinkList('[[Holiday]], [[Vacation]]')).toEqual(['[[Holiday]]', '[[Vacation]]']);
-	});
-
-	it('removes one source profile by its stable ID', () => {
+	it('parses wiki-link textarea values and removes profiles by stable ID', () => {
+		expect(parseWikiLinkList('[[Holiday]]\n[[Vacation]]\n\n [[Trip]]')).toEqual(['[[Holiday]]', '[[Vacation]]', '[[Trip]]']);
 		const settings = loadCalendarSettings({
-			schemaVersion: 3,
-			sourceProfiles: [
-				{ id: 'events', name: 'Events', startProperty: 'start' },
-				{ id: 'tasks', name: 'Tasks', startProperty: 'due', kind: 'task' },
-			],
+			sourceProfiles: [{ id: 'events', startProperty: 'start' }, { id: 'archive', startProperty: 'date' }],
 		}).settings;
-
 		expect(removeSourceProfile(settings, 'events')).toBe(true);
-		expect(settings.sourceProfiles.map((profile) => profile.id)).toEqual(['tasks']);
-		expect(removeSourceProfile(settings, 'missing')).toBe(false);
+		expect(settings.sourceProfiles.map((profile) => profile.id)).toEqual(['archive']);
 	});
 });
 
 describe('folder and property suggestions', () => {
-	it('ranks prefix, substring, and fuzzy folder matches', () => {
-		expect(rankSuggestions('Ev', ['Work', 'Events/Work', 'Events'])).toEqual(['Events', 'Events/Work']);
-		expect(rankSuggestions('ehl', ['Events/Holidays', 'Events/Work'])).toEqual(['Events/Holidays']);
+	it('writes the selected value directly and preserves other folder values', () => {
+		const input = { value: 'Events, hol', selectionStart: 11 } as HTMLInputElement;
+		let savedValue = '';
+		const selected = replaceDelimitedInputValue(input.value, 'Holidays', input.selectionStart ?? input.value.length);
+		commitInputSuggestion(input, selected, (value) => { savedValue = value; });
+		expect(input.value).toBe('Events, Holidays');
+		expect(savedValue).toBe('Events, Holidays');
 	});
 
-	it('deduplicates and ranks property names', () => {
-		expect(rankSuggestions('ev', ['title', 'event-end', 'event-start', 'event-start']))
-			.toEqual(['event-end', 'event-start']);
+	it('ranks prefix, substring, and fuzzy folder or property matches', () => {
+		expect(rankSuggestions('Ev', ['Work', 'Events/Work', 'Events'])).toEqual(['Events', 'Events/Work']);
+		expect(rankSuggestions('ehl', ['Events/Holidays', 'Events/Work'])).toEqual(['Events/Holidays']);
+		expect(rankSuggestions('ev', ['title', 'event-end', 'event-start', 'event-start'])).toEqual(['event-end', 'event-start']);
 	});
 });

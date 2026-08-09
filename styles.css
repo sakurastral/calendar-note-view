@@ -541,7 +541,7 @@ settings:
     format: '%'
   - id: calendar-note-bases-event-height
     title: Event bar height
-    description: Sets the height of event and task bars in Bases.
+    description: Sets the height of event bars in Bases.
     type: variable-number-slider
     default: 22
     min: 16
@@ -550,7 +550,7 @@ settings:
     format: 'px'
   - id: calendar-note-bases-event-gap
     title: Gap between event bars
-    description: Sets vertical spacing between event and task bars in Bases.
+    description: Sets vertical spacing between event bars in Bases.
     type: variable-number-slider
     default: 2
     min: 0
@@ -1069,105 +1069,6 @@ settings:
     format: 'hex'
     default-light: '#222222'
     default-dark: '#dadada'
-  - id: calendar-note-task-bg-source
-    title: Task fallback background
-    description: Used only when a task has no note, type-rule, or Source Profile color override. Select Custom to use the light and dark colors in the next setting.
-    type: variable-select
-    default: 'var(--background-secondary)'
-    options:
-      - label: Plugin default (Secondary background)
-        value: 'var(--background-secondary)'
-      - label: Primary background
-        value: 'var(--background-primary)'
-      - label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      - label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      - label: Hover background
-        value: 'var(--background-modifier-hover)'
-      - label: Interactive accent
-        value: 'var(--interactive-accent)'
-      - label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      - label: Transparent
-        value: 'transparent'
-      - label: Red
-        value: 'var(--color-red)'
-      - label: Orange
-        value: 'var(--color-orange)'
-      - label: Yellow
-        value: 'var(--color-yellow)'
-      - label: Green
-        value: 'var(--color-green)'
-      - label: Cyan
-        value: 'var(--color-cyan)'
-      - label: Blue
-        value: 'var(--color-blue)'
-      - label: Purple
-        value: 'var(--color-purple)'
-      - label: Pink
-        value: 'var(--color-pink)'
-      - label: Custom
-        value: 'var(--calendar-note-task-bg)'
-  - id: calendar-note-task-bg
-    title: Custom light and dark color
-    description: Used only when Task fallback background is set to Custom.
-    type: variable-themed-color
-    format: 'hex'
-    default-light: '#e5e7eb'
-    default-dark: '#303030'
-  - id: calendar-note-task-text-source
-    title: Task fallback text
-    description: Used only when a task has no note, type-rule, or Source Profile text-color override. Select Custom to use the light and dark colors in the next setting.
-    type: variable-select
-    default: 'var(--text-normal)'
-    options:
-      - label: Plugin default (Normal text)
-        value: 'var(--text-normal)'
-      - label: Muted text
-        value: 'var(--text-muted)'
-      - label: Faint text
-        value: 'var(--text-faint)'
-      - label: Accent text
-        value: 'var(--text-accent)'
-      - label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      - label: Text on accent
-        value: 'var(--text-on-accent)'
-      - label: Red
-        value: 'var(--color-red)'
-      - label: Orange
-        value: 'var(--color-orange)'
-      - label: Yellow
-        value: 'var(--color-yellow)'
-      - label: Green
-        value: 'var(--color-green)'
-      - label: Cyan
-        value: 'var(--color-cyan)'
-      - label: Blue
-        value: 'var(--color-blue)'
-      - label: Purple
-        value: 'var(--color-purple)'
-      - label: Pink
-        value: 'var(--color-pink)'
-      - label: Custom
-        value: 'var(--calendar-note-task-text)'
-  - id: calendar-note-task-text
-    title: Custom light and dark color
-    description: Used only when Task fallback text is set to Custom.
-    type: variable-themed-color
-    format: 'hex'
-    default-light: '#222222'
-    default-dark: '#dadada'
-  - id: calendar-note-task-opacity-completed
-    title: Completed task opacity
-    description: Applies when the Bases view option to dim completed tasks is enabled.
-    type: variable-number-slider
-    default: 60
-    min: 20
-    max: 100
-    step: 5
-    format: '%'
   - id: calendar-note-dot-size
     title: Sidebar event dot size
     description: Applies when the Sidebar indicator mode is Colored dots.
@@ -1187,8 +1088,8 @@ settings:
     step: 1
     format: 'px'
   - id: calendar-note-event-radius
-    title: Event and task corner radius
-    description: Applies to Sidebar indicators and Bases event or task bars.
+    title: Event corner radius
+    description: Applies to Sidebar indicators and Bases event bars.
     type: variable-number-slider
     default: 4
     min: 0
@@ -1265,12 +1166,9 @@ body {
 	--calendar-note-weekend-text: var(--text-muted);
 	--calendar-note-event-bg: var(--background-secondary);
 	--calendar-note-event-text: var(--text-normal);
-	--calendar-note-task-bg: var(--background-secondary);
-	--calendar-note-task-text: var(--text-normal);
 	--calendar-note-dot-size: 5px;
 	--calendar-note-event-icon-size: var(--icon-xs);
 	--calendar-note-event-radius: var(--radius-s);
-	--calendar-note-task-opacity-completed: 60%;
 	--calendar-note-daily-note-indicator: var(--interactive-accent);
 	--calendar-note-navigation-text: var(--text-muted);
 	--calendar-note-navigation-icon-size: var(--icon-s);
@@ -1297,8 +1195,6 @@ body {
 	--calendar-note-weekend-text-resolved: var(--calendar-note-weekend-text-source, var(--calendar-note-weekend-text));
 	--calendar-note-event-bg-resolved: var(--calendar-note-event-bg-source, var(--calendar-note-event-bg));
 	--calendar-note-event-text-resolved: var(--calendar-note-event-text-source, var(--calendar-note-event-text));
-	--calendar-note-task-bg-resolved: var(--calendar-note-task-bg-source, var(--calendar-note-task-bg));
-	--calendar-note-task-text-resolved: var(--calendar-note-task-text-source, var(--calendar-note-task-text));
 	--calendar-note-daily-note-indicator-resolved: var(--calendar-note-daily-note-indicator-source, var(--calendar-note-daily-note-indicator));
 	--calendar-note-navigation-text-resolved: var(--calendar-note-navigation-text-source, var(--calendar-note-navigation-text));
 }
@@ -1489,6 +1385,23 @@ body {
 	width: min(24rem, 100%);
 	min-height: 6rem;
 	resize: vertical;
+}
+
+.calendar-note-settings-suggestions {
+	display: flex;
+	max-height: 12rem;
+	flex-direction: column;
+	margin-top: var(--size-2-1);
+	overflow-y: auto;
+}
+
+.calendar-note-settings-suggestions:empty {
+	display: none;
+}
+
+.calendar-note-settings-suggestions .suggestion-item {
+	width: 100%;
+	text-align: start;
 }
 
 .calendar-note-create-modal {
@@ -1733,11 +1646,6 @@ body {
 .calendar-note-bases-event.continues-after {
 	border-start-end-radius: 0;
 	border-end-end-radius: 0;
-}
-
-.calendar-note-bases-event.is-completed {
-	opacity: var(--calendar-note-task-opacity-completed, 60%);
-	text-decoration: line-through;
 }
 
 .calendar-note-bases-event-icon {

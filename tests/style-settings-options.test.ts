@@ -7,7 +7,7 @@ describe('Style Settings colors', () => {
 	const settings = css.slice(0, css.indexOf('*/'));
 	const controls = settings.split(/\n\s{2}- id: /).slice(1);
 
-	it('organizes controls into five task-focused sections without empty headings', () => {
+	it('organizes controls into five event-focused sections without empty headings', () => {
 		const headings = controls.filter((control) => control.includes('type: heading'));
 		expect(headings.map((heading) => heading.match(/title: ([^\n]+)/)?.[1])).toEqual([
 			'Calendar essentials',
@@ -100,6 +100,11 @@ describe('Style Settings colors', () => {
 		expect(runtimeCss).toContain('.calendar-note-sidebar .calendar-note-date-number');
 		expect(runtimeCss).toContain('color: inherit;');
 	});
+
+	it('contains no task fallback or completed-event controls', () => {
+		expect(settings).not.toMatch(/task|completed/i);
+		expect(css.slice(settings.length)).not.toMatch(/calendar-note-task|is-completed|is-task/);
+	});
 });
 
 describe('Bases property mapping options', () => {
@@ -112,5 +117,9 @@ describe('Bases property mapping options', () => {
 			expect('default' in option).toBe(false);
 			expect('placeholder' in option ? option.placeholder : undefined).toBe('Select a property');
 		}
+		expect(mapping.items.map((option) => option.key)).not.toContain('completedProperty');
+		const behavior = getBasesCalendarOptions()[1];
+		if (!behavior || behavior.type !== 'group') return;
+		expect(behavior.items.map((option) => option.key)).not.toEqual(expect.arrayContaining(['hideCompletedTasks', 'dimCompletedTasks']));
 	});
 });

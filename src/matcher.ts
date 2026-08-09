@@ -7,18 +7,11 @@ interface ResolvedLinkFile {
 
 export interface CalendarLinkMetadataCache {
 	getFirstLinkpathDest?: (linkpath: string, sourcePath: string) => ResolvedLinkFile | null;
-	resolvedLinks?: Record<string, Record<string, number>>;
-	unresolvedLinks?: Record<string, Record<string, number>>;
 }
 
 type CalendarTagCollector = (metadata: CalendarMetadata) => readonly string[];
 
-/**
- * Matches Source Profiles against Obsidian's cached note metadata.
- *
- * Link comparison prefers Obsidian's canonical resolved paths. Raw link text is
- * only a fallback for unresolved links and lightweight test environments.
- */
+/** Matches Source Profiles exclusively against file paths and cached metadata. */
 export class CalendarSourceMatcher {
 	constructor(
 		private readonly metadataCache: CalendarLinkMetadataCache = {},
@@ -44,37 +37,39 @@ export class CalendarSourceMatcher {
 			groups.push(expectedTags.some((tag) => actualTags.has(tag)));
 		}
 
-		const expectedWikiLinks = normalizedWikiLinks(profile.wikiLinks);
-		if (expectedWikiLinks.length > 0) {
-			groups.push(this.matchesAnyWikiLink(file.path, metadata, expectedWikiLinks));
+		const wikiLinkProperty = profile.wikiLinkProperty?.trim() ?? '';
+		const expectedWikiLinks = normalizedWikiLinks(profile.wikiLinkTargets);
+		if (wikiLinkProperty || expectedWikiLinks.length > 0) {
+			groups.push(Boolean(wikiLinkProperty) && expectedWikiLinks.length > 0 && this.matchesWikiLinkProperty(
+				file.path,
+				metadata.frontmatter,
+				wikiLinkProperty,
+				expectedWikiLinks,
+			));
 		}
 
 		if (groups.length === 0) return profile.matchFilesWithStartPropertyOnly === true;
 		return profile.matchMode === 'any' ? groups.some(Boolean) : groups.every(Boolean);
 	}
 
-	private matchesAnyWikiLink(
+	private matchesWikiLinkProperty(
 		sourcePath: string,
-		metadata: CalendarMetadata,
+		frontmatter: Record<string, unknown>,
+		property: string,
 		expectedTargets: string[],
 	): boolean {
-		const resolvedTargets = new Set(
-			Object.keys(this.metadataCache.resolvedLinks?.[sourcePath] ?? {}).map(normalizeVaultPath),
-		);
-		const actualReferences = collectLinkReferences(metadata);
-		const unresolvedReferences = Object.keys(this.metadataCache.unresolvedLinks?.[sourcePath] ?? {});
-
-		for (const expectedTarget of expectedTargets) {
-			const expectedResolvedPath = this.resolveLinkPath(expectedTarget, sourcePath);
-			if (expectedResolvedPath && resolvedTargets.has(expectedResolvedPath)) return true;
-
-			for (const reference of actualReferences) {
-				const actualResolvedPath = this.resolveLinkPath(reference, sourcePath);
-				if (expectedResolvedPath && actualResolvedPath === expectedResolvedPath) return true;
-				if (!expectedResolvedPath && linksMatchTextually(reference, expectedTarget)) return true;
+		if (!Object.prototype.hasOwnProperty.call(frontmatter, property)) return false;
+		const actualTargets = normalizeWikiLinkValues(frontmatter[property]);
+		for (const actualTarget of actualTargets) {
+			const actualResolved = this.resolveLinkPath(actualTarget, sourcePath);
+			for (const expectedTarget of expectedTargets) {
+				const expectedResolved = this.resolveLinkPath(expectedTarget, sourcePath);
+				if (actualResolved && expectedResolved) {
+					if (actualResolved === expectedResolved) return true;
+					continue;
+				}
+				if (linksMatchTextually(actualTarget, expectedTarget)) return true;
 			}
-
-			if (unresolvedReferences.some((reference) => linksMatchTextually(reference, expectedTarget))) return true;
 		}
 		return false;
 	}
@@ -83,14 +78,15 @@ export class CalendarSourceMatcher {
 		const normalized = normalizeInternalLinkPath(linkpath);
 		if (!normalized || !this.metadataCache.getFirstLinkpathDest) return null;
 		const destination = this.metadataCache.getFirstLinkpathDest(normalized, sourcePath);
-		return destination ? normalizeVaultPath(destination.path) : null;
+		return destination ? normalizeVaultPath(destination.path).replace(/\.md$/i, '') : null;
 	}
 }
 
 export function hasSourceConditions(profile: CalendarSourceProfile): boolean {
 	return normalizeFolders(profile.folders).length > 0 ||
 		normalizedTags(profile.tags).length > 0 ||
-		normalizedWikiLinks(profile.wikiLinks).length > 0;
+		Boolean(profile.wikiLinkProperty?.trim()) ||
+		normalizedWikiLinks(profile.wikiLinkTargets).length > 0;
 }
 
 export function matchesSourceProfile(
@@ -106,31 +102,24 @@ export function matchesSourceProfile(
 export function matchesFolder(filePath: string, configuredFolder: string): boolean {
 	const folder = normalizeFolder(configuredFolder);
 	if (!folder) return false;
-	const normalizedPath = normalizeVaultPath(filePath);
-	return normalizedPath.startsWith(`${folder}/`);
+	return normalizeVaultPath(filePath).startsWith(`${folder}/`);
 }
 
 function collectCachedTags(metadata: CalendarMetadata): string[] {
 	const tags: string[] = [];
 	for (const cachedTag of metadata.tags ?? []) tags.push(cachedTag.tag);
-
 	const frontmatterTags = metadata.frontmatter?.tags;
 	const values = Array.isArray(frontmatterTags) ? frontmatterTags : [frontmatterTags];
 	for (const value of values) {
 		if (typeof value !== 'string') continue;
-		for (const tag of value.split(/[\s,]+/)) {
-			if (tag.trim()) tags.push(tag);
-		}
+		for (const tag of value.split(/[\s,]+/)) if (tag.trim()) tags.push(tag);
 	}
 	return tags;
 }
 
-function collectLinkReferences(metadata: CalendarMetadata): string[] {
-	return [
-		...metadata.links ?? [],
-		...metadata.frontmatterLinks ?? [],
-		...metadata.embeds ?? [],
-	].map((reference) => reference.link);
+function normalizeWikiLinkValues(value: unknown): string[] {
+	const values = Array.isArray(value) ? value : [value];
+	return unique(values.map(normalizeInternalLinkPath).filter(isString));
 }
 
 function normalizeFolders(values: string[]): string[] {
@@ -159,7 +148,7 @@ function normalizeInternalLinkPath(value: unknown): string | null {
 	const target = normalizeWikiLinkTarget(value);
 	if (!target) return null;
 	const withoutSubpath = target.split('#', 1)[0]?.trim() ?? '';
-	return withoutSubpath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\.md$/i, '').trim() || null;
+	return normalizeVaultPath(withoutSubpath).replace(/\.md$/i, '') || null;
 }
 
 function normalizeVaultPath(value: string): string {

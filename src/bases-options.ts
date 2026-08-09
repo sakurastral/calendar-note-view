@@ -12,7 +12,6 @@ export function getBasesCalendarOptions(): BasesAllOptions[] {
 			{ type: 'property', key: 'iconProperty', displayName: 'Icon property', placeholder: 'Select a property' },
 			{ type: 'property', key: 'backgroundColorProperty', displayName: 'Background color property', placeholder: 'Select a property' },
 			{ type: 'property', key: 'textColorProperty', displayName: 'Text color property', placeholder: 'Select a property' },
-			{ type: 'property', key: 'completedProperty', displayName: 'Completed property', placeholder: 'Select a property' },
 		],
 	}, {
 		type: 'group',
@@ -23,8 +22,6 @@ export function getBasesCalendarOptions(): BasesAllOptions[] {
 			{ type: 'multitext', key: 'weekendDays', displayName: 'Weekend days', default: ['0', '6'] },
 			{ type: 'toggle', key: 'showAdjacentMonthDates', displayName: 'Show adjacent month dates', default: true },
 			{ type: 'slider', key: 'maximumVisibleEvents', displayName: 'Maximum visible events', default: 3, min: 1, max: 8, step: 1 },
-			{ type: 'toggle', key: 'hideCompletedTasks', displayName: 'Hide completed tasks', default: false },
-			{ type: 'toggle', key: 'dimCompletedTasks', displayName: 'Dim completed tasks', default: true },
 		],
 	}];
 }

@@ -1,6 +1,3 @@
-export const DEFAULT_PROFILE_BACKGROUND_COLOR = 'var(--background-secondary)';
-export const DEFAULT_PROFILE_TEXT_COLOR = 'var(--text-normal)';
-
 const EXTENDED_COLORS = [
 	['var(--color-red)', 'Red'],
 	['var(--color-orange)', 'Orange'],
@@ -33,6 +30,6 @@ export const OBSIDIAN_TEXT_COLOR_OPTIONS: Record<string, string> = Object.fromEn
 	...EXTENDED_COLORS,
 ]);
 
-export function normalizeObsidianColor(value: unknown, fallback: string, options: Record<string, string>): string {
-	return typeof value === 'string' && Object.prototype.hasOwnProperty.call(options, value) ? value : fallback;
+export function normalizeObsidianColor(value: unknown, options: Record<string, string>): string | undefined {
+	return typeof value === 'string' && Object.prototype.hasOwnProperty.call(options, value) ? value : undefined;
 }

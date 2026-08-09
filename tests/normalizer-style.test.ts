@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('obsidian', () => ({ getIconIds: () => ['calendar'] }));
 import type { CalendarItem, CalendarSourceProfile } from '../src/models';
+import { CalendarDiagnosticsService } from '../src/diagnostics';
 import { CalendarItemNormalizer } from '../src/normalizer';
 import { DEFAULT_EVENT_PROFILE } from '../src/settings-data';
 import { CalendarStyleResolver } from '../src/style-resolver';
-import { isSafeCssColor, normalizeCompletedValue, normalizeWikiLinkTarget } from '../src/value-normalizers';
+import { isSafeCssColor, normalizeWikiLinkTarget } from '../src/value-normalizers';
 
 const file = { path: 'Events/Holiday.md', basename: 'Holiday', extension: 'md' };
 
@@ -58,9 +61,16 @@ describe('calendar item normalization', () => {
 		expect(result.diagnostics.map((item) => item.code)).toContain('invalid-color');
 	});
 
-	it('normalizes supported task completion values', () => {
-		for (const value of [true, 'true', 'done', 'completed', 1]) expect(normalizeCompletedValue(value)).toBe(true);
-		for (const value of [false, 'false', 'open', 'todo', 0]) expect(normalizeCompletedValue(value)).toBe(false);
+	it('produces an event-only CalendarItem without task runtime fields', () => {
+		const item = new CalendarItemNormalizer().normalize(
+			file,
+			{ frontmatter: { start: '2024-07-24' } },
+			source(),
+			'YYYY-MM-DD',
+		).item;
+		expect(item).toBeDefined();
+		expect(item).not.toHaveProperty('kind');
+		expect(item).not.toHaveProperty('completed');
 	});
 });
 
@@ -74,8 +84,8 @@ describe('values and style resolution', () => {
 
 	it('resolves each style field using the documented priority', () => {
 		const item: CalendarItem = {
-			id: 'one', filePath: file.path, kind: 'event', startDate: '2024-07-24', endDate: '2024-07-24',
-			title: 'Holiday', type: '[[Holiday]]', icon: 'note-icon', textColor: '#111',
+			id: 'one', filePath: file.path, startDate: '2024-07-24', endDate: '2024-07-24',
+			title: 'Holiday', type: '[[Holiday]]', icon: 'note-icon', textColor: '#111', sourceProfileId: 'default-events',
 		};
 		const resolution = new CalendarStyleResolver(() => true).resolve(item, source({
 			defaultIcon: 'default-icon', defaultBackgroundColor: '#ddd', defaultTextColor: '#222',
@@ -83,31 +93,37 @@ describe('values and style resolution', () => {
 		expect(resolution.style).toEqual({ icon: 'note-icon', backgroundColor: '#abc', textColor: '#111' });
 	});
 
-	it('uses Source Profile defaults before event and task Style Settings fallbacks', () => {
+	it('uses explicit Source Profile defaults before the event Style Settings fallback', () => {
 		const event: CalendarItem = {
-			id: 'event', filePath: file.path, kind: 'event', startDate: '2024-07-24', endDate: '2024-07-24', title: 'Event',
+			id: 'event', filePath: file.path, startDate: '2024-07-24', endDate: '2024-07-24', title: 'Event', sourceProfileId: 'default-events',
 		};
-		const task: CalendarItem = { ...event, id: 'task', kind: 'task', title: 'Task' };
 		const resolver = new CalendarStyleResolver(() => true);
 
-		expect(resolver.resolve(event, source(), []).style).toMatchObject({
+		expect(resolver.resolve(event, source({ defaultBackgroundColor: 'var(--background-secondary)', defaultTextColor: 'var(--text-normal)' }), []).style).toMatchObject({
 			backgroundColor: 'var(--background-secondary)',
 			textColor: 'var(--text-normal)',
 		});
-		expect(resolver.resolve(event, source({ defaultBackgroundColor: undefined, defaultTextColor: undefined }), []).style).toMatchObject({
+		expect(resolver.resolve(event, source(), []).style).toMatchObject({
 			backgroundColor: 'var(--calendar-note-event-bg-resolved, var(--background-secondary))',
 			textColor: 'var(--calendar-note-event-text-resolved, var(--text-normal))',
-		});
-		expect(resolver.resolve(task, source({ kind: 'task', defaultBackgroundColor: undefined, defaultTextColor: undefined }), []).style).toMatchObject({
-			backgroundColor: 'var(--calendar-note-task-bg-resolved, var(--background-secondary))',
-			textColor: 'var(--calendar-note-task-text-resolved, var(--text-normal))',
 		});
 	});
 
 	it('ignores unknown icons and records diagnostics', () => {
-		const item: CalendarItem = { id: 'one', filePath: file.path, kind: 'event', startDate: '2024-07-24', endDate: '2024-07-24', title: 'Holiday', icon: 'missing' };
-		const resolution = new CalendarStyleResolver((icon) => icon === 'calendar').resolve(item, source({ defaultIcon: 'calendar' }), []);
+		const item: CalendarItem = { id: 'one', filePath: file.path, startDate: '2024-07-24', endDate: '2024-07-24', title: 'Holiday', icon: 'missing', sourceProfileId: 'default-events' };
+		const resolution = new CalendarStyleResolver().resolve(item, source({ defaultIcon: 'calendar' }), []);
 		expect(resolution.style.icon).toBe('calendar');
 		expect(resolution.diagnostics[0]?.code).toBe('unknown-icon');
+	});
+
+	it('writes resolver diagnostics into the shared diagnostics service', () => {
+		const item: CalendarItem = {
+			id: 'one', filePath: file.path, startDate: '2024-07-24', endDate: '2024-07-24',
+			title: 'Holiday', icon: 'missing', sourceProfileId: 'default-events',
+		};
+		const resolution = new CalendarStyleResolver().resolve(item, source({ defaultIcon: 'calendar' }), []);
+		const diagnostics = new CalendarDiagnosticsService();
+		diagnostics.replaceStyleForFileAndProfile(item.filePath, item.sourceProfileId, resolution.diagnostics);
+		expect(diagnostics.getByFile(file.path).map((diagnostic) => diagnostic.code)).toEqual(['unknown-icon']);
 	});
 });

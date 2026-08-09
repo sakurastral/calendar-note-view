@@ -12,109 +12,81 @@ function profile(overrides: Partial<CalendarSourceProfile>): CalendarSourceProfi
 	};
 }
 
-function metadata(
-	frontmatter: Record<string, unknown>,
-	tags: string[] = [],
-	links: string[] = [],
-	frontmatterLinks: string[] = [],
-	embeds: string[] = [],
-): CalendarMetadata {
-	return {
-		frontmatter,
-		tags: tags.map((tag) => ({ tag })),
-		links: links.map((link) => ({ link })),
-		frontmatterLinks: frontmatterLinks.map((link) => ({ link })),
-		embeds: embeds.map((link) => ({ link })),
-	};
+function metadata(frontmatter: Record<string, unknown>, tags: string[] = []): CalendarMetadata {
+	return { frontmatter, tags: tags.map((tag) => ({ tag })) };
 }
 
 describe('source matching', () => {
-	it('matches folders including nested paths but not similar names', () => {
-		const source = profile({ folders: ['Events'] });
-		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }), source)).toBe(true);
-		expect(matchesSourceProfile({ ...file, path: 'Events-Archive/Test.md' }, metadata({ start: '2024-07-24' }), source)).toBe(false);
+	it('normalizes folder separators, includes descendants, and respects folder boundaries', () => {
+		for (const folder of ['Events', '/Events/', '\\Events\\']) {
+			const source = profile({ folders: [folder] });
+			expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }), source)).toBe(true);
+			expect(matchesSourceProfile({ ...file, path: 'Events/Test.md' }, metadata({ start: '2024-07-24' }), source)).toBe(true);
+			expect(matchesSourceProfile({ ...file, path: 'Events-Archive/Test.md' }, metadata({ start: '2024-07-24' }), source)).toBe(false);
+		}
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }), profile({ folders: ['Work', 'Events'] }))).toBe(true);
 	});
 
-	it('matches frontmatter and inline tags exactly', () => {
-		const source = profile({ tags: ['#calendar'] });
+	it('uses Obsidian tag metadata for Properties and inline tags with exact matching', () => {
+		const source = profile({ tags: ['#calendar', 'work'] });
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }), source, {}, () => ['#calendar'])).toBe(true);
 		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24', tags: ['calendar'] }), source)).toBe(true);
 		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, ['#calendar']), source)).toBe(true);
 		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, ['#calendar/holiday']), source)).toBe(false);
 	});
 
-	it('uses the injected Obsidian tag collector for property and inline tags', () => {
-		const source = profile({ tags: ['#calendar'] });
-		expect(matchesSourceProfile(
-			file,
-			metadata({ start: '2024-07-24' }),
-			source,
-			{},
-			() => ['#calendar'],
-		)).toBe(true);
+	it('reads only the configured frontmatter wiki-link property', () => {
+		const source = profile({ wikiLinkProperty: 'event-type', wikiLinkTargets: ['[[Holiday]]'] });
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24', 'event-type': '[[Holiday]]' }), source)).toBe(true);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24', other: '[[Holiday]]' }), source)).toBe(false);
+		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24', 'event-type': ['Other', '[[Holiday|Day off]]'] }), source)).toBe(true);
 	});
 
-	it('matches any configured wiki link from note content or properties', () => {
-		const source = profile({ wikiLinks: ['[[國定假日]]', '[[Holiday]]'] });
-		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, [], ['國定假日']), source)).toBe(true);
-		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, [], [], ['Holiday']), source)).toBe(true);
-		expect(matchesSourceProfile(file, metadata({ start: '2024-07-24' }, [], ['Other']), source)).toBe(false);
-	});
-
-	it('matches wiki links by Obsidian-resolved destination paths', () => {
+	it('supports plain text, .md, headings, short paths, and canonical resolved paths', () => {
 		const matcher = new CalendarSourceMatcher({
-			resolvedLinks: { [file.path]: { 'Calendar/Holiday.md': 1 } },
 			getFirstLinkpathDest: (linkpath) => {
-				if (['Holiday', 'Calendar/Holiday'].includes(linkpath)) return { path: 'Calendar/Holiday.md' };
+				const normalized = linkpath.replace(/\.md$/i, '');
+				if (normalized === 'Holiday' || normalized === 'Calendar/Holiday') return { path: 'Calendar/Holiday.md' };
 				return null;
 			},
 		});
-		const source = profile({ wikiLinks: ['[[Holiday]]'] });
-		expect(matcher.matches(file, metadata({ start: '2024-07-24' }, [], ['Calendar/Holiday']), source)).toBe(true);
+		const source = profile({ wikiLinkProperty: 'event-type', wikiLinkTargets: ['Calendar/Holiday.md#Overview'] });
+		for (const value of ['Holiday', '[[Holiday|Day off]]', 'Calendar/Holiday.md#Details']) {
+			expect(matcher.matches(file, metadata({ start: '2024-07-24', 'event-type': value }), source)).toBe(true);
+		}
 	});
 
-	it('matches frontmatter, heading, and embedded wiki links through the same cache path', () => {
+	it('does not confuse same-name notes after Obsidian resolves both paths', () => {
 		const matcher = new CalendarSourceMatcher({
-			getFirstLinkpathDest: (linkpath) => linkpath === 'Holiday' ? { path: 'Calendar/Holiday.md' } : null,
-		});
-		const source = profile({ wikiLinks: ['[[Holiday]]'] });
-		expect(matcher.matches(
-			file,
-			metadata({ start: '2024-07-24' }, [], [], [], ['Holiday#Overview']),
-			source,
-		)).toBe(true);
-	});
-
-	it('does not confuse same-name links after Obsidian resolves their paths', () => {
-		const matcher = new CalendarSourceMatcher({
-			resolvedLinks: { [file.path]: { 'Archive/Holiday.md': 1 } },
 			getFirstLinkpathDest: (linkpath) => {
 				if (linkpath === 'Calendar/Holiday') return { path: 'Calendar/Holiday.md' };
 				if (linkpath === 'Archive/Holiday') return { path: 'Archive/Holiday.md' };
 				return null;
 			},
 		});
-		const source = profile({ wikiLinks: ['[[Calendar/Holiday]]'] });
-		expect(matcher.matches(file, metadata({ start: '2024-07-24' }, [], ['Archive/Holiday']), source)).toBe(false);
+		const source = profile({ wikiLinkProperty: 'event-type', wikiLinkTargets: ['[[Calendar/Holiday]]'] });
+		expect(matcher.matches(file, metadata({ start: '2024-07-24', 'event-type': '[[Archive/Holiday]]' }), source)).toBe(false);
 	});
 
-	it('uses all and any only across configured condition groups', () => {
-		const cache = metadata({ start: '2024-07-24', tags: ['calendar'] });
-		expect(matchesSourceProfile(file, cache, profile({ folders: ['Events'], tags: ['calendar'], matchMode: 'all' }))).toBe(true);
+	it('uses OR within groups and all/any only across configured groups', () => {
+		const cache = metadata({ start: '2024-07-24', tags: ['calendar'], 'event-type': '[[Holiday]]' });
+		expect(matchesSourceProfile(file, cache, profile({
+			folders: ['Work', 'Events'], tags: ['other', 'calendar'], wikiLinkProperty: 'event-type',
+			wikiLinkTargets: ['Other', 'Holiday'], matchMode: 'all',
+		}))).toBe(true);
 		expect(matchesSourceProfile(file, cache, profile({ folders: ['Work'], tags: ['calendar'], matchMode: 'all' }))).toBe(false);
 		expect(matchesSourceProfile(file, cache, profile({ folders: ['Work'], tags: ['calendar'], matchMode: 'any' }))).toBe(true);
 	});
 
-	it('requires explicit start-property-only matching when no source condition exists', () => {
+	it('does not let Start-only bypass configured or incomplete conditions', () => {
 		const cache = metadata({ start: '2024-07-24' });
 		expect(matchesSourceProfile(file, cache, profile({}))).toBe(false);
 		expect(matchesSourceProfile(file, cache, profile({ matchFilesWithStartPropertyOnly: true }))).toBe(true);
-		expect(matchesSourceProfile(file, cache, profile({
-			folders: ['Work'],
-			matchFilesWithStartPropertyOnly: true,
-		}))).toBe(false);
+		expect(matchesSourceProfile(file, cache, profile({ folders: ['Work'], matchFilesWithStartPropertyOnly: true }))).toBe(false);
+		expect(matchesSourceProfile(file, cache, profile({ wikiLinkTargets: ['Holiday'], matchFilesWithStartPropertyOnly: true }))).toBe(false);
 	});
 
-	it('rejects disabled profiles, non-markdown files, missing frontmatter, and missing starts', () => {
+	it('rejects disabled profiles, non-Markdown files, missing frontmatter, and missing start properties', () => {
 		expect(matchesSourceProfile(file, metadata({}), profile({ matchFilesWithStartPropertyOnly: true }))).toBe(false);
 		expect(matchesSourceProfile({ ...file, extension: 'canvas' }, metadata({ start: '2024-07-24' }), profile({ matchFilesWithStartPropertyOnly: true }))).toBe(false);
 		expect(matchesSourceProfile(file, null, profile({ matchFilesWithStartPropertyOnly: true }))).toBe(false);

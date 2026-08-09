@@ -9,12 +9,14 @@ import { CalendarIndexService } from './index-service';
 import { CalendarSourceMatcher } from './matcher';
 import type { CalendarSettings } from './models';
 import { loadCalendarSettings } from './settings-data';
+import { CalendarSettingsPersistence, type CalendarSettingsImpact } from './settings-persistence';
 import { CalendarNoteSettingTab } from './settings';
 import { CALENDAR_SIDEBAR_VIEW_TYPE, CalendarSidebarView } from './sidebar-view';
 import { CalendarSuggestionProvider } from './suggestions';
 
 export default class CalendarNoteViewPlugin extends Plugin {
-	private settingsSaveQueue: Promise<void> = Promise.resolve();
+	private settingsPersistence!: CalendarSettingsPersistence;
+	private unloading = false;
 	settings!: CalendarSettings;
 	diagnostics!: CalendarDiagnosticsService;
 	index!: CalendarIndexService;
@@ -44,6 +46,15 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		);
 		this.dailyNotes = new DailyNoteService(this.app, () => this.settings.confirmBeforeCreatingDailyNote);
 		this.eventCreation = new EventNoteCreationService(this.app, () => this.settings, this.index);
+		this.settingsPersistence = new CalendarSettingsPersistence({
+			getSettings: () => this.settings,
+			saveData: (settings) => this.saveData(settings),
+			applyImpact: async (previous, next, impact) => {
+				if (this.unloading) return;
+				if (impact === 'index') await this.index.handleSettingsChanged(previous, next);
+				if (impact !== 'save') this.renderSidebarCalendars();
+			},
+		});
 
 		this.addSettingTab(new CalendarNoteSettingTab(this.app, this));
 		this.registerView(CALENDAR_SIDEBAR_VIEW_TYPE, (leaf) => new CalendarSidebarView(leaf, this));
@@ -75,20 +86,29 @@ export default class CalendarNoteViewPlugin extends Plugin {
 	}
 
 	onunload(): void {
+		this.unloading = true;
+		void this.flushSettings();
 		this.index?.dispose();
 		this.suggestions?.dispose();
 	}
 
-	async saveSettings(previous: CalendarSettings): Promise<void> {
-		const next = structuredClone(this.settings);
-		this.settingsSaveQueue = this.settingsSaveQueue.catch(() => undefined).then(async () => {
-			await this.saveData(next);
-			await this.index.handleSettingsChanged(previous, next);
-			for (const leaf of this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)) {
-				if (leaf.view instanceof CalendarSidebarView) leaf.view.renderCalendar();
-			}
-		});
-		await this.settingsSaveQueue;
+	async saveSettings(
+		previous: CalendarSettings,
+		impact: CalendarSettingsImpact = 'index',
+		flush = false,
+	): Promise<void> {
+		this.settingsPersistence.schedule(previous, impact);
+		if (flush) await this.settingsPersistence.flush();
+	}
+
+	async flushSettings(): Promise<void> {
+		if (this.settingsPersistence) await this.settingsPersistence.flush();
+	}
+
+	private renderSidebarCalendars(): void {
+		for (const leaf of this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)) {
+			if (leaf.view instanceof CalendarSidebarView) leaf.view.renderCalendar();
+		}
 	}
 
 	async activateSidebar(): Promise<void> {

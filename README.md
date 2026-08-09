@@ -10,7 +10,7 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 - Continuous multi-day bars with stable lanes across weeks
 - Daily Notes indicators, opening, and confirmed creation
 - Event creation from the command palette, calendar dates, and context menus
-- Source Profiles for folder, tag, outgoing wiki-link, and start-property matching
+- Source Profiles for folder, tag, property-scoped wiki-link, and start-property matching
 - Configurable property mapping and strict property date formats
 - Event type style rules and safe note-level color overrides
 - Time zone-aware Today highlighting without shifting date-only events
@@ -44,12 +44,11 @@ The Bases Calendar uses only the Entries supplied by the current Base. Base filt
 The view supports:
 
 - Independent Previous Month, Next Month, Today, Year, and Month controls
-- Start, end, title, type, icon, color, text color, and completed property mapping
+- Start, end, title, type, icon, background color, and text color property mapping
 - Icon, Title, or Icon + Title event display
 - First day of week and weekend selection
 - Adjacent-month date visibility
 - Maximum visible events and `+N more`
-- Hide or dim completed tasks
 - Daily Notes and event creation actions
 
 Updating Base data does not reset the month being viewed.
@@ -67,7 +66,7 @@ Source Profiles control which notes appear in the Sidebar Calendar. They do not 
 A profile defines:
 
 - Event note matching for the Sidebar Calendar
-- Folder, tag, and wiki-link matching from note content or properties
+- Folder, tag, and property-scoped wiki-link matching through Metadata Cache
 - `all` or `any` matching across configured condition groups
 - Start-property-only matching when explicitly enabled
 - Property mapping and default icon, background color, and text color
@@ -77,11 +76,13 @@ Values inside one condition group use OR. For example, folders `Events` and `Hol
 
 Folder matching normalizes slash direction and leading or trailing separators, includes descendants, and respects path boundaries. A configured `Events` folder matches `Events/Holidays/Trip.md` but not `Events-Archive/Trip.md`.
 
+Folder suggestions are committed directly through the Source Profile settings callback when selected with the mouse or keyboard. The input, saved profile, and Sidebar index therefore use the same complete folder path, even when only a partial query such as `eve` was typed first.
+
 Tag matching uses Obsidian's combined cached Properties and inline tags. A leading `#` is optional. Tags match exactly, so `#calendar` does not automatically include `#calendar/holiday`; configure both when both should match.
 
-Wiki Link matching uses Obsidian's Metadata Cache and resolved vault paths. It supports short or full paths, aliases, headings, links in Markdown content or Properties, and embedded Wiki Links without reading note bodies with a regular expression. Enter one link per line in the Wiki Links text area; any listed link can match. Notes are reindexed after link resolution, so moved targets and same-name notes in different folders use Obsidian's current link destination.
+Wiki Link matching reads only the frontmatter property selected in **Wiki link property**. Its value may be a YAML string or array containing wiki links or plain-text targets. Short paths, full paths, aliases, `.md`, and heading subpaths resolve through Obsidian's Metadata Cache; arbitrary outgoing links and embeds in the note body are not source conditions. Enter one target per line in **Wiki link targets**; any listed target can match. Canonical paths keep same-name notes in different folders distinct.
 
-Source Profile icons provide suggestions from Obsidian's installed icon set. Default background and text colors use selectable Obsidian CSS variables so they follow the active theme. These defaults apply only when a note property and matching Event Type Rule do not provide that style value.
+Source Profile icons provide suggestions from Obsidian's installed icon set. Default background and text colors can use a selected Obsidian CSS variable or **Use style settings fallback**. Style priority is note property → first matching Event Type Rule → explicit Source Profile default → Style Settings Event fallback → Obsidian theme fallback.
 
 Delete a Source Profile from its list trash button or from **Profile actions → Delete profile** inside the profile. Calendar Note View asks for confirmation and removes only the profile, its indexed Sidebar items, and related diagnostics; it never deletes event notes from the vault.
 
@@ -98,7 +99,6 @@ Calendar Note View does not impose property names. New Source Profiles and Bases
 | Icon | `icon` |
 | Background color | `color` |
 | Text color | `text-color` |
-| Completed | `completed` |
 
 Example:
 
@@ -164,13 +164,13 @@ Calendar Note View works without the Style Settings plugin. If Style Settings is
 - **Sidebar calendar** — Sidebar background, weekday labels, navigation row, spacing, and day cells
 - **Bases calendar** — navigation row, weekday row, grid, date badge, event-bar layout, and overflow count
 - **Date appearance and states** — shared date numbers, hover, Other month, Weekend, and Today
-- **Items and indicators** — Event and Task fallbacks, completed opacity, dots, icons, corners, and Daily Note indicators
+- **Items and indicators** — Event fallback colors, dots, icons, corners, and Daily Note indicators
 
 Color selectors contain only choices relevant to their purpose: background selectors use Obsidian background, accent, and extended color variables; text selectors use text, accent, and extended color variables. Choose **Custom** to activate the paired light/dark color setting. Otherwise, the selector follows Obsidian theme variables and adapts to Light, Dark, and custom themes.
 
 Date-state priority is **ordinary date → Weekend → Other month → Today → hover/focus**. This keeps an adjacent-month weekend visually grouped with the other adjacent dates while retaining Today and interaction feedback. The Bases date badge is circular by default; **Bases calendar → Date badge corner radius** changes it from square to round.
 
-Event and Task fallback colors apply only when the note, matching Type Style Rule, and Source Profile do not provide a color override.
+Event fallback colors apply only when the note, matching Type Style Rule, and Source Profile do not provide a color override.
 
 ## Diagnostics
 
@@ -184,7 +184,6 @@ The Sidebar Calendar, Bases Calendar, date actions, event actions, and Create Ev
 
 - Version 0.2.x provides month views only; it does not include year, week, day, or hour timelines.
 - Recurring events, reminders, external calendar sync, drag-and-drop, and event resizing are not included.
-- Tasks are property-backed notes. Markdown checkbox parsing and Tasks plugin parsing are not included.
 - Daily Notes integration uses `obsidian-daily-notes-interface` as a compatibility layer around the Core Daily Notes plugin.
 - Formula values in Bases must render to a value compatible with the configured strict event property date format.
 

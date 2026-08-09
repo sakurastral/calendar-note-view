@@ -13,6 +13,7 @@ import {
 	OBSIDIAN_TEXT_COLOR_OPTIONS,
 } from './color-options';
 import type CalendarNoteViewPlugin from './main';
+import { getDelimitedQuery, replaceDelimitedInputValue } from './input-events';
 import type { CalendarSettings, CalendarSourceProfile, CalendarTypeStyleRule } from './models';
 import {
 	DEFAULT_EVENT_PROFILE,
@@ -21,7 +22,11 @@ import {
 	updateSourceProfile,
 	updateTypeStyleRule,
 } from './settings-data';
-import { CalendarInputSuggest } from './suggestions';
+import type { CalendarSettingsImpact } from './settings-persistence';
+import {
+	CalendarInputSuggest,
+	CalendarTextAreaSuggest,
+} from './suggestions';
 
 const EVENT_TEMPLATE_VARIABLES = [
 	'{title}', '{start}', '{end}', '{start-date}', '{end-date}', '{date-range}',
@@ -31,6 +36,11 @@ const EVENT_TEMPLATE_VARIABLES = [
 export class CalendarNoteSettingTab extends PluginSettingTab {
 	constructor(app: App, private readonly plugin: CalendarNoteViewPlugin) {
 		super(app, plugin);
+	}
+
+	hide(): void {
+		void this.plugin.flushSettings();
+		super.hide();
 	}
 
 	getSettingDefinitions(): SettingDefinitionItem[] {
@@ -173,7 +183,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			default:
 				return;
 		}
-		await this.plugin.saveSettings(previous);
+		await this.plugin.saveSettings(previous, controlImpact(key));
 		if (key === 'timeZoneMode') this.update();
 	}
 
@@ -215,6 +225,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileDropdown(profile, 'Match mode', 'Combine only the non-empty Folder, Tag, and Wiki Link groups. Values inside each group use OR.', 'matchMode', { all: 'All configured groups', any: 'Any configured group' }),
 					this.profileList(profile, 'Folders', 'Comma-separated vault folders. Paths are normalized and include nested folders.', 'folders', 'folder'),
 					this.profileList(profile, 'Tags', 'Comma-separated Properties or inline tags. A leading # is optional; nested tags match exactly.', 'tags'),
+					this.profileText(profile, 'Wiki link property', 'Only this frontmatter property is checked for matching links.', 'wikiLinkProperty', 'property'),
 					this.profileWikiLinks(profile),
 					this.profileToggle(profile, 'Match start property only', 'Use the required Start property as the only filter when Folder, Tag, and Wiki Link are all empty.', 'matchFilesWithStartPropertyOnly'),
 				],
@@ -240,14 +251,14 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileColorDropdown(
 						profile,
 						'Default background color',
-						'Used when the note has no background color property value or matching Event Type color.',
+						'Optional. Choose Style Settings fallback to inherit the Event fallback color.',
 						'defaultBackgroundColor',
 						OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
 					),
 					this.profileColorDropdown(
 						profile,
 						'Default text color',
-						'Used when the note has no text color property value or matching Event Type color.',
+						'Optional. Choose Style Settings fallback to inherit the Event fallback color.',
 						'defaultTextColor',
 						OBSIDIAN_TEXT_COLOR_OPTIONS,
 					),
@@ -282,7 +293,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			emptyState: 'No event type rules are configured.',
 			items: this.plugin.settings.typeStyleRules.map((rule) => this.typeRulePage(rule)),
 			addItem: { name: 'Add type rule', action: () => { void this.addTypeRule(); } },
-			onDelete: (index) => { void this.deleteTypeRule(index); },
+			onDelete: (index) => {
+				const rule = this.plugin.settings.typeStyleRules[index];
+				if (rule) void this.deleteTypeRule(rule.id);
+			},
 			onReorder: (oldIndex, newIndex) => { void this.reorder(this.plugin.settings.typeStyleRules, oldIndex, newIndex); },
 		};
 	}
@@ -317,11 +331,16 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		return this.renderDefinition(name, desc, (setting) => {
 			let inputSuggest: CalendarInputSuggest | undefined;
 			setting.addText((text) => {
-				text.setValue(String(profile[key] ?? '')).onChange(async (value) => this.updateProfile(profile.id, (current) => { current[key] = value; }));
-				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getFolderSuggestions(query));
-				if (suggest === 'property') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getPropertySuggestions(query));
-				if (suggest === 'icon') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getIconSuggestions(query));
-				if (key === 'name') text.inputEl.addEventListener('blur', () => window.setTimeout(() => this.update(), 0));
+				const saveValue = async (value: string) => this.updateProfile(profile.id, (current) => { current[key] = value; }, profileImpact(key));
+				text.setValue(String(profile[key] ?? '')).onChange(saveValue);
+				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getFolderSuggestions(query), undefined, saveValue);
+				if (suggest === 'property') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getPropertySuggestions(query), undefined, saveValue);
+				if (suggest === 'icon') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getIconSuggestions(query), undefined, saveValue);
+				text.inputEl.addEventListener('blur', () => {
+					void this.plugin.flushSettings().then(() => {
+						if (key === 'name') this.update();
+					});
+				});
 			});
 			return () => inputSuggest?.close();
 		});
@@ -331,16 +350,25 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		profile: CalendarSourceProfile,
 		name: string,
 		desc: string,
-		key: 'folders' | 'tags' | 'wikiLinks',
+		key: 'folders' | 'tags',
 		suggest?: 'folder',
 	): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
 			let inputSuggest: CalendarInputSuggest | undefined;
 			setting.addText((text) => {
-				text.setValue(profile[key].join(', ')).onChange(async (value) => this.updateProfile(profile.id, (current) => {
+				const saveValue = async (value: string) => this.updateProfile(profile.id, (current) => {
 					current[key] = value.split(',').map((entry) => entry.trim()).filter(Boolean);
-				}));
-				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getFolderSuggestions(query));
+				}, 'index');
+				text.setValue(profile[key].join(', ')).onChange(saveValue);
+				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(
+					this.app,
+					text.inputEl,
+					(query) => this.plugin.suggestions.getFolderSuggestions(query),
+					replaceDelimitedInputValue,
+					saveValue,
+					getDelimitedQuery,
+				);
+				text.inputEl.addEventListener('blur', () => { void this.plugin.flushSettings(); });
 			});
 			return () => inputSuggest?.close();
 		});
@@ -348,18 +376,30 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 
 	private profileWikiLinks(profile: CalendarSourceProfile): SettingDefinition {
 		return this.renderDefinition(
-			'Wiki links',
-			'Enter one link per line. Obsidian resolves short, full-path, aliased, heading, Properties, and embedded links to their destination note.',
-			(setting) => {
-				setting.addTextArea((text) => {
-					text.inputEl.addClass('calendar-note-settings-textarea');
-					text.setPlaceholder('[[holiday]]\n[[vacation]]')
-						.setValue(profile.wikiLinks.join('\n'))
-						.onChange(async (value) => this.updateProfile(profile.id, (current) => {
-							current.wikiLinks = parseWikiLinkList(value);
-						}));
-				});
-			},
+				'Wiki link targets',
+				'Enter one target per line. Only values in the configured Wiki link property are checked.',
+				(setting) => {
+					let suggestions: CalendarTextAreaSuggest | undefined;
+					setting.addTextArea((text) => {
+						text.inputEl.addClass('calendar-note-settings-textarea');
+						text.setPlaceholder('[[holiday]]\n[[vacation]]')
+							.setValue(profile.wikiLinkTargets.join('\n'))
+							.onChange(async (value) => this.updateProfile(profile.id, (current) => {
+								current.wikiLinkTargets = parseWikiLinkList(value);
+							}, 'index'));
+						const saveValue = async (value: string) => this.updateProfile(profile.id, (current) => {
+							current.wikiLinkTargets = parseWikiLinkList(value);
+						}, 'index');
+						suggestions = new CalendarTextAreaSuggest(
+							text.inputEl,
+							setting.controlEl,
+							(query) => this.plugin.suggestions.getWikiLinkSuggestions(query),
+							saveValue,
+						);
+						text.inputEl.addEventListener('blur', () => { void this.plugin.flushSettings(); });
+					});
+					return () => suggestions?.dispose();
+				},
 		);
 	}
 
@@ -372,9 +412,12 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
 			setting.addDropdown((dropdown) => dropdown
+				.addOption('', 'Use style settings fallback')
 				.addOptions(options)
-				.setValue(profile[key] ?? Object.keys(options)[0] ?? '')
-				.onChange(async (value) => this.updateProfile(profile.id, (current) => { current[key] = value; })));
+				.setValue(profile[key] ?? '')
+				.onChange(async (value) => this.updateProfile(profile.id, (current) => {
+					current[key] = value || undefined;
+				}, 'render')));
 		});
 	}
 
@@ -382,7 +425,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		return this.renderDefinition(name, desc, (setting) => {
 			setting.addToggle((toggle) => toggle
 				.setValue(profile[key] === true)
-				.onChange(async (value) => this.updateProfile(profile.id, (current) => { current[key] = value; })));
+				.onChange(async (value) => this.updateProfile(profile.id, (current) => { current[key] = value; }, profileImpact(key))));
 		});
 	}
 
@@ -400,7 +443,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				.onChange(async (value) => this.updateProfile(profile.id, (current) => {
 					current.matchMode = value === 'any' ? 'any' : 'all';
 					this.refreshDomState();
-				})));
+				}, 'index')));
 		});
 	}
 
@@ -409,7 +452,11 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			setting.addText((text) => {
 				text.setValue(String(rule[key] ?? ''))
 					.onChange(async (value) => this.updateRule(rule.id, (current) => { current[key] = value; }));
-				if (key === 'typeValue') text.inputEl.addEventListener('blur', () => window.setTimeout(() => this.update(), 0));
+				text.inputEl.addEventListener('blur', () => {
+					void this.plugin.flushSettings().then(() => {
+						if (key === 'typeValue') this.update();
+					});
+				});
 			});
 		});
 	}
@@ -437,7 +484,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		profile.name = 'New source profile';
 		profile.matchFilesWithStartPropertyOnly = false;
 		this.plugin.settings.sourceProfiles.push(profile);
-		await this.plugin.saveSettings(previous);
+		await this.plugin.saveSettings(previous, 'index', true);
 		this.update();
 	}
 
@@ -450,21 +497,23 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private async deleteSourceProfile(profileId: string): Promise<void> {
 		const previous = this.snapshot();
 		if (!removeSourceProfile(this.plugin.settings, profileId)) return;
-		await this.plugin.saveSettings(previous);
+		await this.plugin.saveSettings(previous, 'index', true);
 		this.update();
 	}
 
 	private async addTypeRule(): Promise<void> {
 		const previous = this.snapshot();
 		this.plugin.settings.typeStyleRules.push({ id: createId('rule'), enabled: true, typeValue: 'New type' });
-		await this.plugin.saveSettings(previous);
+		await this.plugin.saveSettings(previous, 'render', true);
 		this.update();
 	}
 
-	private async deleteTypeRule(index: number): Promise<void> {
+	private async deleteTypeRule(ruleId: string): Promise<void> {
 		const previous = this.snapshot();
+		const index = this.plugin.settings.typeStyleRules.findIndex((rule) => rule.id === ruleId);
+		if (index < 0) return;
 		this.plugin.settings.typeStyleRules.splice(index, 1);
-		await this.plugin.saveSettings(previous);
+		await this.plugin.saveSettings(previous, 'render', true);
 		this.update();
 	}
 
@@ -472,20 +521,24 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		const previous = this.snapshot();
 		const [value] = values.splice(oldIndex, 1);
 		if (value !== undefined) values.splice(newIndex, 0, value);
-		await this.plugin.saveSettings(previous);
+		await this.plugin.saveSettings(previous, 'render', true);
 		this.update();
 	}
 
-	private async updateProfile(profileId: string, update: (profile: CalendarSourceProfile) => void): Promise<void> {
+	private async updateProfile(
+		profileId: string,
+		update: (profile: CalendarSourceProfile) => void,
+		impact: CalendarSettingsImpact,
+	): Promise<void> {
 		const previous = this.snapshot();
 		if (!updateSourceProfile(this.plugin.settings, profileId, update)) return;
-		await this.plugin.saveSettings(previous);
+		await this.plugin.saveSettings(previous, impact);
 	}
 
 	private async updateRule(ruleId: string, update: (rule: CalendarTypeStyleRule) => void): Promise<void> {
 		const previous = this.snapshot();
 		if (!updateTypeStyleRule(this.plugin.settings, ruleId, update)) return;
-		await this.plugin.saveSettings(previous);
+		await this.plugin.saveSettings(previous, 'render');
 	}
 
 	private snapshot(): CalendarSettings {
@@ -534,6 +587,7 @@ type ProfileStringKey =
 	| 'iconProperty'
 	| 'colorProperty'
 	| 'textColorProperty'
+	| 'wikiLinkProperty'
 	| 'defaultType'
 	| 'defaultIcon'
 	| 'defaultBackgroundColor'
@@ -547,6 +601,21 @@ type ProfileStringKey =
 
 type ProfileBooleanKey = 'enabled' | 'matchFilesWithStartPropertyOnly' | 'allowCreate';
 type RuleStringKey = 'typeValue' | 'icon' | 'backgroundColor' | 'textColor';
+
+function controlImpact(key: string): CalendarSettingsImpact {
+	if (key === 'eventPropertyDateFormat') return 'index';
+	if (key === 'confirmBeforeCreatingDailyNote') return 'save';
+	return 'render';
+}
+
+function profileImpact(key: ProfileStringKey | ProfileBooleanKey): CalendarSettingsImpact {
+	if ([
+		'enabled', 'matchFilesWithStartPropertyOnly', 'startProperty', 'endProperty', 'titleProperty',
+		'typeProperty', 'iconProperty', 'colorProperty', 'textColorProperty', 'wikiLinkProperty',
+	].includes(key)) return 'index';
+	if (['defaultIcon', 'defaultBackgroundColor', 'defaultTextColor'].includes(key)) return 'render';
+	return 'save';
+}
 
 function validateDateFormat(value: string): string | undefined {
 	return isSupportedDateFormat(value) ? undefined : 'The format must contain YYYY, MM, and DD exactly once.';

@@ -1,3 +1,4 @@
+import { getIconIds } from 'obsidian';
 import { createDiagnostic } from './diagnostics';
 import type {
 	CalendarDiagnostic,
@@ -14,7 +15,7 @@ export interface CalendarStyleResolution {
 }
 
 export class CalendarStyleResolver {
-	constructor(private readonly iconExists: (icon: string) => boolean = () => true) {}
+	constructor(private readonly iconExists: (icon: string) => boolean = (icon) => getIconIds().includes(icon)) {}
 
 	resolve(
 		item: CalendarItem,
@@ -24,22 +25,22 @@ export class CalendarStyleResolver {
 		const diagnostics: CalendarDiagnostic[] = [];
 		const typeKey = normalizeWikiLinkTarget(item.type);
 		const rule = rules.find((candidate) => candidate.enabled && normalizeWikiLinkTarget(candidate.typeValue) === typeKey);
-		const icon = this.firstIcon([item.icon, rule?.icon, profile.defaultIcon, item.kind === 'task' ? 'circle-check-big' : 'calendar'], item, profile, diagnostics);
+		const icon = this.firstIcon([item.icon, rule?.icon, profile.defaultIcon, 'calendar'], item, profile, diagnostics);
 		const backgroundColor = this.firstColor(
-			[item.backgroundColor, rule?.backgroundColor, profile.defaultBackgroundColor, item.kind === 'task'
-				? 'var(--calendar-note-task-bg-resolved, var(--background-secondary))'
-				: 'var(--calendar-note-event-bg-resolved, var(--background-secondary))'],
+			[item.backgroundColor, rule?.backgroundColor, profile.defaultBackgroundColor,
+				'var(--calendar-note-event-bg-resolved, var(--background-secondary))'],
 			item,
 			profile,
 			diagnostics,
+			'var(--background-secondary)',
 		);
 		const textColor = this.firstColor(
-			[item.textColor, rule?.textColor, profile.defaultTextColor, item.kind === 'task'
-				? 'var(--calendar-note-task-text-resolved, var(--text-normal))'
-				: 'var(--calendar-note-event-text-resolved, var(--text-normal))'],
+			[item.textColor, rule?.textColor, profile.defaultTextColor,
+				'var(--calendar-note-event-text-resolved, var(--text-normal))'],
 			item,
 			profile,
 			diagnostics,
+			'var(--text-normal)',
 		);
 		return { style: { icon, backgroundColor, textColor }, diagnostics };
 	}
@@ -67,6 +68,7 @@ export class CalendarStyleResolver {
 		item: CalendarItem,
 		profile: CalendarSourceProfile,
 		diagnostics: CalendarDiagnostic[],
+		fallback: string,
 	): string {
 		for (const value of values) {
 			if (!value) continue;
@@ -76,6 +78,6 @@ export class CalendarStyleResolver {
 				filePath: item.filePath, sourceProfileId: profile.id, rawValue: value,
 			}));
 		}
-		return 'var(--text-normal)';
+		return fallback;
 	}
 }
