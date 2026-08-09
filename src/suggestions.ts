@@ -1,10 +1,11 @@
-import { AbstractInputSuggest, type App, type EventRef, TFolder } from 'obsidian';
+import { AbstractInputSuggest, type App, type EventRef, getIconIds, TFolder } from 'obsidian';
 import { rankSuggestions } from './suggestion-ranking';
 
 export class CalendarSuggestionProvider {
 	private folders: string[] = [];
 	private properties: string[] = [];
 	private wikiLinks: string[] = [];
+	private icons: string[] = [];
 	private refs: Array<{ owner: 'vault' | 'metadata'; ref: EventRef }> = [];
 
 	constructor(private readonly app: App) {}
@@ -13,6 +14,7 @@ export class CalendarSuggestionProvider {
 		this.refreshFolders();
 		this.refreshProperties();
 		this.refreshWikiLinks();
+		this.icons = getIconIds().sort((left, right) => left.localeCompare(right));
 		this.refs.push(
 			{ owner: 'vault', ref: this.app.vault.on('create', () => this.refreshVaultSuggestions()) },
 			{ owner: 'vault', ref: this.app.vault.on('delete', () => this.refreshVaultSuggestions()) },
@@ -40,6 +42,10 @@ export class CalendarSuggestionProvider {
 	getWikiLinkSuggestions(query: string): string[] {
 		const normalized = query.replace(/^\[\[/, '').replace(/\]\]$/, '').trim();
 		return rankSuggestions(normalized, this.wikiLinks);
+	}
+
+	getIconSuggestions(query: string): string[] {
+		return rankSuggestions(query, this.icons);
 	}
 
 	private refreshVaultSuggestions(): void {

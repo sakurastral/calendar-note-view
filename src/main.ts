@@ -13,6 +13,7 @@ import { CALENDAR_SIDEBAR_VIEW_TYPE, CalendarSidebarView } from './sidebar-view'
 import { CalendarSuggestionProvider } from './suggestions';
 
 export default class CalendarNoteViewPlugin extends Plugin {
+	private settingsSaveQueue: Promise<void> = Promise.resolve();
 	settings!: CalendarSettings;
 	diagnostics!: CalendarDiagnosticsService;
 	index!: CalendarIndexService;
@@ -67,11 +68,15 @@ export default class CalendarNoteViewPlugin extends Plugin {
 	}
 
 	async saveSettings(previous: CalendarSettings): Promise<void> {
-		await this.saveData(this.settings);
-		await this.index.handleSettingsChanged(previous, this.settings);
-		for (const leaf of this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)) {
-			if (leaf.view instanceof CalendarSidebarView) leaf.view.renderCalendar();
-		}
+		const next = structuredClone(this.settings);
+		this.settingsSaveQueue = this.settingsSaveQueue.catch(() => undefined).then(async () => {
+			await this.saveData(next);
+			await this.index.handleSettingsChanged(previous, next);
+			for (const leaf of this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)) {
+				if (leaf.view instanceof CalendarSidebarView) leaf.view.renderCalendar();
+			}
+		});
+		await this.settingsSaveQueue;
 	}
 
 	async activateSidebar(): Promise<void> {

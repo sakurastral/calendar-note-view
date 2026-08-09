@@ -61,7 +61,7 @@ export type CalendarTimeZone =
 	| { mode: 'custom'; timeZone: string };
 
 export interface CalendarSettings {
-	schemaVersion: 3;
+	schemaVersion: 4;
 	firstDayOfWeek: number;
 	weekendDays: number[];
 	timeZone: CalendarTimeZone;

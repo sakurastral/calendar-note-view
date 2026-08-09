@@ -83,7 +83,7 @@ describe('values and style resolution', () => {
 		expect(resolution.style).toEqual({ icon: 'note-icon', backgroundColor: '#abc', textColor: '#111' });
 	});
 
-	it('routes event and task fallback colors through Style Settings selectors', () => {
+	it('uses Source Profile defaults before event and task Style Settings fallbacks', () => {
 		const event: CalendarItem = {
 			id: 'event', filePath: file.path, kind: 'event', startDate: '2024-07-24', endDate: '2024-07-24', title: 'Event',
 		};
@@ -91,10 +91,14 @@ describe('values and style resolution', () => {
 		const resolver = new CalendarStyleResolver(() => true);
 
 		expect(resolver.resolve(event, source(), []).style).toMatchObject({
+			backgroundColor: 'var(--background-secondary)',
+			textColor: 'var(--text-normal)',
+		});
+		expect(resolver.resolve(event, source({ defaultBackgroundColor: undefined, defaultTextColor: undefined }), []).style).toMatchObject({
 			backgroundColor: 'var(--calendar-note-event-bg-resolved, var(--background-secondary))',
 			textColor: 'var(--calendar-note-event-text-resolved, var(--text-normal))',
 		});
-		expect(resolver.resolve(task, source({ kind: 'task' }), []).style).toMatchObject({
+		expect(resolver.resolve(task, source({ kind: 'task', defaultBackgroundColor: undefined, defaultTextColor: undefined }), []).style).toMatchObject({
 			backgroundColor: 'var(--calendar-note-task-bg-resolved, var(--background-secondary))',
 			textColor: 'var(--calendar-note-task-text-resolved, var(--text-normal))',
 		});

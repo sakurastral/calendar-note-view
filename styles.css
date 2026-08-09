@@ -1372,7 +1372,7 @@ body {
 	min-width: 0;
 }
 
-.calendar-note-date-button {
+.calendar-note-sidebar .calendar-note-date-button {
 	position: relative;
 	display: flex;
 	width: 100%;
@@ -1391,7 +1391,8 @@ body {
 	cursor: pointer;
 }
 
-.calendar-note-date-number {
+.calendar-note-sidebar .calendar-note-date-number {
+	color: inherit;
 	font-size: var(--calendar-note-date-size, var(--font-ui-smaller));
 	line-height: 1.25;
 }
@@ -1482,6 +1483,12 @@ body {
 	color: var(--text-muted);
 	font-size: var(--font-ui-smaller);
 	line-height: 1;
+}
+
+.calendar-note-settings-textarea {
+	width: min(24rem, 100%);
+	min-height: 6rem;
+	resize: vertical;
 }
 
 .calendar-note-create-modal {

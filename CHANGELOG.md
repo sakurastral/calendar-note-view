@@ -2,6 +2,27 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.3
+
+### Added
+
+- Source Profile icon suggestions from Obsidian's installed icon set
+- Theme-aware default background and text color selectors for Source Profiles
+- Multi-line Wiki Link input with one link per line
+
+### Changed
+
+- Treat all Source Profiles as events and remove the Kind and task-completion controls from Source Profile settings
+- Migrate old Source Profile task kinds and unsupported custom default colors to event-safe Obsidian CSS variable defaults
+- Save Source Profile and Event Type edits by stable ID and serialize settings writes
+
+### Fixed
+
+- Apply the Sidebar Default day cell background setting with sufficient specificity to override generic theme button styles
+- Apply Default date number color to Sidebar date numbers
+- Refresh Source Profile and Event Type list labels after their names are edited
+- Preserve newly added Source Profile values when returning to the settings list
+
 ## 0.2.2
 
 ### Changed

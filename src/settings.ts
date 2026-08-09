@@ -8,9 +8,19 @@ import {
 	type SettingDefinitionPage,
 } from 'obsidian';
 import { isSupportedDateFormat, isValidIanaTimeZone } from './date';
+import {
+	OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
+	OBSIDIAN_TEXT_COLOR_OPTIONS,
+} from './color-options';
 import type CalendarNoteViewPlugin from './main';
 import type { CalendarSettings, CalendarSourceProfile, CalendarTypeStyleRule } from './models';
-import { DEFAULT_EVENT_PROFILE, removeSourceProfile } from './settings-data';
+import {
+	DEFAULT_EVENT_PROFILE,
+	parseWikiLinkList,
+	removeSourceProfile,
+	updateSourceProfile,
+	updateTypeStyleRule,
+} from './settings-data';
 import { CalendarInputSuggest } from './suggestions';
 
 const EVENT_TEMPLATE_VARIABLES = [
@@ -190,14 +200,13 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			type: 'page',
 			name: profile.name,
 			desc: 'Controls which notes appear in the Sidebar Calendar. It does not filter Bases Calendar entries.',
-			displayValue: () => profile.enabled ? profile.kind : 'Disabled',
+			displayValue: () => profile.enabled ? 'Event' : 'Disabled',
 			items: [{
 				type: 'group',
 				heading: 'Profile',
 				items: [
 					this.profileText(profile, 'Name', 'A label used in settings and event creation.', 'name'),
 					this.profileToggle(profile, 'Enabled', 'Include this profile in the Sidebar Calendar index.', 'enabled'),
-					this.profileDropdown(profile, 'Kind', 'Choose whether matching notes represent events or tasks.', 'kind', { event: 'Event', task: 'Task' }),
 				],
 			}, {
 				type: 'group',
@@ -206,7 +215,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileDropdown(profile, 'Match mode', 'Values within one group use OR; this controls how folders, tags, and wiki links combine.', 'matchMode', { all: 'All configured groups', any: 'Any configured group' }),
 					this.profileList(profile, 'Folders', 'Comma-separated folders. Nested folders are included.', 'folders', 'folder'),
 					this.profileList(profile, 'Tags', 'Comma-separated tags matched exactly.', 'tags'),
-					this.profileList(profile, 'Wiki links', 'Comma-separated wiki links. A note matches when its content or properties contain any listed link.', 'wikiLinks', 'wikilink'),
+					this.profileWikiLinks(profile),
 					this.profileToggle(profile, 'Match start property only', 'Allow matching by the start property when no source conditions exist.', 'matchFilesWithStartPropertyOnly'),
 				],
 			}, {
@@ -220,7 +229,6 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileText(profile, 'Icon property', 'Optional Obsidian icon name property.', 'iconProperty', 'property'),
 					this.profileText(profile, 'Background color property', 'Optional safe CSS color property.', 'colorProperty', 'property'),
 					this.profileText(profile, 'Text color property', 'Optional safe CSS color property.', 'textColorProperty', 'property'),
-					{ ...this.profileText(profile, 'Completed property', 'Optional task completion property.', 'completedProperty', 'property'), visible: () => profile.kind === 'task' },
 				],
 			}, {
 				type: 'group',
@@ -228,9 +236,21 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				items: [
 					this.profileToggle(profile, 'Allow event creation', 'Make this profile available in the Create Event modal.', 'allowCreate'),
 					this.profileText(profile, 'Default type', 'Initial type used by event creation.', 'defaultType'),
-					this.profileText(profile, 'Default icon', 'Used when the note has no icon override.', 'defaultIcon'),
-					this.profileText(profile, 'Default background color', 'Initial background color used by event creation.', 'defaultBackgroundColor'),
-					this.profileText(profile, 'Default text color', 'Initial text color used by event creation.', 'defaultTextColor'),
+					this.profileText(profile, 'Default icon', 'Used when the note has no icon property value or matching Event Type icon.', 'defaultIcon', 'icon'),
+					this.profileColorDropdown(
+						profile,
+						'Default background color',
+						'Used when the note has no background color property value or matching Event Type color.',
+						'defaultBackgroundColor',
+						OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
+					),
+					this.profileColorDropdown(
+						profile,
+						'Default text color',
+						'Used when the note has no text color property value or matching Event Type color.',
+						'defaultTextColor',
+						OBSIDIAN_TEXT_COLOR_OPTIONS,
+					),
 					this.profileText(profile, 'Create folder', 'Folder used for newly created event notes.', 'createFolder', 'folder'),
 					this.profileText(profile, 'Note template path', `Optional Markdown template used for new event notes. Its content may use: ${EVENT_TEMPLATE_VARIABLES}`, 'noteTemplatePath'),
 					this.profileText(profile, 'File name template', `Available variables: ${EVENT_TEMPLATE_VARIABLES}`, 'fileNameTemplate'),
@@ -292,14 +312,16 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		name: string,
 		desc: string,
 		key: ProfileStringKey,
-		suggest?: 'folder' | 'property',
+		suggest?: 'folder' | 'property' | 'icon',
 	): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
 			let inputSuggest: CalendarInputSuggest | undefined;
 			setting.addText((text) => {
-				text.setValue(String(profile[key] ?? '')).onChange(async (value) => this.updateProfile(() => { profile[key] = value; }));
+				text.setValue(String(profile[key] ?? '')).onChange(async (value) => this.updateProfile(profile.id, (current) => { current[key] = value; }));
 				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getFolderSuggestions(query));
 				if (suggest === 'property') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getPropertySuggestions(query));
+				if (suggest === 'icon') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getIconSuggestions(query));
+				if (key === 'name') text.inputEl.addEventListener('blur', () => window.setTimeout(() => this.update(), 0));
 			});
 			return () => inputSuggest?.close();
 		});
@@ -310,23 +332,49 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		name: string,
 		desc: string,
 		key: 'folders' | 'tags' | 'wikiLinks',
-		suggest?: 'folder' | 'wikilink',
+		suggest?: 'folder',
 	): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
 			let inputSuggest: CalendarInputSuggest | undefined;
 			setting.addText((text) => {
-				text.setValue(profile[key].join(', ')).onChange(async (value) => this.updateProfile(() => {
-					profile[key] = value.split(',').map((entry) => entry.trim()).filter(Boolean);
+				text.setValue(profile[key].join(', ')).onChange(async (value) => this.updateProfile(profile.id, (current) => {
+					current[key] = value.split(',').map((entry) => entry.trim()).filter(Boolean);
 				}));
 				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getFolderSuggestions(query));
-				if (suggest === 'wikilink') inputSuggest = new CalendarInputSuggest(
-					this.app,
-					text.inputEl,
-					(query) => this.plugin.suggestions.getWikiLinkSuggestions(query.split(',').at(-1)?.trim() ?? ''),
-					(value, inputValue) => replaceLastListValue(inputValue, value),
-				);
 			});
 			return () => inputSuggest?.close();
+		});
+	}
+
+	private profileWikiLinks(profile: CalendarSourceProfile): SettingDefinition {
+		return this.renderDefinition(
+			'Wiki links',
+			'Enter one wiki link per line. A note matches when its content or Properties contain any listed link.',
+			(setting) => {
+				setting.addTextArea((text) => {
+					text.inputEl.addClass('calendar-note-settings-textarea');
+					text.setPlaceholder('[[holiday]]\n[[vacation]]')
+						.setValue(profile.wikiLinks.join('\n'))
+						.onChange(async (value) => this.updateProfile(profile.id, (current) => {
+							current.wikiLinks = parseWikiLinkList(value);
+						}));
+				});
+			},
+		);
+	}
+
+	private profileColorDropdown(
+		profile: CalendarSourceProfile,
+		name: string,
+		desc: string,
+		key: 'defaultBackgroundColor' | 'defaultTextColor',
+		options: Record<string, string>,
+	): SettingDefinition {
+		return this.renderDefinition(name, desc, (setting) => {
+			setting.addDropdown((dropdown) => dropdown
+				.addOptions(options)
+				.setValue(profile[key] ?? Object.keys(options)[0] ?? '')
+				.onChange(async (value) => this.updateProfile(profile.id, (current) => { current[key] = value; })));
 		});
 	}
 
@@ -334,7 +382,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		return this.renderDefinition(name, desc, (setting) => {
 			setting.addToggle((toggle) => toggle
 				.setValue(profile[key] === true)
-				.onChange(async (value) => this.updateProfile(() => { profile[key] = value; })));
+				.onChange(async (value) => this.updateProfile(profile.id, (current) => { current[key] = value; })));
 		});
 	}
 
@@ -342,16 +390,15 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		profile: CalendarSourceProfile,
 		name: string,
 		desc: string,
-		key: 'kind' | 'matchMode',
+		key: 'matchMode',
 		options: Record<string, string>,
 	): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
 			setting.addDropdown((dropdown) => dropdown
 				.addOptions(options)
 				.setValue(profile[key])
-				.onChange(async (value) => this.updateProfile(() => {
-					if (key === 'kind') profile.kind = value === 'task' ? 'task' : 'event';
-					else profile.matchMode = value === 'any' ? 'any' : 'all';
+				.onChange(async (value) => this.updateProfile(profile.id, (current) => {
+					current.matchMode = value === 'any' ? 'any' : 'all';
 					this.refreshDomState();
 				})));
 		});
@@ -359,9 +406,11 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 
 	private ruleText(rule: CalendarTypeStyleRule, name: string, desc: string, key: RuleStringKey): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
-			setting.addText((text) => text
-				.setValue(String(rule[key] ?? ''))
-				.onChange(async (value) => this.updateRule(() => { rule[key] = value; })));
+			setting.addText((text) => {
+				text.setValue(String(rule[key] ?? ''))
+					.onChange(async (value) => this.updateRule(rule.id, (current) => { current[key] = value; }));
+				if (key === 'typeValue') text.inputEl.addEventListener('blur', () => window.setTimeout(() => this.update(), 0));
+			});
 		});
 	}
 
@@ -369,7 +418,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		return this.renderDefinition(name, desc, (setting) => {
 			setting.addToggle((toggle) => toggle
 				.setValue(rule[key])
-				.onChange(async (value) => this.updateRule(() => { rule[key] = value; })));
+				.onChange(async (value) => this.updateRule(rule.id, (current) => { current[key] = value; })));
 		});
 	}
 
@@ -427,15 +476,15 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		this.update();
 	}
 
-	private async updateProfile(update: () => void): Promise<void> {
+	private async updateProfile(profileId: string, update: (profile: CalendarSourceProfile) => void): Promise<void> {
 		const previous = this.snapshot();
-		update();
+		if (!updateSourceProfile(this.plugin.settings, profileId, update)) return;
 		await this.plugin.saveSettings(previous);
 	}
 
-	private async updateRule(update: () => void): Promise<void> {
+	private async updateRule(ruleId: string, update: (rule: CalendarTypeStyleRule) => void): Promise<void> {
 		const previous = this.snapshot();
-		update();
+		if (!updateTypeStyleRule(this.plugin.settings, ruleId, update)) return;
 		await this.plugin.saveSettings(previous);
 	}
 
@@ -485,7 +534,6 @@ type ProfileStringKey =
 	| 'iconProperty'
 	| 'colorProperty'
 	| 'textColorProperty'
-	| 'completedProperty'
 	| 'defaultType'
 	| 'defaultIcon'
 	| 'defaultBackgroundColor'
@@ -517,10 +565,4 @@ function parseWeekendDays(value: string): number[] {
 
 function createId(prefix: string): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function replaceLastListValue(input: string, value: string): string {
-	const values = input.split(',');
-	values[values.length - 1] = ` ${value}`;
-	return values.map((entry) => entry.trim()).filter(Boolean).join(', ');
 }

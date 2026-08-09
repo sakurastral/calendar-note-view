@@ -91,6 +91,15 @@ describe('Style Settings colors', () => {
 		expect(basesWeekend).toBeLessThan(basesAdjacent);
 		expect(runtimeCss).toContain('.calendar-note-bases .calendar-note-bases-date-number');
 	});
+
+	it('applies Sidebar default cell and date colors with theme-resistant selectors', () => {
+		const runtimeCss = css.slice(settings.length);
+		expect(runtimeCss).toContain('.calendar-note-sidebar .calendar-note-date-button');
+		expect(runtimeCss).toContain('background: var(--calendar-note-date-cell-bg-resolved, transparent);');
+		expect(runtimeCss).toContain('color: var(--calendar-note-date-text-resolved, var(--text-normal));');
+		expect(runtimeCss).toContain('.calendar-note-sidebar .calendar-note-date-number');
+		expect(runtimeCss).toContain('color: inherit;');
+	});
 });
 
 describe('Bases property mapping options', () => {

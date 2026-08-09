@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_EVENT_PROFILE, loadCalendarSettings, removeSourceProfile } from '../src/settings-data';
+import {
+	DEFAULT_EVENT_PROFILE,
+	loadCalendarSettings,
+	parseWikiLinkList,
+	removeSourceProfile,
+	updateSourceProfile,
+	updateTypeStyleRule,
+} from '../src/settings-data';
 import { rankSuggestions } from '../src/suggestion-ranking';
 
 describe('settings infrastructure', () => {
@@ -10,7 +17,7 @@ describe('settings infrastructure', () => {
 		});
 		expect(result.migrated).toBe(true);
 		expect(result.settings.displayDateFormat).toBe('DD/MM/YYYY');
-		expect(result.settings.schemaVersion).toBe(3);
+		expect(result.settings.schemaVersion).toBe(4);
 		expect(result.settings.weekendDays).toEqual([0, 6]);
 		expect(result.settings.confirmBeforeCreatingDailyNote).toBe(true);
 		expect(result.settings.sourceProfiles[0]).toMatchObject({ id: 'events', startProperty: 'start', folders: ['Events'] });
@@ -53,7 +60,7 @@ describe('settings infrastructure', () => {
 			}],
 		});
 		expect(result.settings.sourceProfiles[0]?.wikiLinks).toEqual(['[[Holiday]]', '[[Vacation]]']);
-		expect(result.settings.schemaVersion).toBe(3);
+		expect(result.settings.schemaVersion).toBe(4);
 	});
 
 	it('migrates the previous default event templates', () => {
@@ -74,7 +81,49 @@ describe('settings infrastructure', () => {
 		expect(DEFAULT_EVENT_PROFILE.endProperty).toBeUndefined();
 		expect(DEFAULT_EVENT_PROFILE.fileNameTemplate).toBe('{date-range} {title}');
 		expect(DEFAULT_EVENT_PROFILE.generatedTitleTemplate).toBe('{date-range} {title}');
+		expect(DEFAULT_EVENT_PROFILE.defaultIcon).toBe('calendar');
+		expect(DEFAULT_EVENT_PROFILE.defaultBackgroundColor).toBe('var(--background-secondary)');
+		expect(DEFAULT_EVENT_PROFILE.defaultTextColor).toBe('var(--text-normal)');
 		expect(JSON.stringify(DEFAULT_EVENT_PROFILE)).not.toContain('calendar-event-');
+	});
+
+	it('migrates source profiles to events and official Obsidian color variables', () => {
+		const result = loadCalendarSettings({
+			schemaVersion: 3,
+			sourceProfiles: [{
+				id: 'tasks', name: 'Tasks', kind: 'task', startProperty: 'due',
+				completedProperty: 'done', defaultBackgroundColor: '#ff0000', defaultTextColor: 'white',
+			}],
+		});
+		expect(result.settings.sourceProfiles[0]).toMatchObject({
+			kind: 'event',
+			defaultIcon: 'calendar',
+			defaultBackgroundColor: 'var(--background-secondary)',
+			defaultTextColor: 'var(--text-normal)',
+		});
+		expect(result.settings.sourceProfiles[0]?.completedProperty).toBeUndefined();
+	});
+
+	it('updates newly added profiles and type rules by stable ID', () => {
+		const settings = loadCalendarSettings({
+			schemaVersion: 4,
+			sourceProfiles: [{ id: 'events', name: 'New source profile', startProperty: '' }],
+			typeStyleRules: [{ id: 'holiday', typeValue: 'New type' }],
+		}).settings;
+		expect(updateSourceProfile(settings, 'events', (profile) => {
+			profile.name = 'Holidays';
+			profile.startProperty = 'start';
+		})).toBe(true);
+		expect(updateTypeStyleRule(settings, 'holiday', (rule) => { rule.typeValue = 'Holiday'; })).toBe(true);
+		expect(settings.sourceProfiles[0]).toMatchObject({ name: 'Holidays', startProperty: 'start' });
+		expect(settings.typeStyleRules[0]?.typeValue).toBe('Holiday');
+	});
+
+	it('parses one or more wiki links from a textarea', () => {
+		expect(parseWikiLinkList('[[Holiday]]\n[[Vacation]]\n\n [[Trip]]')).toEqual([
+			'[[Holiday]]', '[[Vacation]]', '[[Trip]]',
+		]);
+		expect(parseWikiLinkList('[[Holiday]], [[Vacation]]')).toEqual(['[[Holiday]]', '[[Vacation]]']);
 	});
 
 	it('removes one source profile by its stable ID', () => {

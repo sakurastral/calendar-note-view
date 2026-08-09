@@ -1,4 +1,11 @@
 import { isSupportedDateFormat, isValidIanaTimeZone } from './date';
+import {
+	DEFAULT_PROFILE_BACKGROUND_COLOR,
+	DEFAULT_PROFILE_TEXT_COLOR,
+	normalizeObsidianColor,
+	OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
+	OBSIDIAN_TEXT_COLOR_OPTIONS,
+} from './color-options';
 import type {
 	CalendarSettings,
 	CalendarSourceProfile,
@@ -18,6 +25,8 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 	matchFilesWithStartPropertyOnly: false,
 	startProperty: '',
 	defaultIcon: 'calendar',
+	defaultBackgroundColor: DEFAULT_PROFILE_BACKGROUND_COLOR,
+	defaultTextColor: DEFAULT_PROFILE_TEXT_COLOR,
 	allowCreate: false,
 	createFolder: 'Events',
 	fileNameTemplate: '{date-range} {title}',
@@ -27,7 +36,7 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 };
 
 export const DEFAULT_SETTINGS: CalendarSettings = {
-	schemaVersion: 3,
+	schemaVersion: 4,
 	firstDayOfWeek: 0,
 	weekendDays: [0, 6],
 	timeZone: { mode: 'system' },
@@ -64,7 +73,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		? Number(raw.firstDayOfWeek)
 		: DEFAULT_SETTINGS.firstDayOfWeek;
 	const settings: CalendarSettings = {
-		schemaVersion: 3,
+		schemaVersion: 4,
 		firstDayOfWeek,
 		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
 		timeZone: normalizeTimeZone(raw.timeZone, warnings),
@@ -78,7 +87,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	};
 	return {
 		settings,
-		migrated: raw.schemaVersion !== 3 || JSON.stringify(settings) !== JSON.stringify(raw),
+		migrated: raw.schemaVersion !== 4 || JSON.stringify(settings) !== JSON.stringify(raw),
 		warnings,
 	};
 }
@@ -88,6 +97,32 @@ export function removeSourceProfile(settings: CalendarSettings, profileId: strin
 	if (index < 0) return false;
 	settings.sourceProfiles.splice(index, 1);
 	return true;
+}
+
+export function updateSourceProfile(
+	settings: CalendarSettings,
+	profileId: string,
+	update: (profile: CalendarSourceProfile) => void,
+): boolean {
+	const profile = settings.sourceProfiles.find((candidate) => candidate.id === profileId);
+	if (!profile) return false;
+	update(profile);
+	return true;
+}
+
+export function updateTypeStyleRule(
+	settings: CalendarSettings,
+	ruleId: string,
+	update: (rule: CalendarTypeStyleRule) => void,
+): boolean {
+	const rule = settings.typeStyleRules.find((candidate) => candidate.id === ruleId);
+	if (!rule) return false;
+	update(rule);
+	return true;
+}
+
+export function parseWikiLinkList(value: string): string[] {
+	return value.split(/[\n,]+/).map((entry) => entry.trim()).filter(Boolean);
 }
 
 function normalizeProfile(raw: unknown, index: number, warnings: string[]): CalendarSourceProfile | undefined {
@@ -102,7 +137,7 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 		id,
 		name: text(raw.name) ?? id,
 		enabled: boolean(raw.enabled, true),
-		kind: raw.kind === 'task' ? 'task' : 'event',
+		kind: 'event',
 		matchMode: raw.matchMode === 'any' ? 'any' : 'all',
 		folders: stringArray(raw.folders),
 		tags: stringArray(raw.tags),
@@ -115,11 +150,19 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 		iconProperty: text(raw.iconProperty),
 		colorProperty: text(raw.colorProperty),
 		textColorProperty: text(raw.textColorProperty),
-		completedProperty: text(raw.completedProperty),
+		completedProperty: undefined,
 		defaultType: text(raw.defaultType),
-		defaultIcon: text(raw.defaultIcon),
-		defaultBackgroundColor: text(raw.defaultBackgroundColor),
-		defaultTextColor: text(raw.defaultTextColor),
+		defaultIcon: text(raw.defaultIcon) ?? 'calendar',
+		defaultBackgroundColor: normalizeObsidianColor(
+			raw.defaultBackgroundColor,
+			DEFAULT_PROFILE_BACKGROUND_COLOR,
+			OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
+		),
+		defaultTextColor: normalizeObsidianColor(
+			raw.defaultTextColor,
+			DEFAULT_PROFILE_TEXT_COLOR,
+			OBSIDIAN_TEXT_COLOR_OPTIONS,
+		),
 		allowCreate: boolean(raw.allowCreate, false),
 		createFolder: text(raw.createFolder),
 		noteTemplatePath: text(raw.noteTemplatePath),

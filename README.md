@@ -66,16 +66,18 @@ Source Profiles control which notes appear in the Sidebar Calendar. They do not 
 
 A profile defines:
 
-- Event or task kind
+- Event note matching for the Sidebar Calendar
 - Folder, tag, and wiki-link matching from note content or properties
 - `all` or `any` matching across configured condition groups
 - Start-property-only matching when explicitly enabled
-- Property mapping and default event appearance
+- Property mapping and default icon, background color, and text color
 - Event creation folder, template, file name, and generated title rules
 
 Values inside one condition group use OR. For example, folders `Events` and `Holidays` mean `Events OR Holidays`; multiple configured Wiki Links also use OR. Different configured groups use the profile's `all` or `any` mode. A profile with no source conditions does not scan the entire vault unless **Match start property only** is enabled.
 
-Wiki Link matching uses Obsidian's Metadata Cache. It matches links in Markdown content and Properties without reading every note body with a regular expression. Enter multiple links as a comma-separated list, such as `[[Holiday]], [[Vacation]]`.
+Wiki Link matching uses Obsidian's Metadata Cache. It matches links in Markdown content and Properties without reading every note body with a regular expression. Enter one link per line in the Wiki Links text area; any listed link can match.
+
+Source Profile icons provide suggestions from Obsidian's installed icon set. Default background and text colors use selectable Obsidian CSS variables so they follow the active theme. These defaults apply only when a note property and matching Event Type Rule do not provide that style value.
 
 Delete a Source Profile from its list trash button or from **Profile actions → Delete profile** inside the profile. Calendar Note View asks for confirmation and removes only the profile, its indexed Sidebar items, and related diagnostics; it never deletes event notes from the vault.
 
@@ -112,7 +114,7 @@ The end date is inclusive. Missing end dates create a single-day event. Invalid 
 
 ## Property mapping
 
-Each Source Profile and each Bases Calendar view maps its own properties. Bases property selectors provide native searchable selection for note, formula, and file properties exposed by the current Base. Source Profile property fields provide suggestions from MetadataCache, and folder and Wiki Link fields provide vault-aware suggestions.
+Each Source Profile and each Bases Calendar view maps its own properties. Bases property selectors provide native searchable selection for note, formula, and file properties exposed by the current Base. Source Profile property fields provide suggestions from MetadataCache, while folder and icon fields provide vault-aware suggestions.
 
 ## Event creation
 
