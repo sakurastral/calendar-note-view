@@ -76,10 +76,6 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					desc: 'Ask before a missing daily note is created from the calendar.',
 					control: { type: 'toggle', key: 'confirmBeforeCreatingDailyNote' },
 				}, {
-					name: 'Sidebar indicators',
-					desc: 'Show event colors as dots or display event icons.',
-					control: { type: 'dropdown', key: 'sidebarIndicatorMode', options: { dots: 'Colored dots', icons: 'Icon badges' } },
-				}, {
 					name: 'Maximum indicators per date',
 					desc: 'Additional events are summarized as +N.',
 					control: { type: 'slider', key: 'maxIndicatorsPerDay', min: 1, max: 8, step: 1 },
@@ -142,7 +138,6 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			case 'firstDayOfWeek': return String(this.plugin.settings.firstDayOfWeek);
 			case 'weekendDays': return this.plugin.settings.weekendDays.join(', ');
 			case 'confirmBeforeCreatingDailyNote': return this.plugin.settings.confirmBeforeCreatingDailyNote;
-			case 'sidebarIndicatorMode': return this.plugin.settings.sidebarIndicatorMode;
 			case 'maxIndicatorsPerDay': return this.plugin.settings.maxIndicatorsPerDay;
 			case 'timeZoneMode': return this.plugin.settings.timeZone.mode;
 			case 'customTimeZone': return this.plugin.settings.timeZone.mode === 'custom' ? this.plugin.settings.timeZone.timeZone : 'Asia/Taipei';
@@ -165,9 +160,6 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			}
 			case 'confirmBeforeCreatingDailyNote':
 				this.plugin.settings.confirmBeforeCreatingDailyNote = value === true;
-				break;
-			case 'sidebarIndicatorMode':
-				this.plugin.settings.sidebarIndicatorMode = value === 'icons' ? 'icons' : 'dots';
 				break;
 			case 'maxIndicatorsPerDay':
 				this.plugin.settings.maxIndicatorsPerDay = Math.min(8, Math.max(1, Number(value)));
@@ -231,6 +223,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileId(profile),
 					this.profileOrder(profile),
 					this.profileToggle(profile, 'Enabled', 'Include this profile in the Sidebar Calendar index.', 'enabled'),
+					this.profileIndicatorMode(profile),
 				],
 			}, {
 				type: 'group',
@@ -476,6 +469,22 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 						void this.plugin.flushSettings();
 					});
 				});
+			},
+		);
+	}
+
+	private profileIndicatorMode(profile: CalendarSourceProfile): SettingDefinition {
+		return this.renderDefinition(
+			'Sidebar indicator',
+			'Choose how this profile\'s events appear in Sidebar date cells.',
+			(setting) => {
+				setting.addDropdown((dropdown) => dropdown
+					.addOption('dots', 'Colored dots')
+					.addOption('icons', 'Icon badges')
+					.setValue(profile.sidebarIndicatorMode)
+					.onChange(async (value) => this.updateProfile(profile.id, (current) => {
+						current.sidebarIndicatorMode = value === 'icons' ? 'icons' : 'dots';
+					}, 'render')));
 			},
 		);
 	}

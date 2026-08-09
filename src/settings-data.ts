@@ -20,6 +20,7 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 	name: 'Calendar events',
 	order: 1,
 	enabled: false,
+	sidebarIndicatorMode: 'dots',
 	matchMode: 'all',
 	folders: [],
 	tags: [],
@@ -36,14 +37,13 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 };
 
 export const DEFAULT_SETTINGS: CalendarSettings = {
-	schemaVersion: 6,
+	schemaVersion: 7,
 	firstDayOfWeek: 0,
 	weekendDays: [0, 6],
 	timeZone: { mode: 'system' },
 	displayDateFormat: 'YYYY-MM-DD',
 	eventPropertyDateFormat: 'YYYY-MM-DD',
 	confirmBeforeCreatingDailyNote: true,
-	sidebarIndicatorMode: 'dots',
 	maxIndicatorsPerDay: 3,
 	sourceProfiles: [DEFAULT_EVENT_PROFILE],
 	typeStyleRules: [],
@@ -59,8 +59,9 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	const warnings: string[] = [];
 	if (!isRecord(raw)) return { settings: cloneDefaults(), migrated: true, warnings };
 
+	const legacyIndicatorMode = raw.sidebarIndicatorMode === 'icons' ? 'icons' : 'dots';
 	const sourceProfiles = Array.isArray(raw.sourceProfiles)
-		? raw.sourceProfiles.map((profile, index) => normalizeProfile(profile, index, warnings)).filter(isDefined)
+		? raw.sourceProfiles.map((profile, index) => normalizeProfile(profile, index, warnings, legacyIndicatorMode)).filter(isDefined)
 		: [createDefaultProfile()];
 	const typeStyleRules = Array.isArray(raw.typeStyleRules)
 		? raw.typeStyleRules.map((rule, index) => normalizeRule(rule, index, warnings)).filter(isDefined)
@@ -74,21 +75,20 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		? Number(raw.firstDayOfWeek)
 		: DEFAULT_SETTINGS.firstDayOfWeek;
 	const settings: CalendarSettings = {
-		schemaVersion: 6,
+		schemaVersion: 7,
 		firstDayOfWeek,
 		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
 		timeZone: normalizeTimeZone(raw.timeZone, warnings),
 		displayDateFormat,
 		eventPropertyDateFormat,
 		confirmBeforeCreatingDailyNote: boolean(raw.confirmBeforeCreatingDailyNote, true),
-		sidebarIndicatorMode: raw.sidebarIndicatorMode === 'icons' ? 'icons' : 'dots',
 		maxIndicatorsPerDay: integerInRange(raw.maxIndicatorsPerDay, 1, 8, DEFAULT_SETTINGS.maxIndicatorsPerDay),
 		sourceProfiles,
 		typeStyleRules,
 	};
 	return {
 		settings,
-		migrated: raw.schemaVersion !== 6 || JSON.stringify(settings) !== JSON.stringify(raw),
+		migrated: raw.schemaVersion !== 7 || JSON.stringify(settings) !== JSON.stringify(raw),
 		warnings,
 	};
 }
@@ -127,7 +127,12 @@ export function parseWikiLinkList(value: string): string[] {
 	return value.split(/[\n,]+/).map((entry) => entry.trim()).filter(Boolean);
 }
 
-function normalizeProfile(raw: unknown, index: number, warnings: string[]): CalendarSourceProfile | undefined {
+function normalizeProfile(
+	raw: unknown,
+	index: number,
+	warnings: string[],
+	legacyIndicatorMode: 'icons' | 'dots',
+): CalendarSourceProfile | undefined {
 	if (!isRecord(raw)) {
 		warnings.push(`Source profile ${index + 1} was ignored because it is invalid.`);
 		return undefined;
@@ -139,6 +144,9 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 		name: text(raw.name) ?? id,
 		order: positiveInteger(raw.order, index + 1),
 		enabled: boolean(raw.enabled, true),
+		sidebarIndicatorMode: raw.sidebarIndicatorMode === 'icons'
+			? 'icons'
+			: raw.sidebarIndicatorMode === 'dots' ? 'dots' : legacyIndicatorMode,
 		matchMode: raw.matchMode === 'any' ? 'any' : 'all',
 		folders: stringArray(raw.folders),
 		tags: stringArray(raw.tags),

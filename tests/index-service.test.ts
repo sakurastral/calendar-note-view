@@ -239,6 +239,10 @@ describe('calendar index', () => {
 		current = { ...current, sourceProfiles: [{ ...current.sourceProfiles[0]!, order: 4 }] };
 		await service.handleSettingsChanged(beforeOrderChange, current);
 		expect(changes).toEqual([]);
+		const beforeIndicatorChange = structuredClone(current);
+		current = { ...current, sourceProfiles: [{ ...current.sourceProfiles[0]!, sidebarIndicatorMode: 'icons' }] };
+		await service.handleSettingsChanged(beforeIndicatorChange, current);
+		expect(changes).toEqual([]);
 		const beforeRuleChange = structuredClone(current);
 		current = { ...current, typeStyleRules: [{ id: 'holiday', enabled: true, typeValue: 'Holiday' }] };
 		await service.handleSettingsChanged(beforeRuleChange, current);

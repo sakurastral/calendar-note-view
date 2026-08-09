@@ -31,7 +31,7 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 
 Use the ribbon icon or run **Calendar Note View: Open sidebar calendar**. The header provides Previous Month, Next Month, Today, separate Year and Month controls, and Refresh.
 
-Date cells show Daily Note status and either colored event dots or icon badges. Select a date number to open or create its Daily Note. Use the plus button or date context menu to create an event. Select an event indicator to open its note.
+Date cells show Daily Note status and colored event dots or icon badges selected independently by each Source Profile. Indicators from different profiles can use different modes in the same date cell. Select a date number to open or create its Daily Note. Use the plus button or date context menu to create an event. Select an event indicator to open its note.
 
 Refresh safely rebuilds the Sidebar event index while preserving the viewed month.
 
@@ -67,6 +67,7 @@ A profile defines:
 
 - A system-generated stable ID that remains unchanged when the display name changes
 - An explicit Order; lower values appear first in settings, event creation, and Sidebar events
+- A Sidebar indicator mode using colored dots or icon badges
 - Event note matching for the Sidebar Calendar
 - Folder, tag, and property-scoped wiki-link matching through Metadata Cache
 - `all` or `any` matching across configured condition groups

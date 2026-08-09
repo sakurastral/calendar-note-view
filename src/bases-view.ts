@@ -39,6 +39,7 @@ const BASES_STYLE_PROFILE: CalendarSourceProfile = {
 	name: 'Bases calendar',
 	order: 1,
 	enabled: true,
+	sidebarIndicatorMode: 'dots',
 	matchMode: 'all',
 	folders: [],
 	tags: [],

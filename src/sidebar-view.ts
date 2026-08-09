@@ -10,6 +10,7 @@ import { buildCalendarMonthGrid, moveCalendarMonth } from './calendar-grid';
 import { CreateEventModal } from './create-event-modal';
 import { formatCalendarDate, getCalendarDateParts, getTodayCanonical } from './date';
 import type { CalendarItem } from './models';
+import { getSidebarIndicatorPresentation } from './sidebar-indicator';
 import { CalendarStyleResolver } from './style-resolver';
 import type CalendarNoteViewPlugin from './main';
 
@@ -148,13 +149,14 @@ export class CalendarSidebarView extends ItemView {
 			const resolution = this.styleResolver.resolve(item, profile, this.plugin.settings.typeStyleRules);
 			this.plugin.diagnostics.replaceStyleForFileAndProfile(item.filePath, profile.id, resolution.diagnostics);
 			const resolved = resolution.style;
+			const presentation = getSidebarIndicatorPresentation(profile, resolved.icon);
 			const indicator = indicators.createSpan({
-				cls: `calendar-note-indicator is-${this.plugin.settings.sidebarIndicatorMode}`,
+				cls: `calendar-note-indicator ${presentation.className}`,
 				attr: { title: item.title, 'aria-label': item.title },
 			});
 			indicator.style.setProperty('--calendar-note-item-bg', resolved.backgroundColor);
 			indicator.style.setProperty('--calendar-note-item-text', resolved.textColor);
-			if (this.plugin.settings.sidebarIndicatorMode === 'icons') setIcon(indicator, resolved.icon);
+			if (presentation.icon) setIcon(indicator, presentation.icon);
 			indicator.addEventListener('click', (event) => {
 				event.stopPropagation();
 				void this.openEvent(item, false);

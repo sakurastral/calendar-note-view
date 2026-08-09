@@ -44,7 +44,7 @@ describe('settings infrastructure', () => {
 			}],
 		});
 		expect(result.migrated).toBe(true);
-		expect(result.settings.schemaVersion).toBe(6);
+		expect(result.settings.schemaVersion).toBe(7);
 		expect(result.settings.displayDateFormat).toBe('DD/MM/YYYY');
 		expect(result.settings.sourceProfiles[0]).toMatchObject({ id: 'events', startProperty: 'start', folders: ['Events'] });
 		expect(JSON.stringify(result.settings)).not.toMatch(/kind|completed|hideCompleted|dimCompleted/);
@@ -52,7 +52,7 @@ describe('settings infrastructure', () => {
 
 	it('round-trips every supported Source Profile field', () => {
 		const rawProfile = {
-			id: 'events', name: 'Events', order: 1, enabled: true, matchMode: 'any', folders: ['Events'], tags: ['calendar'],
+			id: 'events', name: 'Events', order: 1, enabled: true, sidebarIndicatorMode: 'icons', matchMode: 'any', folders: ['Events'], tags: ['calendar'],
 			wikiLinkProperty: 'event-type', wikiLinkTargets: ['[[Holiday]]'], matchFilesWithStartPropertyOnly: false,
 			startProperty: 'start', endProperty: 'end', titleProperty: 'event-title', typeProperty: 'event-type',
 			iconProperty: 'icon', colorProperty: 'color', textColorProperty: 'text-color', defaultType: 'Holiday',
@@ -60,7 +60,7 @@ describe('settings infrastructure', () => {
 			allowCreate: true, createFolder: 'Events', noteTemplatePath: 'Templates/Event.md', fileNameTemplate: '{date-range} {title}',
 			generatedTitleProperty: 'title', generatedTitleTemplate: '{date-range} {title}', titleDateFormat: 'YYYY-MM-DD',
 		};
-		const first = loadCalendarSettings({ schemaVersion: 6, sourceProfiles: [rawProfile], typeStyleRules: [] }).settings;
+		const first = loadCalendarSettings({ schemaVersion: 7, sourceProfiles: [rawProfile], typeStyleRules: [] }).settings;
 		const reloaded = loadCalendarSettings(JSON.parse(JSON.stringify(first))).settings;
 		expect(reloaded.sourceProfiles[0]).toEqual(rawProfile);
 	});
@@ -109,9 +109,22 @@ describe('settings infrastructure', () => {
 		expect(getSourceProfilePageName(first!)).not.toBe(getSourceProfilePageName(second!));
 	});
 
+	it('migrates the former global Sidebar indicator mode into each Source Profile', () => {
+		const result = loadCalendarSettings({
+			schemaVersion: 6,
+			sidebarIndicatorMode: 'icons',
+			sourceProfiles: [
+				{ id: 'legacy', name: 'Legacy', startProperty: 'start' },
+				{ id: 'explicit', name: 'Explicit', sidebarIndicatorMode: 'dots', startProperty: 'date' },
+			],
+		});
+		expect(result.settings.sourceProfiles.map((profile) => profile.sidebarIndicatorMode)).toEqual(['icons', 'dots']);
+		expect(result.settings).not.toHaveProperty('sidebarIndicatorMode');
+	});
+
 	it('normalizes, moves, and persists explicit Source Profile order', () => {
 		const settings = loadCalendarSettings({
-			schemaVersion: 6,
+			schemaVersion: 7,
 			sourceProfiles: [
 				{ id: 'second', name: 'Same name', order: 2, startProperty: 'start' },
 				{ id: 'first', name: 'Same name', order: 1, startProperty: 'start' },
@@ -142,7 +155,7 @@ describe('settings infrastructure', () => {
 
 	it('updates newly added profiles and type rules by stable ID and survives reload', () => {
 		const settings = loadCalendarSettings({
-			schemaVersion: 6,
+			schemaVersion: 7,
 			sourceProfiles: [{ id: 'events', name: 'New source profile', startProperty: '' }],
 			typeStyleRules: [{ id: 'holiday', typeValue: 'New type' }],
 		}).settings;

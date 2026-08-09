@@ -16,6 +16,7 @@ export interface CalendarSourceProfile {
 	name: string;
 	order: number;
 	enabled: boolean;
+	sidebarIndicatorMode: 'icons' | 'dots';
 	matchMode: 'all' | 'any';
 	folders: string[];
 	tags: string[];
@@ -57,14 +58,13 @@ export type CalendarTimeZone =
 	| { mode: 'custom'; timeZone: string };
 
 export interface CalendarSettings {
-	schemaVersion: 6;
+	schemaVersion: 7;
 	firstDayOfWeek: number;
 	weekendDays: number[];
 	timeZone: CalendarTimeZone;
 	displayDateFormat: string;
 	eventPropertyDateFormat: string;
 	confirmBeforeCreatingDailyNote: boolean;
-	sidebarIndicatorMode: 'icons' | 'dots';
 	maxIndicatorsPerDay: number;
 	sourceProfiles: CalendarSourceProfile[];
 	typeStyleRules: CalendarTypeStyleRule[];

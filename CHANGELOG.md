@@ -2,6 +2,18 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.8
+
+### Changed
+
+- Move the Sidebar indicator mode from Calendar behavior into each Source Profile
+- Allow colored dots and icon badges from different Source Profiles to appear together in the same Sidebar date cell
+- Migrate the former global Sidebar indicator mode into profiles that do not already define their own mode
+
+### Fixed
+
+- Re-render the Sidebar without rebuilding its Vault index when a profile's indicator mode changes
+
 ## 0.2.7
 
 ### Added
