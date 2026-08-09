@@ -13,7 +13,12 @@ import {
 	OBSIDIAN_TEXT_COLOR_OPTIONS,
 } from './color-options';
 import type CalendarNoteViewPlugin from './main';
-import { getDelimitedQuery, replaceDelimitedInputValue } from './input-events';
+import {
+	getDelimitedQuery,
+	getLineQuery,
+	replaceDelimitedInputSelection,
+	replaceLineInputSelection,
+} from './input-events';
 import type { CalendarSettings, CalendarSourceProfile, CalendarTypeStyleRule } from './models';
 import {
 	DEFAULT_EVENT_PROFILE,
@@ -25,7 +30,7 @@ import {
 import type { CalendarSettingsImpact } from './settings-persistence';
 import {
 	CalendarInputSuggest,
-	CalendarTextAreaSuggest,
+	CalendarFloatingSuggest,
 } from './suggestions';
 
 const EVENT_TEMPLATE_VARIABLES = [
@@ -330,10 +335,17 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
 			let inputSuggest: CalendarInputSuggest | undefined;
+			let floatingSuggest: CalendarFloatingSuggest | undefined;
 			setting.addText((text) => {
 				const saveValue = async (value: string) => this.updateProfile(profile.id, (current) => { current[key] = value; }, profileImpact(key));
 				text.setValue(String(profile[key] ?? '')).onChange(saveValue);
-				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getFolderSuggestions(query), undefined, saveValue);
+				if (suggest === 'folder') floatingSuggest = new CalendarFloatingSuggest(
+					text.inputEl,
+					(query) => this.plugin.suggestions.getFolderSuggestions(query),
+					(value) => value,
+					(value) => ({ value, cursor: value.length }),
+					saveValue,
+				);
 				if (suggest === 'property') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getPropertySuggestions(query), undefined, saveValue);
 				if (suggest === 'icon') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getIconSuggestions(query), undefined, saveValue);
 				text.inputEl.addEventListener('blur', () => {
@@ -342,7 +354,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					});
 				});
 			});
-			return () => inputSuggest?.close();
+			return () => {
+				inputSuggest?.close();
+				floatingSuggest?.dispose();
+			};
 		});
 	}
 
@@ -354,23 +369,22 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		suggest?: 'folder',
 	): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
-			let inputSuggest: CalendarInputSuggest | undefined;
+			let inputSuggest: CalendarFloatingSuggest | undefined;
 			setting.addText((text) => {
 				const saveValue = async (value: string) => this.updateProfile(profile.id, (current) => {
 					current[key] = value.split(',').map((entry) => entry.trim()).filter(Boolean);
 				}, 'index');
 				text.setValue(profile[key].join(', ')).onChange(saveValue);
-				if (suggest === 'folder') inputSuggest = new CalendarInputSuggest(
-					this.app,
+				if (suggest === 'folder') inputSuggest = new CalendarFloatingSuggest(
 					text.inputEl,
 					(query) => this.plugin.suggestions.getFolderSuggestions(query),
-					replaceDelimitedInputValue,
-					saveValue,
 					getDelimitedQuery,
+					replaceDelimitedInputSelection,
+					saveValue,
 				);
 				text.inputEl.addEventListener('blur', () => { void this.plugin.flushSettings(); });
 			});
-			return () => inputSuggest?.close();
+			return () => inputSuggest?.dispose();
 		});
 	}
 
@@ -379,7 +393,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				'Wiki link targets',
 				'Enter one target per line. Only values in the configured Wiki link property are checked.',
 				(setting) => {
-					let suggestions: CalendarTextAreaSuggest | undefined;
+					let suggestions: CalendarFloatingSuggest | undefined;
 					setting.addTextArea((text) => {
 						text.inputEl.addClass('calendar-note-settings-textarea');
 						text.setPlaceholder('[[holiday]]\n[[vacation]]')
@@ -390,10 +404,11 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 						const saveValue = async (value: string) => this.updateProfile(profile.id, (current) => {
 							current.wikiLinkTargets = parseWikiLinkList(value);
 						}, 'index');
-						suggestions = new CalendarTextAreaSuggest(
+						suggestions = new CalendarFloatingSuggest(
 							text.inputEl,
-							setting.controlEl,
 							(query) => this.plugin.suggestions.getWikiLinkSuggestions(query),
+							getLineQuery,
+							replaceLineInputSelection,
 							saveValue,
 						);
 						text.inputEl.addEventListener('blur', () => { void this.plugin.flushSettings(); });

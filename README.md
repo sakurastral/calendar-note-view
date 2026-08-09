@@ -76,11 +76,11 @@ Values inside one condition group use OR. For example, folders `Events` and `Hol
 
 Folder matching normalizes slash direction and leading or trailing separators, includes descendants, and respects path boundaries. A configured `Events` folder matches `Events/Holidays/Trip.md` but not `Events-Archive/Trip.md`.
 
-Folder suggestions are committed directly through the Source Profile settings callback when selected with the mouse or keyboard. The input, saved profile, and Sidebar index therefore use the same complete folder path, even when only a partial query such as `eve` was typed first.
+Folder suggestions open in a floating popover and are committed directly through the Source Profile settings callback when selected with the mouse or keyboard. Other comma-separated folders are preserved, so the input, saved profile, and Sidebar index use the same complete folder list even when only a partial query such as `eve` was typed first.
 
 Tag matching uses Obsidian's combined cached Properties and inline tags. A leading `#` is optional. Tags match exactly, so `#calendar` does not automatically include `#calendar/holiday`; configure both when both should match.
 
-Wiki Link matching reads only the frontmatter property selected in **Wiki link property**. Its value may be a YAML string or array containing wiki links or plain-text targets. Short paths, full paths, aliases, `.md`, and heading subpaths resolve through Obsidian's Metadata Cache; arbitrary outgoing links and embeds in the note body are not source conditions. Enter one target per line in **Wiki link targets**; any listed target can match. Canonical paths keep same-name notes in different folders distinct.
+Wiki Link matching reads only the frontmatter property selected in **Wiki link property**. Its value may be a YAML string or array containing wiki links or plain-text targets. Short paths, full paths, aliases, `.md`, and heading subpaths resolve through Obsidian's Metadata Cache; arbitrary outgoing links and embeds in the note body are not source conditions. Enter one target per line in **Wiki link targets**; matching notes appear in a floating suggestion popover, and any listed target can match. Canonical paths keep same-name notes in different folders distinct.
 
 Source Profile icons provide suggestions from Obsidian's installed icon set. Default background and text colors can use a selected Obsidian CSS variable or **Use style settings fallback**. Style priority is note property → first matching Event Type Rule → explicit Source Profile default → Style Settings Event fallback → Obsidian theme fallback.
 

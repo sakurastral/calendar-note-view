@@ -7,7 +7,14 @@ import {
 	updateSourceProfile,
 	updateTypeStyleRule,
 } from '../src/settings-data';
-import { commitInputSuggestion, replaceDelimitedInputValue } from '../src/input-events';
+import {
+	commitInputSuggestion,
+	getFloatingSuggestionLayout,
+	getLineQuery,
+	replaceDelimitedInputSelection,
+	replaceDelimitedInputValue,
+	replaceLineInputSelection,
+} from '../src/input-events';
 import { rankSuggestions } from '../src/suggestion-ranking';
 
 describe('settings infrastructure', () => {
@@ -117,12 +124,42 @@ describe('settings infrastructure', () => {
 
 describe('folder and property suggestions', () => {
 	it('writes the selected value directly and preserves other folder values', () => {
-		const input = { value: 'Events, hol', selectionStart: 11 } as HTMLInputElement;
+		let selectedCursor = -1;
+		const input = {
+			value: 'Events, hol, Archive',
+			selectionStart: 11,
+			setSelectionRange: (start: number) => { selectedCursor = start; },
+		} as unknown as HTMLInputElement;
 		let savedValue = '';
-		const selected = replaceDelimitedInputValue(input.value, 'Holidays', input.selectionStart ?? input.value.length);
-		commitInputSuggestion(input, selected, (value) => { savedValue = value; });
-		expect(input.value).toBe('Events, Holidays');
-		expect(savedValue).toBe('Events, Holidays');
+		const selected = replaceDelimitedInputSelection(input.value, 'Holidays', input.selectionStart ?? input.value.length);
+		commitInputSuggestion(input, selected.value, (value) => { savedValue = value; }, selected.cursor);
+		expect(input.value).toBe('Events, Holidays, Archive');
+		expect(savedValue).toBe('Events, Holidays, Archive');
+		expect(selectedCursor).toBe('Events, Holidays'.length);
+		expect(replaceDelimitedInputValue('eve, Archive', 'Events', 3)).toBe('Events, Archive');
+	});
+
+	it('replaces only the active Wiki Link target line', () => {
+		const value = '[[Events/Existing]]\nEven\n[[Archive]]';
+		const cursor = value.indexOf('\nEven\n') + '\nEven'.length;
+		expect(getLineQuery(value, cursor)).toBe('Even');
+		expect(replaceLineInputSelection(value, '[[Events/Event]]', cursor)).toEqual({
+			value: '[[Events/Existing]]\n[[Events/Event]]\n[[Archive]]',
+			cursor: '[[Events/Existing]]\n[[Events/Event]]'.length,
+		});
+	});
+
+	it('positions suggestions as a viewport-level popover above or below the input', () => {
+		expect(getFloatingSuggestionLayout(
+			{ left: 100, top: 100, bottom: 130, width: 180 },
+			800,
+			600,
+		)).toMatchObject({ left: 100, top: 134, width: 240 });
+		expect(getFloatingSuggestionLayout(
+			{ left: 700, top: 520, bottom: 550, width: 180 },
+			800,
+			600,
+		)).toMatchObject({ left: 556, bottom: 84, width: 240 });
 	});
 
 	it('ranks prefix, substring, and fuzzy folder or property matches', () => {

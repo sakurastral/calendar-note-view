@@ -1388,10 +1388,15 @@ body {
 }
 
 .calendar-note-settings-suggestions {
+	position: fixed;
+	z-index: var(--layer-popover, 1000);
 	display: flex;
-	max-height: 12rem;
 	flex-direction: column;
-	margin-top: var(--size-2-1);
+	padding: var(--size-2-1);
+	border: var(--border-width) solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	background: var(--background-primary);
+	box-shadow: var(--shadow-s);
 	overflow-y: auto;
 }
 
@@ -1400,8 +1405,21 @@ body {
 }
 
 .calendar-note-settings-suggestions .suggestion-item {
+	flex: 0 0 auto;
 	width: 100%;
+	min-height: var(--input-height);
+	padding: var(--size-2-2) var(--size-4-2);
+	border: 0;
+	border-radius: var(--radius-s);
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-normal);
 	text-align: start;
+}
+
+.calendar-note-settings-suggestions .suggestion-item:hover,
+.calendar-note-settings-suggestions .suggestion-item.is-selected {
+	background: var(--background-modifier-hover);
 }
 
 .calendar-note-create-modal {

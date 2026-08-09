@@ -2,6 +2,18 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.6
+
+### Changed
+
+- Show Folder and Wiki Link target suggestions in a viewport-level floating popover with mouse and keyboard selection
+
+### Fixed
+
+- Commit a selected Folder through the Source Profile's stable-ID settings callback while preserving other comma-separated folders
+- Keep the saved cursor position during suggestion clicks so focus changes cannot replace the wrong Folder or Wiki Link target
+- Prevent Wiki Link target suggestions from taking space in, or overlapping, the settings row
+
 ## 0.2.5
 
 ### Changed

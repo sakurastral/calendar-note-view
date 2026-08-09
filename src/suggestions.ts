@@ -1,5 +1,10 @@
 import { AbstractInputSuggest, type App, type EventRef, getIconIds, TFolder } from 'obsidian';
-import { commitInputSuggestion, type CommitInputValue } from './input-events';
+import {
+	commitInputSuggestion,
+	type CommitInputValue,
+	getFloatingSuggestionLayout,
+	type SuggestionReplacement,
+} from './input-events';
 import { rankSuggestions } from './suggestion-ranking';
 
 export class CalendarSuggestionProvider {
@@ -108,68 +113,161 @@ export class CalendarInputSuggest extends AbstractInputSuggest<string> {
 	}
 }
 
-export class CalendarTextAreaSuggest {
+type SuggestInput = HTMLInputElement | HTMLTextAreaElement;
+
+export class CalendarFloatingSuggest {
 	private readonly suggestionsEl: HTMLDivElement;
-	private readonly handleInput = (): void => this.render();
+	private readonly ownerWindow: Window;
+	private lastCursor: number;
+	private values: string[] = [];
+	private selectedIndex = 0;
+	private clearTimer: number | undefined;
+	private readonly handleInput = (): void => {
+		this.cancelClearTimer();
+		this.captureCursor();
+		this.render();
+	};
+	private readonly handleFocus = (): void => {
+		this.cancelClearTimer();
+		this.captureCursor();
+		this.render();
+	};
+	private readonly handleSelection = (): void => this.captureCursor();
 	private readonly handleBlur = (): void => {
-		window.setTimeout(() => this.clear(), 120);
+		this.cancelClearTimer();
+		this.clearTimer = this.ownerWindow.setTimeout(() => {
+			this.clearTimer = undefined;
+			this.clear();
+		}, 120);
+	};
+	private readonly handlePositionChange = (): void => this.position();
+	private readonly handleKeydown = (event: Event): void => {
+		const keyboardEvent = event as KeyboardEvent;
+		if (this.values.length === 0) return;
+		if (keyboardEvent.key === 'Escape') {
+			keyboardEvent.preventDefault();
+			this.clear();
+			return;
+		}
+		if (keyboardEvent.key === 'ArrowDown' || keyboardEvent.key === 'ArrowUp') {
+			keyboardEvent.preventDefault();
+			const direction = keyboardEvent.key === 'ArrowDown' ? 1 : -1;
+			this.selectedIndex = (this.selectedIndex + direction + this.values.length) % this.values.length;
+			this.updateSelectedItem();
+			return;
+		}
+		if (keyboardEvent.key === 'Enter') {
+			keyboardEvent.preventDefault();
+			const value = this.values[this.selectedIndex];
+			if (value) this.select(value);
+		}
 	};
 
 	constructor(
-		private readonly input: HTMLTextAreaElement,
-		container: HTMLElement,
+		private readonly input: SuggestInput,
 		private readonly getValues: (query: string) => string[],
+		private readonly getQuery: (inputValue: string, cursor: number) => string,
+		private readonly applySelection: (value: string, inputValue: string, cursor: number) => SuggestionReplacement,
 		private readonly commitSelection: CommitInputValue,
 	) {
+		this.ownerWindow = input.ownerDocument.defaultView ?? window;
+		this.lastCursor = input.selectionStart ?? input.value.length;
 		this.suggestionsEl = input.ownerDocument.createElement('div');
 		this.suggestionsEl.className = 'calendar-note-settings-suggestions';
-		container.append(this.suggestionsEl);
+		input.ownerDocument.body.append(this.suggestionsEl);
 		input.addEventListener('input', this.handleInput);
+		input.addEventListener('focus', this.handleFocus);
+		input.addEventListener('click', this.handleSelection);
+		input.addEventListener('keyup', this.handleSelection);
+		input.addEventListener('select', this.handleSelection);
+		input.addEventListener('keydown', this.handleKeydown);
 		input.addEventListener('blur', this.handleBlur);
+		this.ownerWindow.addEventListener('resize', this.handlePositionChange);
+		input.ownerDocument.addEventListener('scroll', this.handlePositionChange, true);
 	}
 
 	dispose(): void {
 		this.input.removeEventListener('input', this.handleInput);
+		this.input.removeEventListener('focus', this.handleFocus);
+		this.input.removeEventListener('click', this.handleSelection);
+		this.input.removeEventListener('keyup', this.handleSelection);
+		this.input.removeEventListener('select', this.handleSelection);
+		this.input.removeEventListener('keydown', this.handleKeydown);
 		this.input.removeEventListener('blur', this.handleBlur);
+		this.ownerWindow.removeEventListener('resize', this.handlePositionChange);
+		this.input.ownerDocument.removeEventListener('scroll', this.handlePositionChange, true);
+		this.cancelClearTimer();
 		this.suggestionsEl.remove();
 	}
 
 	private render(): void {
 		this.clear();
-		const cursor = this.input.selectionStart ?? this.input.value.length;
-		const query = getLineQuery(this.input.value, cursor);
+		const query = this.getQuery(this.input.value, this.lastCursor);
 		if (!query.trim()) return;
-		for (const value of this.getValues(query).slice(0, 8)) {
+		this.values = this.getValues(query).slice(0, 8);
+		for (const [index, value] of this.values.entries()) {
 			const button = this.input.ownerDocument.createElement('button');
 			button.type = 'button';
 			button.className = 'suggestion-item';
 			button.textContent = value;
-			button.addEventListener('mousedown', (event) => event.preventDefault());
+			button.toggleClass('is-selected', index === this.selectedIndex);
+			let selectedOnMouseDown = false;
+			button.addEventListener('mousedown', (event) => {
+				event.preventDefault();
+				selectedOnMouseDown = true;
+				this.select(value);
+			});
 			button.addEventListener('click', () => {
-				const next = replaceLineValue(this.input.value, value, cursor);
-				this.input.value = next;
-				void this.commitSelection(next);
-				this.clear();
+				if (!selectedOnMouseDown) this.select(value);
 			});
 			this.suggestionsEl.append(button);
 		}
+		if (this.values.length > 0) this.position();
 	}
 
 	private clear(): void {
+		this.values = [];
+		this.selectedIndex = 0;
 		this.suggestionsEl.replaceChildren();
 	}
-}
 
-function getLineQuery(inputValue: string, cursor: number): string {
-	const start = inputValue.lastIndexOf('\n', Math.max(0, cursor - 1)) + 1;
-	const endIndex = inputValue.indexOf('\n', cursor);
-	const end = endIndex < 0 ? inputValue.length : endIndex;
-	return inputValue.slice(start, end).trim();
-}
+	private captureCursor(): void {
+		this.lastCursor = this.input.selectionStart ?? this.input.value.length;
+	}
 
-function replaceLineValue(inputValue: string, selectedValue: string, cursor: number): string {
-	const start = inputValue.lastIndexOf('\n', Math.max(0, cursor - 1)) + 1;
-	const endIndex = inputValue.indexOf('\n', cursor);
-	const end = endIndex < 0 ? inputValue.length : endIndex;
-	return `${inputValue.slice(0, start)}${selectedValue}${inputValue.slice(end)}`;
+	private select(value: string): void {
+		this.cancelClearTimer();
+		const replacement = this.applySelection(value, this.input.value, this.lastCursor);
+		commitInputSuggestion(this.input, replacement.value, this.commitSelection, replacement.cursor);
+		this.lastCursor = replacement.cursor;
+		this.input.focus();
+		this.clear();
+	}
+
+	private cancelClearTimer(): void {
+		if (this.clearTimer === undefined) return;
+		this.ownerWindow.clearTimeout(this.clearTimer);
+		this.clearTimer = undefined;
+	}
+
+	private updateSelectedItem(): void {
+		for (const [index, element] of Array.from(this.suggestionsEl.children).entries()) {
+			element.toggleClass('is-selected', index === this.selectedIndex);
+		}
+		this.suggestionsEl.children[this.selectedIndex]?.scrollIntoView({ block: 'nearest' });
+	}
+
+	private position(): void {
+		if (this.values.length === 0) return;
+		const layout = getFloatingSuggestionLayout(
+			this.input.getBoundingClientRect(),
+			this.ownerWindow.innerWidth,
+			this.ownerWindow.innerHeight,
+		);
+		this.suggestionsEl.style.left = `${layout.left}px`;
+		this.suggestionsEl.style.width = `${layout.width}px`;
+		this.suggestionsEl.style.maxHeight = `${layout.maxHeight}px`;
+		this.suggestionsEl.style.top = layout.top === undefined ? '' : `${layout.top}px`;
+		this.suggestionsEl.style.bottom = layout.bottom === undefined ? '' : `${layout.bottom}px`;
+	}
 }
