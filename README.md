@@ -73,9 +73,13 @@ A profile defines:
 - Property mapping and default icon, background color, and text color
 - Event creation folder, template, file name, and generated title rules
 
-Values inside one condition group use OR. For example, folders `Events` and `Holidays` mean `Events OR Holidays`; multiple configured Wiki Links also use OR. Different configured groups use the profile's `all` or `any` mode. A profile with no source conditions does not scan the entire vault unless **Match start property only** is enabled.
+Values inside one condition group use OR. For example, folders `Events` and `Holidays` mean `Events OR Holidays`; multiple configured Wiki Links also use OR. Only non-empty groups participate in the profile's **All configured groups** or **Any configured group** mode. A profile with no source conditions does not scan the entire vault unless **Match start property only** is enabled. Start-property-only never bypasses a configured Folder, Tag, or Wiki Link condition.
 
-Wiki Link matching uses Obsidian's Metadata Cache. It matches links in Markdown content and Properties without reading every note body with a regular expression. Enter one link per line in the Wiki Links text area; any listed link can match.
+Folder matching normalizes slash direction and leading or trailing separators, includes descendants, and respects path boundaries. A configured `Events` folder matches `Events/Holidays/Trip.md` but not `Events-Archive/Trip.md`.
+
+Tag matching uses Obsidian's combined cached Properties and inline tags. A leading `#` is optional. Tags match exactly, so `#calendar` does not automatically include `#calendar/holiday`; configure both when both should match.
+
+Wiki Link matching uses Obsidian's Metadata Cache and resolved vault paths. It supports short or full paths, aliases, headings, links in Markdown content or Properties, and embedded Wiki Links without reading note bodies with a regular expression. Enter one link per line in the Wiki Links text area; any listed link can match. Notes are reindexed after link resolution, so moved targets and same-name notes in different folders use Obsidian's current link destination.
 
 Source Profile icons provide suggestions from Obsidian's installed icon set. Default background and text colors use selectable Obsidian CSS variables so they follow the active theme. These defaults apply only when a note property and matching Event Type Rule do not provide that style value.
 

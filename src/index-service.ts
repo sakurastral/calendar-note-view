@@ -2,7 +2,7 @@ import type { App, EventRef, TAbstractFile, TFile } from 'obsidian';
 import { sortCalendarItems } from './calendar-sort';
 import { isCanonicalDate } from './date';
 import { createDiagnostic, CalendarDiagnosticsService } from './diagnostics';
-import { hasSourceConditions, matchesSourceProfile } from './matcher';
+import { CalendarSourceMatcher, hasSourceConditions } from './matcher';
 import type {
 	CalendarFileData,
 	CalendarItem,
@@ -41,6 +41,7 @@ export class CalendarIndexService {
 	private readonly subscribers = new Set<CalendarIndexSubscriber>();
 	private readonly refs: Array<{ owner: 'vault' | 'metadata'; ref: EventRef }> = [];
 	private readonly pending = new Map<string, PendingReindex>();
+	private readonly sourceMatcher: CalendarSourceMatcher;
 	private initialized = false;
 
 	constructor(
@@ -49,7 +50,10 @@ export class CalendarIndexService {
 		readonly diagnostics: CalendarDiagnosticsService,
 		private readonly normalizer = new CalendarItemNormalizer(),
 		private readonly debounceMilliseconds = 180,
-	) {}
+		sourceMatcher?: CalendarSourceMatcher,
+	) {
+		this.sourceMatcher = sourceMatcher ?? new CalendarSourceMatcher(this.app.metadataCache);
+	}
 
 	async initialize(): Promise<void> {
 		if (this.initialized) return;
@@ -150,7 +154,7 @@ export class CalendarIndexService {
 
 	private indexFile(file: CalendarFileData, metadata: CalendarMetadata, profiles: CalendarSourceProfile[]): void {
 		for (const profile of profiles) {
-			if (!matchesSourceProfile(file, metadata, profile)) continue;
+			if (!this.sourceMatcher.matches(file, metadata, profile)) continue;
 			const result = this.normalizer.normalize(file, metadata, profile, this.getSettings().eventPropertyDateFormat);
 			this.diagnostics.replaceForFileAndProfile(file.path, profile.id, result.diagnostics);
 			if (result.item) this.addItem(result.item);
@@ -202,6 +206,7 @@ export class CalendarIndexService {
 	private bindEvents(): void {
 		this.refs.push(
 			{ owner: 'metadata', ref: this.app.metadataCache.on('changed', (file) => this.schedule(file, 'file-change')) },
+			{ owner: 'metadata', ref: this.app.metadataCache.on('resolve', (file) => this.schedule(file, 'file-change')) },
 			{ owner: 'vault', ref: this.app.vault.on('create', (file) => this.scheduleAbstract(file, 'file-create')) },
 			{ owner: 'vault', ref: this.app.vault.on('delete', (file) => this.removeFile(file.path)) },
 			{ owner: 'vault', ref: this.app.vault.on('rename', (file, oldPath) => this.renameAbstract(file, oldPath)) },

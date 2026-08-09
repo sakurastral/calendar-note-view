@@ -212,11 +212,11 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				type: 'group',
 				heading: 'Source matching',
 				items: [
-					this.profileDropdown(profile, 'Match mode', 'Values within one group use OR; this controls how folders, tags, and wiki links combine.', 'matchMode', { all: 'All configured groups', any: 'Any configured group' }),
-					this.profileList(profile, 'Folders', 'Comma-separated folders. Nested folders are included.', 'folders', 'folder'),
-					this.profileList(profile, 'Tags', 'Comma-separated tags matched exactly.', 'tags'),
+					this.profileDropdown(profile, 'Match mode', 'Combine only the non-empty Folder, Tag, and Wiki Link groups. Values inside each group use OR.', 'matchMode', { all: 'All configured groups', any: 'Any configured group' }),
+					this.profileList(profile, 'Folders', 'Comma-separated vault folders. Paths are normalized and include nested folders.', 'folders', 'folder'),
+					this.profileList(profile, 'Tags', 'Comma-separated Properties or inline tags. A leading # is optional; nested tags match exactly.', 'tags'),
 					this.profileWikiLinks(profile),
-					this.profileToggle(profile, 'Match start property only', 'Allow matching by the start property when no source conditions exist.', 'matchFilesWithStartPropertyOnly'),
+					this.profileToggle(profile, 'Match start property only', 'Use the required Start property as the only filter when Folder, Tag, and Wiki Link are all empty.', 'matchFilesWithStartPropertyOnly'),
 				],
 			}, {
 				type: 'group',
@@ -349,7 +349,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private profileWikiLinks(profile: CalendarSourceProfile): SettingDefinition {
 		return this.renderDefinition(
 			'Wiki links',
-			'Enter one wiki link per line. A note matches when its content or Properties contain any listed link.',
+			'Enter one link per line. Obsidian resolves short, full-path, aliased, heading, Properties, and embedded links to their destination note.',
 			(setting) => {
 				setting.addTextArea((text) => {
 					text.inputEl.addClass('calendar-note-settings-textarea');

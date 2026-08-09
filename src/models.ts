@@ -107,6 +107,7 @@ export interface CalendarMetadata {
 	frontmatter?: Record<string, unknown>;
 	tags?: Array<{ tag: string }>;
 	links?: Array<{ link: string }>;
+	embeds?: Array<{ link: string }>;
 	frontmatterLinks?: Array<{ link: string }>;
 }
 

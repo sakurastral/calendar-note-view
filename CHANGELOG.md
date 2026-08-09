@@ -2,6 +2,22 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.4
+
+### Changed
+
+- Rebuild Source Matching as a dedicated cached-metadata matcher shared by full and incremental Sidebar indexing
+- Use Obsidian's combined Properties and inline tag collection instead of manually relying on one frontmatter shape
+- Resolve configured and outgoing Wiki Links to canonical vault paths, including short paths, full paths, aliases, headings, Properties links, and embeds
+- Combine only configured condition groups: values inside Folder, Tag, and Wiki Link use OR; Match mode applies All or Any across those groups
+- Clarify Source Matching settings descriptions and the Start-property-only fallback behavior
+
+### Fixed
+
+- Match normalized Folder paths and descendants without matching similarly prefixed folders
+- Reindex notes when Obsidian finishes resolving outgoing links so Wiki Link matches do not remain stale
+- Prevent same-name notes in different folders from matching the wrong resolved Wiki Link
+
 ## 0.2.3
 
 ### Added

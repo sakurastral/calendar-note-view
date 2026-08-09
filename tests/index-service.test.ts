@@ -1,5 +1,5 @@
 import type { App, EventRef, TFile } from 'obsidian';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CalendarDiagnosticsService } from '../src/diagnostics';
 import { CalendarIndexService, type CalendarIndexChange } from '../src/index-service';
 import type { CalendarMetadata, CalendarSettings, CalendarSourceProfile } from '../src/models';
@@ -45,6 +45,12 @@ class FakeApp {
 	};
 	readonly metadataCache = {
 		getFileCache: (file: FakeFile): CalendarMetadata | null => this.caches.get(file.path) ?? null,
+		getFirstLinkpathDest: (linkpath: string): FakeFile | null => {
+			const target = linkpath.replace(/\.md$/i, '');
+			return this.files.find((file) => file.path.replace(/\.md$/i, '') === target || file.basename === target) ?? null;
+		},
+		resolvedLinks: {} as Record<string, Record<string, number>>,
+		unresolvedLinks: {} as Record<string, Record<string, number>>,
 		on: (event: string, listener: Listener): EventRef => this.metadataEvents.on(event, listener),
 		offref: (ref: EventRef): void => this.metadataEvents.offref(ref),
 	};
@@ -147,6 +153,34 @@ describe('calendar index', () => {
 		expect(changes).toEqual([{ reason: 'rebuild' }]);
 		expect(service.getAllItems()).toHaveLength(1);
 		service.dispose();
+	});
+
+	it('reindexes after Obsidian resolves outgoing wiki links', async () => {
+		vi.stubGlobal('window', { setTimeout, clearTimeout });
+		const app = new FakeApp();
+		const event = app.add('Events/A.md', { start: '2024-07-24' });
+		app.caches.set(event.path, {
+			frontmatter: { start: '2024-07-24' },
+			links: [{ link: 'Calendar/Holiday' }],
+		});
+		app.add('Calendar/Holiday.md', {});
+		const current = settings([profile('events', { folders: [], wikiLinks: ['[[Calendar/Holiday]]'] })]);
+		const service = new CalendarIndexService(
+			app as unknown as App,
+			() => current,
+			new CalendarDiagnosticsService(),
+			undefined,
+			0,
+		);
+		await service.initialize();
+		expect(service.getAllItems()).toHaveLength(1);
+
+		app.metadataCache.resolvedLinks[event.path] = { 'Calendar/Holiday.md': 1 };
+		app.metadataEvents.emit('resolve', event);
+		await new Promise((resolve) => window.setTimeout(resolve, 5));
+		expect(service.getAllItems()).toHaveLength(1);
+		service.dispose();
+		vi.unstubAllGlobals();
 	});
 
 	it('rebuilds for relevant settings changes only', async () => {

@@ -1,4 +1,4 @@
-import { Plugin, type WorkspaceLeaf } from 'obsidian';
+import { getAllTags, Plugin, type CachedMetadata, type WorkspaceLeaf } from 'obsidian';
 import { CalendarBasesView, CALENDAR_BASES_VIEW_TYPE, getBasesCalendarOptions } from './bases-view';
 import { CreateEventModal } from './create-event-modal';
 import { DailyNoteService } from './daily-notes';
@@ -6,6 +6,7 @@ import { CalendarDiagnosticsModal } from './diagnostics-modal';
 import { CalendarDiagnosticsService } from './diagnostics';
 import { EventNoteCreationService } from './event-creation';
 import { CalendarIndexService } from './index-service';
+import { CalendarSourceMatcher } from './matcher';
 import type { CalendarSettings } from './models';
 import { loadCalendarSettings } from './settings-data';
 import { CalendarNoteSettingTab } from './settings';
@@ -29,7 +30,18 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		this.diagnostics = new CalendarDiagnosticsService();
 		this.suggestions = new CalendarSuggestionProvider(this.app);
 		this.suggestions.initialize();
-		this.index = new CalendarIndexService(this.app, () => this.settings, this.diagnostics);
+		const sourceMatcher = new CalendarSourceMatcher(
+			this.app.metadataCache,
+			(metadata) => getAllTags(metadata as CachedMetadata) ?? [],
+		);
+		this.index = new CalendarIndexService(
+			this.app,
+			() => this.settings,
+			this.diagnostics,
+			undefined,
+			undefined,
+			sourceMatcher,
+		);
 		this.dailyNotes = new DailyNoteService(this.app, () => this.settings.confirmBeforeCreatingDailyNote);
 		this.eventCreation = new EventNoteCreationService(this.app, () => this.settings, this.index);
 
