@@ -5,9 +5,24 @@ import { getBasesCalendarOptions } from '../src/bases-options';
 describe('Style Settings colors', () => {
 	const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 	const settings = css.slice(0, css.indexOf('*/'));
+	const controls = settings.split(/\n\s{2}- id: /).slice(1);
+
+	it('organizes controls into five task-focused sections without empty headings', () => {
+		const headings = controls.filter((control) => control.includes('type: heading'));
+		expect(headings.map((heading) => heading.match(/title: ([^\n]+)/)?.[1])).toEqual([
+			'Calendar essentials',
+			'Sidebar calendar',
+			'Bases calendar',
+			'Date appearance and states',
+			'Items and indicators',
+		]);
+		for (const heading of headings) {
+			const headingIndex = controls.indexOf(heading);
+			expect(controls[headingIndex + 1]).not.toContain('type: heading');
+		}
+	});
 
 	it('provides light and dark defaults for every themed color control', () => {
-		const controls = settings.split(/\n\s{2}- id: /).slice(1);
 		const themedColors = controls.filter((control) => control.includes('type: variable-themed-color'));
 		expect(themedColors.length).toBeGreaterThan(10);
 		for (const control of themedColors) {
@@ -17,17 +32,16 @@ describe('Style Settings colors', () => {
 	});
 
 	it('connects every themed color control to a CSS variable', () => {
-		const controls = settings.split(/\n\s{2}- id: /).slice(1)
+		const themedColors = controls
 			.filter((control) => control.includes('type: variable-themed-color'));
-		for (const control of controls) {
+		for (const control of themedColors) {
 			const id = control.split('\n', 1)[0]?.trim();
 			expect(id).toBeTruthy();
 			expect(css.slice(settings.length)).toContain(`--${id}`);
 		}
 	});
 
-	it('pairs every custom color with an Obsidian variable selector', () => {
-		const controls = settings.split(/\n\s{2}- id: /).slice(1);
+	it('uses theme-aware defaults and pairs every selector with an explicit custom color', () => {
 		const customColors = controls.filter((control) => control.includes('type: variable-themed-color'));
 		const colorSources = controls.filter((control) => control.includes('type: variable-select') && control.split('\n', 1)[0]?.endsWith('-source'));
 		expect(colorSources).toHaveLength(customColors.length);
@@ -36,20 +50,46 @@ describe('Style Settings colors', () => {
 			const sourceId = source.split('\n', 1)[0]?.trim();
 			const colorId = sourceId?.replace(/-source$/, '');
 			expect(colorId).toBeTruthy();
-			expect(source).toContain(`default: 'var(--${colorId})'`);
-			expect(source).toContain("value: 'var(--background-primary)'");
-			expect(source).toContain("value: 'var(--interactive-accent)'");
+			expect(source).not.toContain(`default: 'var(--${colorId})'`);
+			expect(source).toContain('label: Custom');
+			expect(source).toContain(`value: 'var(--${colorId})'`);
 			expect(source).toContain("value: 'var(--color-blue)'");
 			expect(css.slice(settings.length)).toContain(`--${colorId}-resolved: var(--${sourceId}, var(--${colorId}))`);
 		}
 	});
 
+	it('keeps background and text color choices relevant to their purpose', () => {
+		const background = controls.find((control) => control.startsWith('calendar-note-bases-cell-bg-source'));
+		const text = controls.find((control) => control.startsWith('calendar-note-date-text-source'));
+		expect(background).toContain("value: 'var(--background-primary)'");
+		expect(background).not.toContain("value: 'var(--text-normal)'");
+		expect(text).toContain("value: 'var(--text-normal)'");
+		expect(text).not.toContain("value: 'var(--background-primary)'");
+	});
+
 	it('makes Bases date numbers circular with an adjustable radius', () => {
+		expect(settings).toContain('id: calendar-note-bases-date-bg-source');
 		expect(settings).toContain('id: calendar-note-bases-date-radius');
 		expect(settings).toContain('default: 50');
 		expect(settings).toContain("format: '%'");
 		expect(css.slice(settings.length)).toContain('border-radius: var(--calendar-note-bases-date-radius, 50%);');
+		expect(css.slice(settings.length)).toContain('background: var(--calendar-note-bases-date-bg-resolved, var(--background-secondary));');
 		expect(css.slice(settings.length)).toContain('.calendar-note-bases-date-cell.is-today .calendar-note-bases-date-number');
+	});
+
+	it('keeps Other month above Weekend and hover above date states', () => {
+		const runtimeCss = css.slice(settings.length);
+		const sidebarWeekend = runtimeCss.indexOf('.calendar-note-date-cell.is-weekend');
+		const sidebarAdjacent = runtimeCss.indexOf('.calendar-note-date-cell.is-adjacent-month');
+		const sidebarToday = runtimeCss.indexOf('.calendar-note-date-cell.is-today');
+		const sidebarHover = runtimeCss.indexOf('.calendar-note-date-button:hover');
+		const basesWeekend = runtimeCss.indexOf('.calendar-note-bases-date-cell.is-weekend');
+		const basesAdjacent = runtimeCss.indexOf('.calendar-note-bases-date-cell.is-adjacent-month');
+		expect(sidebarWeekend).toBeLessThan(sidebarAdjacent);
+		expect(sidebarAdjacent).toBeLessThan(sidebarToday);
+		expect(sidebarToday).toBeLessThan(sidebarHover);
+		expect(basesWeekend).toBeLessThan(basesAdjacent);
+		expect(runtimeCss).toContain('.calendar-note-bases .calendar-note-bases-date-number');
 	});
 });
 

@@ -152,9 +152,19 @@ Daily Note file names continue to use the Core Daily Notes format.
 
 ## Style Settings
 
-Calendar Note View works without the Style Settings plugin. If Style Settings is installed, open its **Calendar Note View** section to customize the calendar, Sidebar, Bases header and cells, weekday labels, adjacent dates, hover state, Today, Weekend, Event, Task, Daily Note, and Navigation.
+Calendar Note View works without the Style Settings plugin. If Style Settings is installed, its **Calendar Note View** section is organized by where a change appears:
 
-Each color control can follow an Obsidian semantic or extended color variable—such as Primary background, Interactive accent, Normal text, or Blue—or use custom light and dark colors. The Bases date number is circular by default, and **Bases Calendar → Date Cell → Date number border radius** can change it from square to round. Styles resolve the selected Calendar Note View value through Obsidian theme variables before using a fallback, keeping light, dark, and custom themes compatible.
+- **Calendar essentials** — shared font and navigation icons
+- **Sidebar calendar** — Sidebar background, weekday labels, navigation row, spacing, and day cells
+- **Bases calendar** — navigation row, weekday row, grid, date badge, event-bar layout, and overflow count
+- **Date appearance and states** — shared date numbers, hover, Other month, Weekend, and Today
+- **Items and indicators** — Event and Task fallbacks, completed opacity, dots, icons, corners, and Daily Note indicators
+
+Color selectors contain only choices relevant to their purpose: background selectors use Obsidian background, accent, and extended color variables; text selectors use text, accent, and extended color variables. Choose **Custom** to activate the paired light/dark color setting. Otherwise, the selector follows Obsidian theme variables and adapts to Light, Dark, and custom themes.
+
+Date-state priority is **ordinary date → Weekend → Other month → Today → hover/focus**. This keeps an adjacent-month weekend visually grouped with the other adjacent dates while retaining Today and interaction feedback. The Bases date badge is circular by default; **Bases calendar → Date badge corner radius** changes it from square to round.
+
+Event and Task fallback colors apply only when the note, matching Type Style Rule, and Source Profile do not provide a color override.
 
 ## Diagnostics
 

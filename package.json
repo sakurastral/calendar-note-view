@@ -1,6 +1,6 @@
 {
 	"name": "calendar-note-view",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "Calendar views backed by Obsidian notes and properties",
 	"main": "main.js",
 	"type": "module",
@@ -9,6 +9,8 @@
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
+		"styles:generate": "node scripts/generate-style-settings.mjs",
+		"styles:check": "node scripts/generate-style-settings.mjs --check",
 		"version": "node version-bump.mjs",
 		"lint": "eslint ."
 	},

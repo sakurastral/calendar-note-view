@@ -27,16 +27,16 @@ export class CalendarStyleResolver {
 		const icon = this.firstIcon([item.icon, rule?.icon, profile.defaultIcon, item.kind === 'task' ? 'circle-check-big' : 'calendar'], item, profile, diagnostics);
 		const backgroundColor = this.firstColor(
 			[item.backgroundColor, rule?.backgroundColor, profile.defaultBackgroundColor, item.kind === 'task'
-				? 'var(--calendar-note-task-bg, var(--background-secondary))'
-				: 'var(--calendar-note-event-bg, var(--background-secondary))'],
+				? 'var(--calendar-note-task-bg-resolved, var(--background-secondary))'
+				: 'var(--calendar-note-event-bg-resolved, var(--background-secondary))'],
 			item,
 			profile,
 			diagnostics,
 		);
 		const textColor = this.firstColor(
 			[item.textColor, rule?.textColor, profile.defaultTextColor, item.kind === 'task'
-				? 'var(--calendar-note-task-text, var(--text-normal))'
-				: 'var(--calendar-note-event-text, var(--text-normal))'],
+				? 'var(--calendar-note-task-text-resolved, var(--text-normal))'
+				: 'var(--calendar-note-event-text-resolved, var(--text-normal))'],
 			item,
 			profile,
 			diagnostics,

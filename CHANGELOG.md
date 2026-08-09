@@ -2,6 +2,23 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.2
+
+### Changed
+
+- Reorganize Style Settings into five task-focused sections: Calendar essentials, Sidebar calendar, Bases calendar, Date appearance and states, and Items and indicators
+- Rename controls and add descriptions that identify the affected view, element, fallback behavior, and date-state priority
+- Limit background, text, border, and indicator selectors to relevant Obsidian theme variables while retaining extended color presets and custom light/dark colors
+- Use theme-aware semantic variables as the default color source; custom colors now apply only when Custom is selected
+- Add a generator and consistency check for the Style Settings definition to prevent empty or misplaced groups
+
+### Fixed
+
+- Keep Other-month styling above Weekend styling when a date has both states, including July 26 in an August 2026 calendar
+- Keep hover and keyboard-focus feedback visible above ordinary date-state backgrounds
+- Route Event and Task fallback colors through the selected Style Settings source instead of bypassing official variable choices
+- Give ordinary Bases date badges an explicit theme-aware background so their circular shape no longer depends on generic theme button styles
+
 ## 0.2.1
 
 ### Added

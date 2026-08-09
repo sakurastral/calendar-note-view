@@ -3,2537 +3,1233 @@ name: Calendar Note View
 id: calendar-note-view
 settings:
   - id: calendar-note-general-heading
-    title: General
+    title: Calendar essentials
     type: heading
     level: 1
     collapsed: true
   - id: calendar-note-font-size
     title: Calendar font size
+    description: Applies to both Sidebar and Bases calendars.
     type: variable-number-slider
     default: 14
     min: 10
     max: 24
     step: 1
-    format: px
-  - id: calendar-note-calendar-text-source
-    title: Calendar text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    format: 'px'
+  - id: calendar-note-navigation-icon-size
+    title: Navigation icon size
+    description: Applies to previous, next, Today, and refresh buttons.
+    type: variable-number-slider
+    default: 16
+    min: 12
+    max: 28
+    step: 1
+    format: 'px'
+  - id: calendar-note-navigation-text-source
+    title: Navigation icon color
+    description: Applies to Sidebar and Bases navigation icons. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-calendar-text)'
+    default: 'var(--text-muted)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-calendar-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
+      - label: Plugin default (Muted text)
         value: 'var(--text-muted)'
-      -
-        label: Faint text
+      - label: Normal text
+        value: 'var(--text-normal)'
+      - label: Faint text
         value: 'var(--text-faint)'
-      -
-        label: Accent text
+      - label: Accent text
         value: 'var(--text-accent)'
-      -
-        label: Accent hover text
+      - label: Accent hover text
         value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
+      - label: Text on accent
         value: 'var(--text-on-accent)'
-      -
-        label: Red
+      - label: Red
         value: 'var(--color-red)'
-      -
-        label: Orange
+      - label: Orange
         value: 'var(--color-orange)'
-      -
-        label: Yellow
+      - label: Yellow
         value: 'var(--color-yellow)'
-      -
-        label: Green
+      - label: Green
         value: 'var(--color-green)'
-      -
-        label: Cyan
+      - label: Cyan
         value: 'var(--color-cyan)'
-      -
-        label: Blue
+      - label: Blue
         value: 'var(--color-blue)'
-      -
-        label: Purple
+      - label: Purple
         value: 'var(--color-purple)'
-      -
-        label: Pink
+      - label: Pink
         value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-calendar-text
-    title: Custom color
+      - label: Custom
+        value: 'var(--calendar-note-navigation-text)'
+  - id: calendar-note-navigation-text
+    title: Custom light and dark color
+    description: Used only when Navigation icon color is set to Custom.
     type: variable-themed-color
-    format: hex
-    default-light: '#2e3338'
-    default-dark: '#dcddde'
+    format: 'hex'
+    default-light: '#5f6368'
+    default-dark: '#b6b6b6'
   - id: calendar-note-sidebar-heading
-    title: Sidebar Calendar
+    title: Sidebar calendar
     type: heading
     level: 1
     collapsed: true
   - id: calendar-note-sidebar-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Sidebar background
+    description: Fills the complete Sidebar calendar view. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-sidebar-bg)'
+    default: 'var(--background-secondary)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-sidebar-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
+      - label: Plugin default (Secondary background)
         value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary alternate background
         value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
+      - label: Hover background
         value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
+      - label: Interactive accent
         value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
+      - label: Interactive accent hover
         value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
+      - label: Transparent
         value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-sidebar-bg)'
   - id: calendar-note-sidebar-bg
-    title: Custom background color
+    title: Custom light and dark color
+    description: Used only when Sidebar background is set to Custom.
     type: variable-themed-color
-    format: hex
-    default-light: '#f5f6f8'
+    format: 'hex'
+    default-light: '#f3f4f6'
     default-dark: '#202020'
   - id: calendar-note-sidebar-weekday-text-source
-    title: Weekday text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Weekday label color
+    description: Applies to the weekday names above the Sidebar grid. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-sidebar-weekday-text)'
+    default: 'var(--text-muted)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-sidebar-weekday-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
+      - label: Plugin default (Muted text)
         value: 'var(--text-muted)'
-      -
-        label: Faint text
+      - label: Normal text
+        value: 'var(--text-normal)'
+      - label: Faint text
         value: 'var(--text-faint)'
-      -
-        label: Accent text
+      - label: Accent text
         value: 'var(--text-accent)'
-      -
-        label: Accent hover text
+      - label: Accent hover text
         value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
+      - label: Text on accent
         value: 'var(--text-on-accent)'
-      -
-        label: Red
+      - label: Red
         value: 'var(--color-red)'
-      -
-        label: Orange
+      - label: Orange
         value: 'var(--color-orange)'
-      -
-        label: Yellow
+      - label: Yellow
         value: 'var(--color-yellow)'
-      -
-        label: Green
+      - label: Green
         value: 'var(--color-green)'
-      -
-        label: Cyan
+      - label: Cyan
         value: 'var(--color-cyan)'
-      -
-        label: Blue
+      - label: Blue
         value: 'var(--color-blue)'
-      -
-        label: Purple
+      - label: Purple
         value: 'var(--color-purple)'
-      -
-        label: Pink
+      - label: Pink
         value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
+      - label: Custom
+        value: 'var(--calendar-note-sidebar-weekday-text)'
   - id: calendar-note-sidebar-weekday-text
-    title: Custom color
+    title: Custom light and dark color
+    description: Used only when Weekday label color is set to Custom.
     type: variable-themed-color
-    format: hex
+    format: 'hex'
     default-light: '#6b7280'
     default-dark: '#a1a1aa'
   - id: calendar-note-sidebar-header-height
-    title: Header height
+    title: Navigation row height
+    description: Controls the minimum height of the year, month, and navigation row.
     type: variable-number-slider
     default: 32
     min: 24
     max: 56
     step: 1
-    format: px
+    format: 'px'
   - id: calendar-note-sidebar-cell-gap
-    title: Date cell gap
+    title: Gap between day cells
+    description: Controls horizontal and vertical spacing in the Sidebar month grid.
     type: variable-number-slider
     default: 2
     min: 0
     max: 12
     step: 1
-    format: px
+    format: 'px'
+  - id: calendar-note-date-cell-bg-source
+    title: Default day cell background
+    description: Applies only to ordinary Sidebar day cells; date states below can override it. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'transparent'
+    options:
+      - label: Plugin default (Transparent)
+        value: 'transparent'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-date-cell-bg)'
+  - id: calendar-note-date-cell-bg
+    title: Custom light and dark color
+    description: Used only when Default day cell background is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#ffffff'
+    default-dark: '#1e1e1e'
+  - id: calendar-note-date-cell-radius
+    title: Day cell corner radius
+    description: Applies only to Sidebar day cells.
+    type: variable-number-slider
+    default: 6
+    min: 0
+    max: 20
+    step: 1
+    format: 'px'
   - id: calendar-note-bases-heading
-    title: Bases Calendar
+    title: Bases calendar
     type: heading
     level: 1
     collapsed: true
-  - id: calendar-note-bases-header-heading
-    title: Header
-    type: heading
-    level: 2
-    collapsed: true
   - id: calendar-note-bases-header-height
-    title: Header height
+    title: Navigation row height
+    description: Controls the minimum height of the Bases year, month, and navigation row.
     type: variable-number-slider
     default: 36
     min: 28
     max: 64
     step: 1
-    format: px
+    format: 'px'
   - id: calendar-note-bases-header-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Navigation row background
+    description: Fills the Bases navigation row. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-bases-header-bg)'
+    default: 'transparent'
     options:
-      -
-        label: Plugin default / custom
+      - label: Plugin default (Transparent)
+        value: 'transparent'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
         value: 'var(--calendar-note-bases-header-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
   - id: calendar-note-bases-header-bg
-    title: Custom background color
+    title: Custom light and dark color
+    description: Used only when Navigation row background is set to Custom.
     type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#00000000'
-    default-dark: '#00000000'
-  - id: calendar-note-bases-header-text-source
-    title: Text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-bases-header-text)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-bases-header-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-bases-header-text
-    title: Custom text color
-    type: variable-themed-color
-    format: hex
-    default-light: '#2e3338'
-    default-dark: '#dcddde'
-  - id: calendar-note-bases-weekday-heading
-    title: Weekday Header
-    type: heading
-    level: 2
-    collapsed: true
+    format: 'hex'
+    default-light: '#ffffff'
+    default-dark: '#1e1e1e'
   - id: calendar-note-bases-weekday-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Weekday row background
+    description: Fills the weekday-name row above the Bases grid. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-bases-weekday-bg)'
+    default: 'var(--background-secondary)'
     options:
-      -
-        label: Plugin default / custom
+      - label: Plugin default (Secondary background)
+        value: 'var(--background-secondary)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
         value: 'var(--calendar-note-bases-weekday-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
   - id: calendar-note-bases-weekday-bg
-    title: Custom background color
+    title: Custom light and dark color
+    description: Used only when Weekday row background is set to Custom.
     type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#f5f6f8ff'
-    default-dark: '#262626ff'
+    format: 'hex'
+    default-light: '#f3f4f6'
+    default-dark: '#252525'
   - id: calendar-note-bases-weekday-text-source
-    title: Text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Weekday row text
+    description: Applies to the weekday names in the Bases grid. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-bases-weekday-text)'
+    default: 'var(--text-muted)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-bases-weekday-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
+      - label: Plugin default (Muted text)
         value: 'var(--text-muted)'
-      -
-        label: Faint text
+      - label: Normal text
+        value: 'var(--text-normal)'
+      - label: Faint text
         value: 'var(--text-faint)'
-      -
-        label: Accent text
+      - label: Accent text
         value: 'var(--text-accent)'
-      -
-        label: Accent hover text
+      - label: Accent hover text
         value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
+      - label: Text on accent
         value: 'var(--text-on-accent)'
-      -
-        label: Red
+      - label: Red
         value: 'var(--color-red)'
-      -
-        label: Orange
+      - label: Orange
         value: 'var(--color-orange)'
-      -
-        label: Yellow
+      - label: Yellow
         value: 'var(--color-yellow)'
-      -
-        label: Green
+      - label: Green
         value: 'var(--color-green)'
-      -
-        label: Cyan
+      - label: Cyan
         value: 'var(--color-cyan)'
-      -
-        label: Blue
+      - label: Blue
         value: 'var(--color-blue)'
-      -
-        label: Purple
+      - label: Purple
         value: 'var(--color-purple)'
-      -
-        label: Pink
+      - label: Pink
         value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
+      - label: Custom
+        value: 'var(--calendar-note-bases-weekday-text)'
   - id: calendar-note-bases-weekday-text
-    title: Custom text color
+    title: Custom light and dark color
+    description: Used only when Weekday row text is set to Custom.
     type: variable-themed-color
-    format: hex
+    format: 'hex'
     default-light: '#6b7280'
     default-dark: '#a1a1aa'
-  - id: calendar-note-bases-date-cell-heading
-    title: Date Cell
-    type: heading
-    level: 2
-    collapsed: true
   - id: calendar-note-bases-cell-min-height
-    title: Minimum cell height
+    title: Grid cell minimum height
+    description: Sets the minimum height of each Bases day cell.
     type: variable-number-slider
     default: 88
     min: 56
     max: 180
     step: 4
-    format: px
+    format: 'px'
   - id: calendar-note-bases-cell-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Default grid cell background
+    description: Fills ordinary Bases day cells; date states below can override it. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-bases-cell-bg)'
+    default: 'var(--background-primary)'
     options:
-      -
-        label: Plugin default / custom
+      - label: Plugin default (Primary background)
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
         value: 'var(--calendar-note-bases-cell-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
   - id: calendar-note-bases-cell-bg
-    title: Custom background color
+    title: Custom light and dark color
+    description: Used only when Default grid cell background is set to Custom.
     type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#ffffffff'
-    default-dark: '#1e1e1eff'
+    format: 'hex'
+    default-light: '#ffffff'
+    default-dark: '#1e1e1e'
   - id: calendar-note-bases-cell-border-source
-    title: Border color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Grid border color
+    description: Applies to the lines between Bases day cells. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-bases-cell-border)'
+    default: 'var(--background-modifier-border)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-bases-cell-border)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
+      - label: Plugin default (Border)
         value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
+      - label: Border hover
+        value: 'var(--background-modifier-border-hover)'
+      - label: Interactive accent
         value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
+      - label: Transparent
         value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-cell-border)'
   - id: calendar-note-bases-cell-border
-    title: Custom border color
+    title: Custom light and dark color
+    description: Used only when Grid border color is set to Custom.
     type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#dcdddeff'
-    default-dark: '#404040ff'
+    format: 'hex'
+    default-light: '#d8d8d8'
+    default-dark: '#3a3a3a'
+  - id: calendar-note-bases-date-bg-source
+    title: Date badge background
+    description: Fills ordinary Bases date-number badges; Today and hover can override it. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--background-secondary)'
+    options:
+      - label: Plugin default (Secondary background)
+        value: 'var(--background-secondary)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-date-bg)'
+  - id: calendar-note-bases-date-bg
+    title: Custom light and dark color
+    description: Used only when Date badge background is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#e5e7eb'
+    default-dark: '#303030'
   - id: calendar-note-bases-date-radius
-    title: Date number border radius
-    description: Use 50% for a circle or reduce the value for rounded corners.
+    title: Date badge corner radius
+    description: Controls the Bases date-number badge. Use 50% for a circle and 0% for a square.
     type: variable-number-slider
     default: 50
     min: 0
     max: 50
     step: 1
     format: '%'
-  - id: calendar-note-bases-multiday-heading
-    title: Multi-day Bar
-    type: heading
-    level: 2
-    collapsed: true
   - id: calendar-note-bases-event-height
-    title: Bar height
+    title: Event bar height
+    description: Sets the height of event and task bars in Bases.
     type: variable-number-slider
     default: 22
     min: 16
-    max: 36
+    max: 40
     step: 1
-    format: px
+    format: 'px'
   - id: calendar-note-bases-event-gap
-    title: Bar gap
+    title: Gap between event bars
+    description: Sets vertical spacing between event and task bars in Bases.
     type: variable-number-slider
     default: 2
     min: 0
-    max: 8
+    max: 12
     step: 1
-    format: px
-  - id: calendar-note-bases-more-heading
-    title: More Indicator
-    type: heading
-    level: 2
-    collapsed: true
+    format: 'px'
   - id: calendar-note-bases-more-text-source
-    title: Text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Overflow count text color
+    description: Applies to the +N more indicator in Bases. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-bases-more-text)'
+    default: 'var(--text-muted)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-bases-more-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
+      - label: Plugin default (Muted text)
         value: 'var(--text-muted)'
-      -
-        label: Faint text
+      - label: Normal text
+        value: 'var(--text-normal)'
+      - label: Faint text
         value: 'var(--text-faint)'
-      -
-        label: Accent text
+      - label: Accent text
         value: 'var(--text-accent)'
-      -
-        label: Accent hover text
+      - label: Accent hover text
         value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
+      - label: Text on accent
         value: 'var(--text-on-accent)'
-      -
-        label: Red
+      - label: Red
         value: 'var(--color-red)'
-      -
-        label: Orange
+      - label: Orange
         value: 'var(--color-orange)'
-      -
-        label: Yellow
+      - label: Yellow
         value: 'var(--color-yellow)'
-      -
-        label: Green
+      - label: Green
         value: 'var(--color-green)'
-      -
-        label: Cyan
+      - label: Cyan
         value: 'var(--color-cyan)'
-      -
-        label: Blue
+      - label: Blue
         value: 'var(--color-blue)'
-      -
-        label: Purple
+      - label: Purple
         value: 'var(--color-purple)'
-      -
-        label: Pink
+      - label: Pink
         value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
+      - label: Custom
+        value: 'var(--calendar-note-bases-more-text)'
   - id: calendar-note-bases-more-text
-    title: Custom text color
+    title: Custom light and dark color
+    description: Used only when Overflow count text color is set to Custom.
     type: variable-themed-color
-    format: hex
+    format: 'hex'
     default-light: '#6b7280'
     default-dark: '#a1a1aa'
   - id: calendar-note-date-cell-heading
-    title: Date Cell
+    title: Date appearance and states
     type: heading
     level: 1
     collapsed: true
-  - id: calendar-note-date-cell-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-date-cell-bg)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-date-cell-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-date-cell-bg
-    title: Custom background color
-    type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#00000000'
-    default-dark: '#00000000'
-  - id: calendar-note-date-text-source
-    title: Text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-date-text)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-date-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-date-text
-    title: Custom text color
-    type: variable-themed-color
-    format: hex
-    default-light: '#2e3338'
-    default-dark: '#dcddde'
-  - id: calendar-note-date-hover-bg-source
-    title: Hover background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-date-hover-bg)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-date-hover-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-date-hover-bg
-    title: Custom color
-    type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#e9e9e9ff'
-    default-dark: '#2a2a2aff'
-  - id: calendar-note-adjacent-bg-source
-    title: Adjacent month background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-adjacent-bg)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-adjacent-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-adjacent-bg
-    title: Custom color
-    type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#f8f8f8ff'
-    default-dark: '#242424ff'
-  - id: calendar-note-adjacent-text-source
-    title: Adjacent month text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-adjacent-text)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-adjacent-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-adjacent-text
-    title: Custom color
-    type: variable-themed-color
-    format: hex
-    default-light: '#9a9a9a'
-    default-dark: '#777777'
   - id: calendar-note-date-size
-    title: Date size
+    title: Date number size
+    description: Applies to date numbers in both calendars.
     type: variable-number-slider
     default: 12
     min: 9
     max: 20
     step: 1
-    format: px
-  - id: calendar-note-date-cell-radius
-    title: Corner radius
-    type: variable-number-slider
-    default: 6
-    min: 0
-    max: 20
-    step: 1
-    format: px
-  - id: calendar-note-today-heading
-    title: Today
-    type: heading
-    level: 1
-    collapsed: true
-  - id: calendar-note-today-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    format: 'px'
+  - id: calendar-note-date-text-source
+    title: Default date number color
+    description: Applies to ordinary dates in both calendars. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-today-bg)'
+    default: 'var(--text-normal)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-today-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
+      - label: Plugin default (Normal text)
         value: 'var(--text-normal)'
-      -
-        label: Muted text
+      - label: Muted text
         value: 'var(--text-muted)'
-      -
-        label: Faint text
+      - label: Faint text
         value: 'var(--text-faint)'
-      -
-        label: Accent text
+      - label: Accent text
         value: 'var(--text-accent)'
-      -
-        label: Accent hover text
+      - label: Accent hover text
         value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
+      - label: Text on accent
         value: 'var(--text-on-accent)'
-      -
-        label: Red
+      - label: Red
         value: 'var(--color-red)'
-      -
-        label: Orange
+      - label: Orange
         value: 'var(--color-orange)'
-      -
-        label: Yellow
+      - label: Yellow
         value: 'var(--color-yellow)'
-      -
-        label: Green
+      - label: Green
         value: 'var(--color-green)'
-      -
-        label: Cyan
+      - label: Cyan
         value: 'var(--color-cyan)'
-      -
-        label: Blue
+      - label: Blue
         value: 'var(--color-blue)'
-      -
-        label: Purple
+      - label: Purple
         value: 'var(--color-purple)'
-      -
-        label: Pink
+      - label: Pink
         value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-today-bg
-    title: Custom background color
+      - label: Custom
+        value: 'var(--calendar-note-date-text)'
+  - id: calendar-note-date-text
+    title: Custom light and dark color
+    description: Used only when Default date number color is set to Custom.
     type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#e6f0ffff'
-    default-dark: '#253b5aff'
-  - id: calendar-note-today-text-source
-    title: Text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    format: 'hex'
+    default-light: '#2e3338'
+    default-dark: '#dcddde'
+  - id: calendar-note-date-hover-bg-source
+    title: Date hover background
+    description: Applies to the Sidebar day cell and Bases date badge under the pointer or keyboard focus. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-today-text)'
+    default: 'var(--background-modifier-hover)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-today-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
+      - label: Plugin default (Hover background)
         value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Interactive accent
         value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
+      - label: Interactive accent hover
         value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
+      - label: Transparent
         value: 'transparent'
-  - id: calendar-note-today-text
-    title: Custom text color
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-date-hover-bg)'
+  - id: calendar-note-date-hover-bg
+    title: Custom light and dark color
+    description: Used only when Date hover background is set to Custom.
     type: variable-themed-color
-    format: hex
-    default-light: '#1f2937'
-    default-dark: '#f3f4f6'
-  - id: calendar-note-weekend-heading
-    title: Weekend
-    type: heading
-    level: 1
-    collapsed: true
+    format: 'hex'
+    default-light: '#e5e7eb'
+    default-dark: '#343434'
+  - id: calendar-note-adjacent-bg-source
+    title: Other-month cell background
+    description: Applies to dates outside the displayed month and takes priority over Weekend. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--background-primary-alt)'
+    options:
+      - label: Plugin default (Primary alternate background)
+        value: 'var(--background-primary-alt)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-adjacent-bg)'
+  - id: calendar-note-adjacent-bg
+    title: Custom light and dark color
+    description: Used only when Other-month cell background is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#f7f7f7'
+    default-dark: '#242424'
+  - id: calendar-note-adjacent-text-source
+    title: Other-month date number color
+    description: Applies to dates outside the displayed month. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--text-faint)'
+    options:
+      - label: Plugin default (Faint text)
+        value: 'var(--text-faint)'
+      - label: Normal text
+        value: 'var(--text-normal)'
+      - label: Muted text
+        value: 'var(--text-muted)'
+      - label: Accent text
+        value: 'var(--text-accent)'
+      - label: Accent hover text
+        value: 'var(--text-accent-hover)'
+      - label: Text on accent
+        value: 'var(--text-on-accent)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-adjacent-text)'
+  - id: calendar-note-adjacent-text
+    title: Custom light and dark color
+    description: Used only when Other-month date number color is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#9a9a9a'
+    default-dark: '#777777'
   - id: calendar-note-weekend-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Weekend cell background
+    description: Applies to configured weekend days in the displayed month. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-weekend-bg)'
+    default: 'transparent'
     options:
-      -
-        label: Plugin default / custom
+      - label: Plugin default (Transparent)
+        value: 'transparent'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
         value: 'var(--calendar-note-weekend-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
   - id: calendar-note-weekend-bg
-    title: Custom background color
+    title: Custom light and dark color
+    description: Used only when Weekend cell background is set to Custom.
     type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#00000000'
-    default-dark: '#00000000'
+    format: 'hex'
+    default-light: '#ffffff'
+    default-dark: '#1e1e1e'
   - id: calendar-note-weekend-text-source
-    title: Text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Weekend date number color
+    description: Applies to configured weekend days in the displayed month. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-weekend-text)'
+    default: 'var(--text-muted)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-weekend-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
+      - label: Plugin default (Muted text)
         value: 'var(--text-muted)'
-      -
-        label: Faint text
+      - label: Normal text
+        value: 'var(--text-normal)'
+      - label: Faint text
         value: 'var(--text-faint)'
-      -
-        label: Accent text
+      - label: Accent text
         value: 'var(--text-accent)'
-      -
-        label: Accent hover text
+      - label: Accent hover text
         value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
+      - label: Text on accent
         value: 'var(--text-on-accent)'
-      -
-        label: Red
+      - label: Red
         value: 'var(--color-red)'
-      -
-        label: Orange
+      - label: Orange
         value: 'var(--color-orange)'
-      -
-        label: Yellow
+      - label: Yellow
         value: 'var(--color-yellow)'
-      -
-        label: Green
+      - label: Green
         value: 'var(--color-green)'
-      -
-        label: Cyan
+      - label: Cyan
         value: 'var(--color-cyan)'
-      -
-        label: Blue
+      - label: Blue
         value: 'var(--color-blue)'
-      -
-        label: Purple
+      - label: Purple
         value: 'var(--color-purple)'
-      -
-        label: Pink
+      - label: Pink
         value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
+      - label: Custom
+        value: 'var(--calendar-note-weekend-text)'
   - id: calendar-note-weekend-text
-    title: Custom text color
+    title: Custom light and dark color
+    description: Used only when Weekend date number color is set to Custom.
     type: variable-themed-color
-    format: hex
+    format: 'hex'
     default-light: '#6b7280'
     default-dark: '#a1a1aa'
+  - id: calendar-note-today-bg-source
+    title: Today highlight background
+    description: Applies to the full Sidebar day cell and the Bases date badge. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--background-modifier-hover)'
+    options:
+      - label: Plugin default (Hover background)
+        value: 'var(--background-modifier-hover)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-today-bg)'
+  - id: calendar-note-today-bg
+    title: Custom light and dark color
+    description: Used only when Today highlight background is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#e5e7eb'
+    default-dark: '#343434'
+  - id: calendar-note-today-text-source
+    title: Today date number color
+    description: Applies to Today in both calendars. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--text-normal)'
+    options:
+      - label: Plugin default (Normal text)
+        value: 'var(--text-normal)'
+      - label: Muted text
+        value: 'var(--text-muted)'
+      - label: Faint text
+        value: 'var(--text-faint)'
+      - label: Accent text
+        value: 'var(--text-accent)'
+      - label: Accent hover text
+        value: 'var(--text-accent-hover)'
+      - label: Text on accent
+        value: 'var(--text-on-accent)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-today-text)'
+  - id: calendar-note-today-text
+    title: Custom light and dark color
+    description: Used only when Today date number color is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#1f2937'
+    default-dark: '#f3f4f6'
   - id: calendar-note-event-heading
-    title: Event
+    title: Items and indicators
     type: heading
     level: 1
     collapsed: true
   - id: calendar-note-event-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Event fallback background
+    description: Used only when an event has no note, type-rule, or Source Profile color override. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-event-bg)'
+    default: 'var(--background-secondary)'
     options:
-      -
-        label: Plugin default / custom
+      - label: Plugin default (Secondary background)
+        value: 'var(--background-secondary)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
         value: 'var(--calendar-note-event-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
   - id: calendar-note-event-bg
-    title: Custom background color
+    title: Custom light and dark color
+    description: Used only when Event fallback background is set to Custom.
     type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#e9e9e9ff'
-    default-dark: '#363636ff'
+    format: 'hex'
+    default-light: '#e5e7eb'
+    default-dark: '#303030'
   - id: calendar-note-event-text-source
-    title: Text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Event fallback text
+    description: Used only when an event has no note, type-rule, or Source Profile text-color override. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-event-text)'
+    default: 'var(--text-normal)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-event-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
+      - label: Plugin default (Normal text)
         value: 'var(--text-normal)'
-      -
-        label: Muted text
+      - label: Muted text
         value: 'var(--text-muted)'
-      -
-        label: Faint text
+      - label: Faint text
         value: 'var(--text-faint)'
-      -
-        label: Accent text
+      - label: Accent text
         value: 'var(--text-accent)'
-      -
-        label: Accent hover text
+      - label: Accent hover text
         value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
+      - label: Text on accent
         value: 'var(--text-on-accent)'
-      -
-        label: Red
+      - label: Red
         value: 'var(--color-red)'
-      -
-        label: Orange
+      - label: Orange
         value: 'var(--color-orange)'
-      -
-        label: Yellow
+      - label: Yellow
         value: 'var(--color-yellow)'
-      -
-        label: Green
+      - label: Green
         value: 'var(--color-green)'
-      -
-        label: Cyan
+      - label: Cyan
         value: 'var(--color-cyan)'
-      -
-        label: Blue
+      - label: Blue
         value: 'var(--color-blue)'
-      -
-        label: Purple
+      - label: Purple
         value: 'var(--color-purple)'
-      -
-        label: Pink
+      - label: Pink
         value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
+      - label: Custom
+        value: 'var(--calendar-note-event-text)'
   - id: calendar-note-event-text
-    title: Custom text color
+    title: Custom light and dark color
+    description: Used only when Event fallback text is set to Custom.
     type: variable-themed-color
-    format: hex
+    format: 'hex'
     default-light: '#222222'
     default-dark: '#dadada'
-  - id: calendar-note-dot-size
-    title: Dot size
-    type: variable-number-slider
-    default: 5
-    min: 3
-    max: 12
-    step: 1
-    format: px
-  - id: calendar-note-event-icon-size
-    title: Event icon size
-    type: variable-number-slider
-    default: 12
-    min: 8
-    max: 22
-    step: 1
-    format: px
-  - id: calendar-note-event-radius
-    title: Event radius
-    type: variable-number-slider
-    default: 4
-    min: 0
-    max: 16
-    step: 1
-    format: px
-  - id: calendar-note-task-heading
-    title: Task
-    type: heading
-    level: 1
-    collapsed: true
+  - id: calendar-note-task-bg-source
+    title: Task fallback background
+    description: Used only when a task has no note, type-rule, or Source Profile color override. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--background-secondary)'
+    options:
+      - label: Plugin default (Secondary background)
+        value: 'var(--background-secondary)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-task-bg)'
+  - id: calendar-note-task-bg
+    title: Custom light and dark color
+    description: Used only when Task fallback background is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#e5e7eb'
+    default-dark: '#303030'
+  - id: calendar-note-task-text-source
+    title: Task fallback text
+    description: Used only when a task has no note, type-rule, or Source Profile text-color override. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--text-normal)'
+    options:
+      - label: Plugin default (Normal text)
+        value: 'var(--text-normal)'
+      - label: Muted text
+        value: 'var(--text-muted)'
+      - label: Faint text
+        value: 'var(--text-faint)'
+      - label: Accent text
+        value: 'var(--text-accent)'
+      - label: Accent hover text
+        value: 'var(--text-accent-hover)'
+      - label: Text on accent
+        value: 'var(--text-on-accent)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-task-text)'
+  - id: calendar-note-task-text
+    title: Custom light and dark color
+    description: Used only when Task fallback text is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#222222'
+    default-dark: '#dadada'
   - id: calendar-note-task-opacity-completed
     title: Completed task opacity
+    description: Applies when the Bases view option to dim completed tasks is enabled.
     type: variable-number-slider
     default: 60
     min: 20
     max: 100
     step: 5
     format: '%'
-  - id: calendar-note-task-bg-source
-    title: Background color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-task-bg)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-task-bg)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-task-bg
-    title: Custom background color
-    type: variable-themed-color
-    format: hex
-    opacity: true
-    default-light: '#e9e9e9ff'
-    default-dark: '#363636ff'
-  - id: calendar-note-task-text-source
-    title: Text color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-task-text)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-task-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-task-text
-    title: Custom text color
-    type: variable-themed-color
-    format: hex
-    default-light: '#222222'
-    default-dark: '#dadada'
-  - id: calendar-note-daily-note-heading
-    title: Daily Note
-    type: heading
-    level: 1
-    collapsed: true
+  - id: calendar-note-dot-size
+    title: Sidebar event dot size
+    description: Applies when the Sidebar indicator mode is Colored dots.
+    type: variable-number-slider
+    default: 5
+    min: 3
+    max: 12
+    step: 1
+    format: 'px'
+  - id: calendar-note-event-icon-size
+    title: Event icon size
+    description: Applies to Sidebar icon indicators and Bases event icons.
+    type: variable-number-slider
+    default: 12
+    min: 8
+    max: 22
+    step: 1
+    format: 'px'
+  - id: calendar-note-event-radius
+    title: Event and task corner radius
+    description: Applies to Sidebar indicators and Bases event or task bars.
+    type: variable-number-slider
+    default: 4
+    min: 0
+    max: 16
+    step: 1
+    format: 'px'
   - id: calendar-note-daily-note-indicator-source
-    title: Indicator color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
+    title: Daily Note indicator color
+    description: Applies to the small dot that marks an existing Daily Note. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
-    default: 'var(--calendar-note-daily-note-indicator)'
+    default: 'var(--interactive-accent)'
     options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-daily-note-indicator)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
+      - label: Plugin default (Interactive accent)
         value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
+      - label: Accent text
         value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
+      - label: Red
         value: 'var(--color-red)'
-      -
-        label: Orange
+      - label: Orange
         value: 'var(--color-orange)'
-      -
-        label: Yellow
+      - label: Yellow
         value: 'var(--color-yellow)'
-      -
-        label: Green
+      - label: Green
         value: 'var(--color-green)'
-      -
-        label: Cyan
+      - label: Cyan
         value: 'var(--color-cyan)'
-      -
-        label: Blue
+      - label: Blue
         value: 'var(--color-blue)'
-      -
-        label: Purple
+      - label: Purple
         value: 'var(--color-purple)'
-      -
-        label: Pink
+      - label: Pink
         value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
+      - label: Custom
+        value: 'var(--calendar-note-daily-note-indicator)'
   - id: calendar-note-daily-note-indicator
-    title: Custom indicator color
+    title: Custom light and dark color
+    description: Used only when Daily Note indicator color is set to Custom.
     type: variable-themed-color
-    format: hex
+    format: 'hex'
     default-light: '#7c3aed'
     default-dark: '#a78bfa'
-  - id: calendar-note-navigation-heading
-    title: Navigation
-    type: heading
-    level: 1
-    collapsed: true
-  - id: calendar-note-navigation-text-source
-    title: Icon color
-    description: Choose an Obsidian theme color or use the custom light and dark colors below.
-    type: variable-select
-    default: 'var(--calendar-note-navigation-text)'
-    options:
-      -
-        label: Plugin default / custom
-        value: 'var(--calendar-note-navigation-text)'
-      -
-        label: Primary background
-        value: 'var(--background-primary)'
-      -
-        label: Primary alternate background
-        value: 'var(--background-primary-alt)'
-      -
-        label: Secondary background
-        value: 'var(--background-secondary)'
-      -
-        label: Secondary alternate background
-        value: 'var(--background-secondary-alt)'
-      -
-        label: Hover background
-        value: 'var(--background-modifier-hover)'
-      -
-        label: Border
-        value: 'var(--background-modifier-border)'
-      -
-        label: Interactive accent
-        value: 'var(--interactive-accent)'
-      -
-        label: Interactive accent hover
-        value: 'var(--interactive-accent-hover)'
-      -
-        label: Accent
-        value: 'var(--color-accent)'
-      -
-        label: Accent 1
-        value: 'var(--color-accent-1)'
-      -
-        label: Accent 2
-        value: 'var(--color-accent-2)'
-      -
-        label: Normal text
-        value: 'var(--text-normal)'
-      -
-        label: Muted text
-        value: 'var(--text-muted)'
-      -
-        label: Faint text
-        value: 'var(--text-faint)'
-      -
-        label: Accent text
-        value: 'var(--text-accent)'
-      -
-        label: Accent hover text
-        value: 'var(--text-accent-hover)'
-      -
-        label: Text on accent
-        value: 'var(--text-on-accent)'
-      -
-        label: Red
-        value: 'var(--color-red)'
-      -
-        label: Orange
-        value: 'var(--color-orange)'
-      -
-        label: Yellow
-        value: 'var(--color-yellow)'
-      -
-        label: Green
-        value: 'var(--color-green)'
-      -
-        label: Cyan
-        value: 'var(--color-cyan)'
-      -
-        label: Blue
-        value: 'var(--color-blue)'
-      -
-        label: Purple
-        value: 'var(--color-purple)'
-      -
-        label: Pink
-        value: 'var(--color-pink)'
-      -
-        label: Transparent
-        value: 'transparent'
-  - id: calendar-note-navigation-text
-    title: Custom icon color
-    type: variable-themed-color
-    format: hex
-    default-light: '#5f6368'
-    default-dark: '#b6b6b6'
-  - id: calendar-note-navigation-icon-size
-    title: Icon size
-    type: variable-number-slider
-    default: 16
-    min: 12
-    max: 28
-    step: 1
-    format: px
 */
 
 body {
@@ -2551,6 +1247,7 @@ body {
 	--calendar-note-bases-cell-min-height: 88px;
 	--calendar-note-bases-cell-bg: var(--background-primary);
 	--calendar-note-bases-cell-border: var(--background-modifier-border);
+	--calendar-note-bases-date-bg: var(--background-secondary);
 	--calendar-note-bases-date-radius: 50%;
 	--calendar-note-bases-event-height: 22px;
 	--calendar-note-bases-event-gap: var(--size-2-1);
@@ -2587,6 +1284,7 @@ body {
 	--calendar-note-bases-weekday-text-resolved: var(--calendar-note-bases-weekday-text-source, var(--calendar-note-bases-weekday-text));
 	--calendar-note-bases-cell-bg-resolved: var(--calendar-note-bases-cell-bg-source, var(--calendar-note-bases-cell-bg));
 	--calendar-note-bases-cell-border-resolved: var(--calendar-note-bases-cell-border-source, var(--calendar-note-bases-cell-border));
+	--calendar-note-bases-date-bg-resolved: var(--calendar-note-bases-date-bg-source, var(--calendar-note-bases-date-bg));
 	--calendar-note-bases-more-text-resolved: var(--calendar-note-bases-more-text-source, var(--calendar-note-bases-more-text));
 	--calendar-note-date-cell-bg-resolved: var(--calendar-note-date-cell-bg-source, var(--calendar-note-date-cell-bg));
 	--calendar-note-date-text-resolved: var(--calendar-note-date-text-source, var(--calendar-note-date-text));
@@ -2693,19 +1391,9 @@ body {
 	cursor: pointer;
 }
 
-.calendar-note-date-button:hover,
-.calendar-note-date-button:focus-visible {
-	background: var(--calendar-note-date-hover-bg-resolved, var(--background-modifier-hover));
-}
-
 .calendar-note-date-number {
 	font-size: var(--calendar-note-date-size, var(--font-ui-smaller));
 	line-height: 1.25;
-}
-
-.calendar-note-date-cell.is-adjacent-month .calendar-note-date-button {
-	background: var(--calendar-note-adjacent-bg-resolved, var(--background-primary-alt));
-	color: var(--calendar-note-adjacent-text-resolved, var(--text-faint));
 }
 
 .calendar-note-date-cell.is-weekend .calendar-note-date-button {
@@ -2713,10 +1401,20 @@ body {
 	color: var(--calendar-note-weekend-text-resolved, var(--text-muted));
 }
 
+.calendar-note-date-cell.is-adjacent-month .calendar-note-date-button {
+	background: var(--calendar-note-adjacent-bg-resolved, var(--background-primary-alt));
+	color: var(--calendar-note-adjacent-text-resolved, var(--text-faint));
+}
+
 .calendar-note-date-cell.is-today .calendar-note-date-button {
 	background: var(--calendar-note-today-bg-resolved, var(--background-modifier-hover));
 	color: var(--calendar-note-today-text-resolved, var(--text-normal));
 	font-weight: var(--font-semibold);
+}
+
+.calendar-note-date-button:hover,
+.calendar-note-date-button:focus-visible {
+	background: var(--calendar-note-date-hover-bg-resolved, var(--background-modifier-hover));
 }
 
 .calendar-note-date-add {
@@ -2913,6 +1611,11 @@ body {
 	border-bottom: var(--border-width) solid var(--calendar-note-bases-cell-border-resolved, var(--background-modifier-border));
 }
 
+.calendar-note-bases-date-cell.is-weekend {
+	background: var(--calendar-note-weekend-bg-resolved, transparent);
+	color: var(--calendar-note-weekend-text-resolved, var(--text-muted));
+}
+
 .calendar-note-bases-date-cell.is-adjacent-month {
 	background: var(--calendar-note-adjacent-bg-resolved, var(--background-primary-alt));
 	color: var(--calendar-note-adjacent-text-resolved, var(--text-faint));
@@ -2920,11 +1623,6 @@ body {
 
 .calendar-note-bases-date-cell.is-hidden-adjacent {
 	background: var(--background-secondary-alt);
-}
-
-.calendar-note-bases-date-cell.is-weekend {
-	background: var(--calendar-note-weekend-bg-resolved, transparent);
-	color: var(--calendar-note-weekend-text-resolved, var(--text-muted));
 }
 
 .calendar-note-bases-date-cell.is-today {
@@ -2936,11 +1634,11 @@ body {
 	position: relative;
 	z-index: 2;
 	border: 0;
-	background: transparent;
+	background: var(--calendar-note-bases-date-bg-resolved, var(--background-secondary));
 	box-shadow: none;
 }
 
-.calendar-note-bases-date-number {
+.calendar-note-bases .calendar-note-bases-date-number {
 	display: inline-flex;
 	width: 2em;
 	height: 2em;
@@ -2949,6 +1647,7 @@ body {
 	margin: var(--size-2-1);
 	padding: 0;
 	border-radius: var(--calendar-note-bases-date-radius, 50%);
+	background: transparent;
 	color: inherit;
 	font-size: var(--calendar-note-date-size, var(--font-ui-smaller));
 	line-height: 1;

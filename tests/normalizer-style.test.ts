@@ -83,6 +83,23 @@ describe('values and style resolution', () => {
 		expect(resolution.style).toEqual({ icon: 'note-icon', backgroundColor: '#abc', textColor: '#111' });
 	});
 
+	it('routes event and task fallback colors through Style Settings selectors', () => {
+		const event: CalendarItem = {
+			id: 'event', filePath: file.path, kind: 'event', startDate: '2024-07-24', endDate: '2024-07-24', title: 'Event',
+		};
+		const task: CalendarItem = { ...event, id: 'task', kind: 'task', title: 'Task' };
+		const resolver = new CalendarStyleResolver(() => true);
+
+		expect(resolver.resolve(event, source(), []).style).toMatchObject({
+			backgroundColor: 'var(--calendar-note-event-bg-resolved, var(--background-secondary))',
+			textColor: 'var(--calendar-note-event-text-resolved, var(--text-normal))',
+		});
+		expect(resolver.resolve(task, source({ kind: 'task' }), []).style).toMatchObject({
+			backgroundColor: 'var(--calendar-note-task-bg-resolved, var(--background-secondary))',
+			textColor: 'var(--calendar-note-task-text-resolved, var(--text-normal))',
+		});
+	});
+
 	it('ignores unknown icons and records diagnostics', () => {
 		const item: CalendarItem = { id: 'one', filePath: file.path, kind: 'event', startDate: '2024-07-24', endDate: '2024-07-24', title: 'Holiday', icon: 'missing' };
 		const resolution = new CalendarStyleResolver((icon) => icon === 'calendar').resolve(item, source({ defaultIcon: 'calendar' }), []);
