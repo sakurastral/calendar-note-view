@@ -29,6 +29,12 @@ import {
 } from './settings-data';
 import type { CalendarSettingsImpact } from './settings-persistence';
 import {
+	createSourceProfileId,
+	getSourceProfilePageName,
+	moveSourceProfileToOrder,
+	sortSourceProfiles,
+} from './source-profile';
+import {
 	CalendarInputSuggest,
 	CalendarFloatingSuggest,
 } from './suggestions';
@@ -193,34 +199,37 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	}
 
 	private sourceProfileDefinitions(): SettingDefinitionItem {
+		const orderedProfiles = sortSourceProfiles(this.plugin.settings.sourceProfiles);
 		return {
 			type: 'list',
 			heading: 'Source profiles',
 			emptyState: 'No source profiles are configured.',
-			items: this.plugin.settings.sourceProfiles.map((profile) => this.sourceProfilePage(profile)),
+			items: orderedProfiles.map((profile) => this.sourceProfilePage(profile)),
 			addItem: {
 				name: 'Add source profile',
 				action: () => { void this.addSourceProfile(); },
 			},
 			onDelete: (index) => {
-				const profile = this.plugin.settings.sourceProfiles[index];
+				const profile = orderedProfiles[index];
 				if (profile) this.confirmDeleteSourceProfile(profile);
 			},
-			onReorder: (oldIndex, newIndex) => { void this.reorder(this.plugin.settings.sourceProfiles, oldIndex, newIndex); },
+			onReorder: (oldIndex, newIndex) => { void this.reorderSourceProfiles(orderedProfiles, oldIndex, newIndex); },
 		};
 	}
 
 	private sourceProfilePage(profile: CalendarSourceProfile): SettingDefinitionPage {
 		return {
 			type: 'page',
-			name: profile.name,
+			name: getSourceProfilePageName(profile),
 			desc: 'Controls which notes appear in the Sidebar Calendar. It does not filter Bases Calendar entries.',
-			displayValue: () => profile.enabled ? 'Event' : 'Disabled',
+			displayValue: () => profile.enabled ? `Order ${profile.order}` : `Disabled · Order ${profile.order}`,
 			items: [{
 				type: 'group',
 				heading: 'Profile',
 				items: [
 					this.profileText(profile, 'Name', 'A label used in settings and event creation.', 'name'),
+					this.profileId(profile),
+					this.profileOrder(profile),
 					this.profileToggle(profile, 'Enabled', 'Include this profile in the Sidebar Calendar index.', 'enabled'),
 				],
 			}, {
@@ -349,9 +358,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				if (suggest === 'property') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getPropertySuggestions(query), undefined, saveValue);
 				if (suggest === 'icon') inputSuggest = new CalendarInputSuggest(this.app, text.inputEl, (query) => this.plugin.suggestions.getIconSuggestions(query), undefined, saveValue);
 				text.inputEl.addEventListener('blur', () => {
-					void this.plugin.flushSettings().then(() => {
-						if (key === 'name') this.update();
-					});
+					void this.plugin.flushSettings();
 				});
 			});
 			return () => {
@@ -436,6 +443,43 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		});
 	}
 
+	private profileId(profile: CalendarSourceProfile): SettingDefinition {
+		return this.renderDefinition(
+			'Profile ID',
+			'Generated automatically and kept stable when the profile name changes.',
+			(setting) => {
+				setting.addText((text) => text.setValue(profile.id).setDisabled(true));
+			},
+		);
+	}
+
+	private profileOrder(profile: CalendarSourceProfile): SettingDefinition {
+		return this.renderDefinition(
+			'Order',
+			'Lower numbers appear first in Source Profiles, event creation, and Sidebar events.',
+			(setting) => {
+				setting.addText((text) => {
+					text.inputEl.type = 'number';
+					text.inputEl.min = '1';
+					text.inputEl.max = String(this.plugin.settings.sourceProfiles.length);
+					text.inputEl.step = '1';
+					text.setValue(String(profile.order)).onChange(async (value) => {
+						const requestedOrder = Number(value);
+						if (!Number.isInteger(requestedOrder) || requestedOrder < 1) return;
+						const previous = this.snapshot();
+						if (!moveSourceProfileToOrder(this.plugin.settings.sourceProfiles, profile.id, requestedOrder)) return;
+						await this.plugin.saveSettings(previous, 'render');
+					});
+					text.inputEl.addEventListener('blur', () => {
+						const current = this.plugin.settings.sourceProfiles.find((candidate) => candidate.id === profile.id);
+						if (current) text.setValue(String(current.order));
+						void this.plugin.flushSettings();
+					});
+				});
+			},
+		);
+	}
+
 	private profileToggle(profile: CalendarSourceProfile, name: string, desc: string, key: ProfileBooleanKey): SettingDefinition {
 		return this.renderDefinition(name, desc, (setting) => {
 			setting.addToggle((toggle) => toggle
@@ -495,8 +539,9 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private async addSourceProfile(): Promise<void> {
 		const previous = this.snapshot();
 		const profile = structuredClone(DEFAULT_EVENT_PROFILE);
-		profile.id = createId('profile');
+		profile.id = createSourceProfileId();
 		profile.name = 'New source profile';
+		profile.order = this.plugin.settings.sourceProfiles.length + 1;
 		profile.matchFilesWithStartPropertyOnly = false;
 		this.plugin.settings.sourceProfiles.push(profile);
 		await this.plugin.saveSettings(previous, 'index', true);
@@ -536,6 +581,19 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		const previous = this.snapshot();
 		const [value] = values.splice(oldIndex, 1);
 		if (value !== undefined) values.splice(newIndex, 0, value);
+		await this.plugin.saveSettings(previous, 'render', true);
+		this.update();
+	}
+
+	private async reorderSourceProfiles(
+		orderedProfiles: CalendarSourceProfile[],
+		oldIndex: number,
+		newIndex: number,
+	): Promise<void> {
+		const profile = orderedProfiles[oldIndex];
+		if (!profile) return;
+		const previous = this.snapshot();
+		if (!moveSourceProfileToOrder(this.plugin.settings.sourceProfiles, profile.id, newIndex + 1)) return;
 		await this.plugin.saveSettings(previous, 'render', true);
 		this.update();
 	}

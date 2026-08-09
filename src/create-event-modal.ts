@@ -2,6 +2,7 @@ import { Modal, Notice, Setting } from 'obsidian';
 import { formatCalendarDate, getTodayCanonical } from './date';
 import type { CreateEventInput, EventNoteCreationService } from './event-creation';
 import type CalendarNoteViewPlugin from './main';
+import { sortSourceProfiles } from './source-profile';
 
 export class CreateEventModal extends Modal {
 	private input: CreateEventInput;
@@ -14,7 +15,8 @@ export class CreateEventModal extends Modal {
 		initialDate = getTodayCanonical(plugin.settings.timeZone),
 	) {
 		super(plugin.app);
-		const profile = plugin.settings.sourceProfiles.find((candidate) => candidate.enabled && candidate.allowCreate && candidate.startProperty.trim());
+		const profile = sortSourceProfiles(plugin.settings.sourceProfiles)
+			.find((candidate) => candidate.enabled && candidate.allowCreate && candidate.startProperty.trim());
 		this.input = {
 			profileId: profile?.id ?? '',
 			title: '',
@@ -31,7 +33,8 @@ export class CreateEventModal extends Modal {
 	onOpen(): void {
 		this.setTitle('Create event');
 		this.modalEl.addClass('calendar-note-create-modal');
-		const profiles = this.plugin.settings.sourceProfiles.filter((profile) => profile.enabled && profile.allowCreate && profile.startProperty.trim());
+		const profiles = sortSourceProfiles(this.plugin.settings.sourceProfiles)
+			.filter((profile) => profile.enabled && profile.allowCreate && profile.startProperty.trim());
 		if (profiles.length === 0) {
 			this.contentEl.createEl('p', { text: 'No enabled source profile allows event creation.' });
 			return;

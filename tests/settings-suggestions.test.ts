@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
 	DEFAULT_EVENT_PROFILE,
 	loadCalendarSettings,
@@ -16,8 +17,21 @@ import {
 	replaceLineInputSelection,
 } from '../src/input-events';
 import { rankSuggestions } from '../src/suggestion-ranking';
+import {
+	getSourceProfilePageName,
+	moveSourceProfileToOrder,
+	sortSourceProfiles,
+} from '../src/source-profile';
 
 describe('settings infrastructure', () => {
+	it('generates and persists a stable ID for the first default profile', () => {
+		const initial = loadCalendarSettings(null);
+		expect(initial.migrated).toBe(true);
+		expect(initial.settings.sourceProfiles[0]?.id).toMatch(/^profile-/);
+		const reloaded = loadCalendarSettings(JSON.parse(JSON.stringify(initial.settings)));
+		expect(reloaded.settings.sourceProfiles[0]?.id).toBe(initial.settings.sourceProfiles[0]?.id);
+	});
+
 	it('migrates partial legacy data and safely ignores removed task settings', () => {
 		const result = loadCalendarSettings({
 			schemaVersion: 4,
@@ -30,7 +44,7 @@ describe('settings infrastructure', () => {
 			}],
 		});
 		expect(result.migrated).toBe(true);
-		expect(result.settings.schemaVersion).toBe(5);
+		expect(result.settings.schemaVersion).toBe(6);
 		expect(result.settings.displayDateFormat).toBe('DD/MM/YYYY');
 		expect(result.settings.sourceProfiles[0]).toMatchObject({ id: 'events', startProperty: 'start', folders: ['Events'] });
 		expect(JSON.stringify(result.settings)).not.toMatch(/kind|completed|hideCompleted|dimCompleted/);
@@ -38,7 +52,7 @@ describe('settings infrastructure', () => {
 
 	it('round-trips every supported Source Profile field', () => {
 		const rawProfile = {
-			id: 'events', name: 'Events', enabled: true, matchMode: 'any', folders: ['Events'], tags: ['calendar'],
+			id: 'events', name: 'Events', order: 1, enabled: true, matchMode: 'any', folders: ['Events'], tags: ['calendar'],
 			wikiLinkProperty: 'event-type', wikiLinkTargets: ['[[Holiday]]'], matchFilesWithStartPropertyOnly: false,
 			startProperty: 'start', endProperty: 'end', titleProperty: 'event-title', typeProperty: 'event-type',
 			iconProperty: 'icon', colorProperty: 'color', textColorProperty: 'text-color', defaultType: 'Holiday',
@@ -46,7 +60,7 @@ describe('settings infrastructure', () => {
 			allowCreate: true, createFolder: 'Events', noteTemplatePath: 'Templates/Event.md', fileNameTemplate: '{date-range} {title}',
 			generatedTitleProperty: 'title', generatedTitleTemplate: '{date-range} {title}', titleDateFormat: 'YYYY-MM-DD',
 		};
-		const first = loadCalendarSettings({ schemaVersion: 5, sourceProfiles: [rawProfile], typeStyleRules: [] }).settings;
+		const first = loadCalendarSettings({ schemaVersion: 6, sourceProfiles: [rawProfile], typeStyleRules: [] }).settings;
 		const reloaded = loadCalendarSettings(JSON.parse(JSON.stringify(first))).settings;
 		expect(reloaded.sourceProfiles[0]).toEqual(rawProfile);
 	});
@@ -72,8 +86,45 @@ describe('settings infrastructure', () => {
 		});
 		expect(result.settings.firstDayOfWeek).toBe(0);
 		expect(result.settings.timeZone).toEqual({ mode: 'system' });
-		expect(result.settings.sourceProfiles.map((profile) => profile.id)).toEqual(['events', 'events-2']);
+		expect(result.settings.sourceProfiles[0]?.id).toBe('events');
+		expect(result.settings.sourceProfiles[1]?.id).toMatch(/^profile-/);
+		expect(new Set(result.settings.sourceProfiles.map((profile) => profile.id)).size).toBe(2);
 		expect(result.warnings.length).toBeGreaterThan(0);
+	});
+
+	it('generates missing profile IDs and keeps duplicate display names independent', () => {
+		const result = loadCalendarSettings({
+			schemaVersion: 5,
+			sourceProfiles: [
+				{ name: 'Calendar', startProperty: 'start' },
+				{ name: 'Calendar', startProperty: 'date' },
+			],
+		});
+		const [first, second] = result.settings.sourceProfiles;
+		expect(first?.id).toMatch(/^profile-/);
+		expect(second?.id).toMatch(/^profile-/);
+		expect(first?.id).not.toBe(second?.id);
+		expect(first?.name).toBe('Calendar');
+		expect(second?.name).toBe('Calendar');
+		expect(getSourceProfilePageName(first!)).not.toBe(getSourceProfilePageName(second!));
+	});
+
+	it('normalizes, moves, and persists explicit Source Profile order', () => {
+		const settings = loadCalendarSettings({
+			schemaVersion: 6,
+			sourceProfiles: [
+				{ id: 'second', name: 'Same name', order: 2, startProperty: 'start' },
+				{ id: 'first', name: 'Same name', order: 1, startProperty: 'start' },
+				{ id: 'third', name: 'Third', order: 3, startProperty: 'start' },
+			],
+		}).settings;
+		expect(sortSourceProfiles(settings.sourceProfiles).map((profile) => profile.id)).toEqual(['first', 'second', 'third']);
+		expect(moveSourceProfileToOrder(settings.sourceProfiles, 'third', 1)).toBe(true);
+		expect(sortSourceProfiles(settings.sourceProfiles).map((profile) => `${profile.order}:${profile.id}`)).toEqual([
+			'1:third', '2:first', '3:second',
+		]);
+		const reloaded = loadCalendarSettings(JSON.parse(JSON.stringify(settings))).settings;
+		expect(sortSourceProfiles(reloaded.sourceProfiles).map((profile) => profile.id)).toEqual(['third', 'first', 'second']);
 	});
 
 	it('migrates legacy wiki-link targets back to property-scoped matching', () => {
@@ -91,7 +142,7 @@ describe('settings infrastructure', () => {
 
 	it('updates newly added profiles and type rules by stable ID and survives reload', () => {
 		const settings = loadCalendarSettings({
-			schemaVersion: 5,
+			schemaVersion: 6,
 			sourceProfiles: [{ id: 'events', name: 'New source profile', startProperty: '' }],
 			typeStyleRules: [{ id: 'holiday', typeValue: 'New type' }],
 		}).settings;
@@ -160,6 +211,9 @@ describe('folder and property suggestions', () => {
 			800,
 			600,
 		)).toMatchObject({ left: 556, bottom: 84, width: 240 });
+		const styles = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
+		expect(styles).toMatch(/\.calendar-note-settings-suggestions\s*\{[^}]*position:\s*fixed;/s);
+		expect(styles).toMatch(/\.calendar-note-settings-suggestions\s*\{[^}]*z-index:\s*100000;/s);
 	});
 
 	it('ranks prefix, substring, and fuzzy folder or property matches', () => {

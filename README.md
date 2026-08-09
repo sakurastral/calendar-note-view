@@ -65,6 +65,8 @@ Source Profiles control which notes appear in the Sidebar Calendar. They do not 
 
 A profile defines:
 
+- A system-generated stable ID that remains unchanged when the display name changes
+- An explicit Order; lower values appear first in settings, event creation, and Sidebar events
 - Event note matching for the Sidebar Calendar
 - Folder, tag, and property-scoped wiki-link matching through Metadata Cache
 - `all` or `any` matching across configured condition groups
@@ -73,6 +75,8 @@ A profile defines:
 - Event creation folder, template, file name, and generated title rules
 
 Values inside one condition group use OR. For example, folders `Events` and `Holidays` mean `Events OR Holidays`; multiple configured Wiki Links also use OR. Only non-empty groups participate in the profile's **All configured groups** or **Any configured group** mode. A profile with no source conditions does not scan the entire vault unless **Match start property only** is enabled. Start-property-only never bypasses a configured Folder, Tag, or Wiki Link condition.
+
+Profile names are labels rather than identities, so profiles may share the same name and can be renamed safely. Use **Order** or drag the Source Profile list to control priority; the plugin normalizes the result to a stable sequence.
 
 Folder matching normalizes slash direction and leading or trailing separators, includes descendants, and respects path boundaries. A configured `Events` folder matches `Events/Holidays/Trip.md` but not `Events-Archive/Trip.md`.
 

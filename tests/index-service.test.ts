@@ -235,6 +235,10 @@ describe('calendar index', () => {
 		current = { ...current, sourceProfiles: [{ ...current.sourceProfiles[0]!, name: 'Renamed' }] };
 		await service.handleSettingsChanged(beforeNameChange, current);
 		expect(changes).toEqual([]);
+		const beforeOrderChange = structuredClone(current);
+		current = { ...current, sourceProfiles: [{ ...current.sourceProfiles[0]!, order: 4 }] };
+		await service.handleSettingsChanged(beforeOrderChange, current);
+		expect(changes).toEqual([]);
 		const beforeRuleChange = structuredClone(current);
 		current = { ...current, typeStyleRules: [{ id: 'holiday', enabled: true, typeValue: 'Holiday' }] };
 		await service.handleSettingsChanged(beforeRuleChange, current);
@@ -243,6 +247,18 @@ describe('calendar index', () => {
 		current = { ...current, sourceProfiles: [profile('different', { folders: ['Other'] })] };
 		await service.handleSettingsChanged(beforeProfileChange, current);
 		expect(changes).toEqual([{ reason: 'settings-change' }]);
+		service.dispose();
+	});
+
+	it('uses explicit Source Profile order for Sidebar item sorting', async () => {
+		const app = new FakeApp();
+		app.add('Events/A.md', { start: '2024-07-24', 'event-title': 'Same event' });
+		const later = profile('later', { order: 20 });
+		const earlier = profile('earlier', { order: 1 });
+		const current = settings([later, earlier]);
+		const service = new CalendarIndexService(app as unknown as App, () => current, new CalendarDiagnosticsService());
+		await service.initialize();
+		expect(service.getAllItems().map((item) => item.sourceProfileId)).toEqual(['earlier', 'later']);
 		service.dispose();
 	});
 

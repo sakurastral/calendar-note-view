@@ -2,6 +2,23 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.7
+
+### Added
+
+- Add a persisted numeric Order to each Source Profile; lower values appear first in settings, event creation, and Sidebar event ordering
+- Show the immutable system-generated Profile ID in Source Profile settings
+
+### Changed
+
+- Generate and immediately persist UUID-backed IDs for new, missing, or duplicate Source Profile identities
+- Give declarative Source Profile pages a unique ID-qualified page name so duplicate display names remain independent
+
+### Fixed
+
+- Prevent renaming a Source Profile from invalidating the currently open declarative settings subpage
+- Raise Folder and Wiki Link suggestion popovers above the Obsidian settings modal so they remain visible and interactive
+
 ## 0.2.6
 
 ### Changed

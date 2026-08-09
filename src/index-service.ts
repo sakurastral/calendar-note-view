@@ -11,6 +11,7 @@ import type {
 	CalendarSourceProfile,
 } from './models';
 import { CalendarItemNormalizer } from './normalizer';
+import { sortSourceProfiles } from './source-profile';
 
 export type CalendarIndexChangeReason =
 	| 'initialize'
@@ -283,7 +284,7 @@ export class CalendarIndexService {
 	}
 
 	private sortItems(values: Iterable<CalendarItem>): CalendarItem[] {
-		return sortCalendarItems(values, this.getSettings().sourceProfiles.map((profile) => profile.id));
+		return sortCalendarItems(values, sortSourceProfiles(this.getSettings().sourceProfiles).map((profile) => profile.id));
 	}
 
 	private notify(change: CalendarIndexChange): void {

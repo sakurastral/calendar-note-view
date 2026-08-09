@@ -10,10 +10,15 @@ import type {
 	CalendarTimeZone,
 	CalendarTypeStyleRule,
 } from './models';
+import {
+	createSourceProfileId,
+	normalizeSourceProfileOrder,
+} from './source-profile';
 
 export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 	id: 'default-events',
 	name: 'Calendar events',
+	order: 1,
 	enabled: false,
 	matchMode: 'all',
 	folders: [],
@@ -31,7 +36,7 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 };
 
 export const DEFAULT_SETTINGS: CalendarSettings = {
-	schemaVersion: 5,
+	schemaVersion: 6,
 	firstDayOfWeek: 0,
 	weekendDays: [0, 6],
 	timeZone: { mode: 'system' },
@@ -52,15 +57,16 @@ export interface SettingsLoadResult {
 
 export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	const warnings: string[] = [];
-	if (!isRecord(raw)) return { settings: cloneDefaults(), migrated: raw !== null && raw !== undefined, warnings };
+	if (!isRecord(raw)) return { settings: cloneDefaults(), migrated: true, warnings };
 
 	const sourceProfiles = Array.isArray(raw.sourceProfiles)
 		? raw.sourceProfiles.map((profile, index) => normalizeProfile(profile, index, warnings)).filter(isDefined)
-		: [structuredClone(DEFAULT_EVENT_PROFILE)];
+		: [createDefaultProfile()];
 	const typeStyleRules = Array.isArray(raw.typeStyleRules)
 		? raw.typeStyleRules.map((rule, index) => normalizeRule(rule, index, warnings)).filter(isDefined)
 		: [];
 	ensureUniqueIds(sourceProfiles, 'source profile', warnings);
+	normalizeSourceProfileOrder(sourceProfiles);
 	ensureUniqueIds(typeStyleRules, 'event type rule', warnings);
 	const displayDateFormat = validFormat(raw.displayDateFormat, DEFAULT_SETTINGS.displayDateFormat, warnings, 'display date format');
 	const eventPropertyDateFormat = validFormat(raw.eventPropertyDateFormat, DEFAULT_SETTINGS.eventPropertyDateFormat, warnings, 'event property date format');
@@ -68,7 +74,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		? Number(raw.firstDayOfWeek)
 		: DEFAULT_SETTINGS.firstDayOfWeek;
 	const settings: CalendarSettings = {
-		schemaVersion: 5,
+		schemaVersion: 6,
 		firstDayOfWeek,
 		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
 		timeZone: normalizeTimeZone(raw.timeZone, warnings),
@@ -82,7 +88,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	};
 	return {
 		settings,
-		migrated: raw.schemaVersion !== 5 || JSON.stringify(settings) !== JSON.stringify(raw),
+		migrated: raw.schemaVersion !== 6 || JSON.stringify(settings) !== JSON.stringify(raw),
 		warnings,
 	};
 }
@@ -91,6 +97,7 @@ export function removeSourceProfile(settings: CalendarSettings, profileId: strin
 	const index = settings.sourceProfiles.findIndex((profile) => profile.id === profileId);
 	if (index < 0) return false;
 	settings.sourceProfiles.splice(index, 1);
+	normalizeSourceProfileOrder(settings.sourceProfiles);
 	return true;
 }
 
@@ -125,12 +132,12 @@ function normalizeProfile(raw: unknown, index: number, warnings: string[]): Cale
 		warnings.push(`Source profile ${index + 1} was ignored because it is invalid.`);
 		return undefined;
 	}
-	const fallbackId = `profile-${index + 1}`;
-	const id = text(raw.id) ?? fallbackId;
+	const id = text(raw.id) ?? createSourceProfileId();
 	const startProperty = text(raw.startProperty) ?? '';
 	return {
 		id,
 		name: text(raw.name) ?? id,
+		order: positiveInteger(raw.order, index + 1),
 		enabled: boolean(raw.enabled, true),
 		matchMode: raw.matchMode === 'any' ? 'any' : 'all',
 		folders: stringArray(raw.folders),
@@ -191,7 +198,13 @@ function validFormat(raw: unknown, fallback: string, warnings: string[], label: 
 }
 
 function cloneDefaults(): CalendarSettings {
-	return structuredClone(DEFAULT_SETTINGS);
+	const settings = structuredClone(DEFAULT_SETTINGS);
+	settings.sourceProfiles = [createDefaultProfile()];
+	return settings;
+}
+
+function createDefaultProfile(): CalendarSourceProfile {
+	return { ...structuredClone(DEFAULT_EVENT_PROFILE), id: createSourceProfileId() };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -219,6 +232,10 @@ function integerInRange(value: unknown, minimum: number, maximum: number, fallba
 	return Number.isInteger(value) && Number(value) >= minimum && Number(value) <= maximum ? Number(value) : fallback;
 }
 
+function positiveInteger(value: unknown, fallback: number): number {
+	return Number.isInteger(value) && Number(value) > 0 ? Number(value) : fallback;
+}
+
 function weekdayArray(value: unknown, fallback: number[]): number[] {
 	if (!Array.isArray(value)) return [...fallback];
 	const result = [...new Set(value.filter((entry): entry is number =>
@@ -237,10 +254,13 @@ function ensureUniqueIds(values: Array<{ id: string }>, label: string, warnings:
 			seen.add(value.id);
 			continue;
 		}
-		const base = value.id;
+		let nextId = label === 'source profile' ? createSourceProfileId() : `${value.id}-${index + 1}`;
 		let suffix = index + 1;
-		while (seen.has(`${base}-${suffix}`)) suffix += 1;
-		value.id = `${base}-${suffix}`;
+		while (seen.has(nextId)) {
+			suffix += 1;
+			nextId = label === 'source profile' ? createSourceProfileId() : `${value.id}-${suffix}`;
+		}
+		value.id = nextId;
 		seen.add(value.id);
 		warnings.push(`A duplicate ${label} ID was changed to ${value.id}.`);
 	}

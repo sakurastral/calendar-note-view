@@ -1389,7 +1389,7 @@ body {
 
 .calendar-note-settings-suggestions {
 	position: fixed;
-	z-index: var(--layer-popover, 1000);
+	z-index: 100000;
 	display: flex;
 	flex-direction: column;
 	padding: var(--size-2-1);
@@ -1398,6 +1398,7 @@ body {
 	background: var(--background-primary);
 	box-shadow: var(--shadow-s);
 	overflow-y: auto;
+	pointer-events: auto;
 }
 
 .calendar-note-settings-suggestions:empty {

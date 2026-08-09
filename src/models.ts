@@ -14,6 +14,7 @@ export interface CalendarItem {
 export interface CalendarSourceProfile {
 	id: string;
 	name: string;
+	order: number;
 	enabled: boolean;
 	matchMode: 'all' | 'any';
 	folders: string[];
@@ -56,7 +57,7 @@ export type CalendarTimeZone =
 	| { mode: 'custom'; timeZone: string };
 
 export interface CalendarSettings {
-	schemaVersion: 5;
+	schemaVersion: 6;
 	firstDayOfWeek: number;
 	weekendDays: number[];
 	timeZone: CalendarTimeZone;

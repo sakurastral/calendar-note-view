@@ -37,6 +37,7 @@ interface BasesCalendarViewOptions {
 const BASES_STYLE_PROFILE: CalendarSourceProfile = {
 	id: 'bases-calendar',
 	name: 'Bases calendar',
+	order: 1,
 	enabled: true,
 	matchMode: 'all',
 	folders: [],
