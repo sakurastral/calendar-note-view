@@ -9,13 +9,18 @@ import { CalendarIndexService } from './index-service';
 import { CalendarSourceMatcher } from './matcher';
 import type { CalendarSettings } from './models';
 import { loadCalendarSettings } from './settings-data';
-import { CalendarSettingsPersistence, type CalendarSettingsImpact } from './settings-persistence';
+import {
+	CalendarSettingsPersistence,
+	type CalendarSettingsImpact,
+	type CalendarSettingsSaveState,
+} from './settings-persistence';
 import { CalendarNoteSettingTab } from './settings';
 import { CALENDAR_SIDEBAR_VIEW_TYPE, CalendarSidebarView } from './sidebar-view';
 import { CalendarSuggestionProvider } from './suggestions';
 
 export default class CalendarNoteViewPlugin extends Plugin {
 	private settingsPersistence!: CalendarSettingsPersistence;
+	private settingTab!: CalendarNoteSettingTab;
 	private unloading = false;
 	settings!: CalendarSettings;
 	diagnostics!: CalendarDiagnosticsService;
@@ -54,9 +59,12 @@ export default class CalendarNoteViewPlugin extends Plugin {
 				if (impact === 'index') await this.index.handleSettingsChanged(previous, next);
 				if (impact !== 'save') this.renderSidebarCalendars();
 			},
+			onStatusChange: (status) => this.settingTab?.setSaveStatus(status),
 		});
 
-		this.addSettingTab(new CalendarNoteSettingTab(this.app, this));
+		this.settingTab = new CalendarNoteSettingTab(this.app, this);
+		this.addSettingTab(this.settingTab);
+		this.register(() => this.settingTab.dispose());
 		this.registerView(CALENDAR_SIDEBAR_VIEW_TYPE, (leaf) => new CalendarSidebarView(leaf, this));
 		this.registerBasesView(CALENDAR_BASES_VIEW_TYPE, {
 			name: 'Calendar',
@@ -87,7 +95,7 @@ export default class CalendarNoteViewPlugin extends Plugin {
 
 	onunload(): void {
 		this.unloading = true;
-		void this.flushSettings();
+		void this.flushSettings().catch(() => undefined);
 		this.index?.dispose();
 		this.suggestions?.dispose();
 	}
@@ -103,6 +111,10 @@ export default class CalendarNoteViewPlugin extends Plugin {
 
 	async flushSettings(): Promise<void> {
 		if (this.settingsPersistence) await this.settingsPersistence.flush();
+	}
+
+	getSettingsSaveState(): CalendarSettingsSaveState {
+		return this.settingsPersistence?.getStatus() ?? 'saved';
 	}
 
 	private renderSidebarCalendars(): void {

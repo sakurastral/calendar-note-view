@@ -28,6 +28,7 @@ export interface CalendarIndexChange {
 }
 
 type CalendarIndexSubscriber = (change: CalendarIndexChange) => void;
+export type CalendarIndexStatus = 'not-initialized' | 'initializing' | 'ready';
 
 interface PendingReindex {
 	timer: number;
@@ -44,6 +45,7 @@ export class CalendarIndexService {
 	private readonly pending = new Map<string, PendingReindex>();
 	private readonly sourceMatcher: CalendarSourceMatcher;
 	private initialized = false;
+	private status: CalendarIndexStatus = 'not-initialized';
 
 	constructor(
 		private readonly app: App,
@@ -59,8 +61,15 @@ export class CalendarIndexService {
 	async initialize(): Promise<void> {
 		if (this.initialized) return;
 		this.initialized = true;
+		this.status = 'initializing';
 		this.bindEvents();
-		await this.rebuildInternal('initialize');
+		try {
+			await this.rebuildInternal('initialize');
+		} catch (error) {
+			this.status = 'not-initialized';
+			this.initialized = false;
+			throw error;
+		}
 	}
 
 	dispose(): void {
@@ -73,6 +82,7 @@ export class CalendarIndexService {
 		this.pending.clear();
 		this.subscribers.clear();
 		this.initialized = false;
+		this.status = 'not-initialized';
 	}
 
 	async rebuild(): Promise<void> {
@@ -117,6 +127,14 @@ export class CalendarIndexService {
 		return this.sortItems(this.itemsById.values());
 	}
 
+	getStatus(): CalendarIndexStatus {
+		return this.status;
+	}
+
+	getItemCountByProfile(profileId: string): number {
+		return this.itemIdsByProfile.get(profileId)?.size ?? 0;
+	}
+
 	getItemsForDate(date: string): CalendarItem[] {
 		return this.getItemsInRange(date, date);
 	}
@@ -135,6 +153,7 @@ export class CalendarIndexService {
 	}
 
 	private async rebuildInternal(reason: 'initialize' | 'rebuild' | 'settings-change'): Promise<void> {
+		this.status = 'initializing';
 		for (const pending of this.pending.values()) window.clearTimeout(pending.timer);
 		this.pending.clear();
 		this.itemsById.clear();
@@ -147,6 +166,7 @@ export class CalendarIndexService {
 			const metadata = this.app.metadataCache.getFileCache(file) as CalendarMetadata | null;
 			if (metadata) this.indexFile(toFileData(file), metadata, settings.sourceProfiles);
 		}
+		this.status = 'ready';
 		this.notify({ reason });
 		await Promise.resolve();
 	}

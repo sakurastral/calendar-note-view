@@ -227,6 +227,19 @@ describe('folder and property suggestions', () => {
 		const styles = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 		expect(styles).toMatch(/\.calendar-note-settings-suggestions\s*\{[^}]*position:\s*fixed;/s);
 		expect(styles).toMatch(/\.calendar-note-settings-suggestions\s*\{[^}]*z-index:\s*100000;/s);
+		expect(styles).toMatch(/\.calendar-note-token-remove[\s\S]*min-height:\s*2\.75rem;/);
+		const source = readFileSync(new URL('../src/suggestions.ts', import.meta.url), 'utf8');
+		expect(source).toContain("setAttribute('role', 'listbox')");
+		expect(source).toContain("setAttribute('aria-expanded'");
+		expect(source).toContain('visualViewport');
+	});
+
+	it('keeps creation controls conditional and declarative page names ID-based', () => {
+		const source = readFileSync(new URL('../src/settings.ts', import.meta.url), 'utf8');
+		expect(source).toContain('() => profile.allowCreate');
+		expect(source).toContain('getStableProfilePageName(profile)');
+		expect(source).toContain('getStableTypeRulePageName(rule)');
+		expect(source).not.toMatch(/name:\s*rule\.typeValue/);
 	});
 
 	it('ranks prefix, substring, and fuzzy folder or property matches', () => {

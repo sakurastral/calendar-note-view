@@ -17,6 +17,7 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 - Light, dark, custom theme, desktop, and mobile support
 - Optional Style Settings controls through CSS variables
 - Diagnostics for invalid indexed notes
+- Guided, mobile-friendly settings with live matching summaries and validation
 
 ## Installation
 
@@ -77,19 +78,27 @@ A profile defines:
 
 Values inside one condition group use OR. For example, folders `Events` and `Holidays` mean `Events OR Holidays`; multiple configured Wiki Links also use OR. Only non-empty groups participate in the profile's **All configured groups** or **Any configured group** mode. A profile with no source conditions does not scan the entire vault unless **Match start property only** is enabled. Start-property-only never bypasses a configured Folder, Tag, or Wiki Link condition.
 
-Profile names are labels rather than identities, so profiles may share the same name and can be renamed safely. Use **Order** or drag the Source Profile list to control priority; the plugin normalizes the result to a stable sequence.
+Profile names are labels rather than identities, so profiles may share the same name and can be renamed safely. Declarative Settings pages use the immutable generated ID for navigation. Use drag-and-drop, **Move up**, **Move down**, or the Advanced **Order** field to control priority; the plugin normalizes the result to a stable sequence.
+
+Select **Add source profile** and choose a Folder, Tag, Wiki Link, Start-property-only, or Empty / Advanced preset. New profiles begin disabled so their Start property and source conditions can be reviewed before indexing. **Duplicate** copies the complete configuration into a new Profile with a new ID and unique display name.
 
 Folder matching normalizes slash direction and leading or trailing separators, includes descendants, and respects path boundaries. A configured `Events` folder matches `Events/Holidays/Trip.md` but not `Events-Archive/Trip.md`.
 
-Folder suggestions open in a floating popover and are committed directly through the Source Profile settings callback when selected with the mouse or keyboard. Other comma-separated folders are preserved, so the input, saved profile, and Sidebar index use the same complete folder list even when only a partial query such as `eve` was typed first.
+Folders are edited as individual tokens. Type a partial path and select a contextual floating suggestion with the mouse, touch, or keyboard. Selecting a suggestion appends one Folder without replacing existing tokens. Each token can be removed independently.
 
-Tag matching uses Obsidian's combined cached Properties and inline tags. A leading `#` is optional. Tags match exactly, so `#calendar` does not automatically include `#calendar/holiday`; configure both when both should match.
+Tag matching uses Obsidian's combined cached Properties and inline tags. Tags are displayed as individual `#tag` tokens with MetadataCache suggestions. Tags match exactly, so `#calendar` does not automatically include `#calendar/holiday`; configure both when both should match.
 
-Wiki Link matching reads only the frontmatter property selected in **Wiki link property**. Its value may be a YAML string or array containing wiki links or plain-text targets. Short paths, full paths, aliases, `.md`, and heading subpaths resolve through Obsidian's Metadata Cache; arbitrary outgoing links and embeds in the note body are not source conditions. Enter one target per line in **Wiki link targets**; matching notes appear in a floating suggestion popover, and any listed target can match. Canonical paths keep same-name notes in different folders distinct.
+Wiki Link matching reads only the frontmatter property selected in **Wiki link property**. Its value may be a YAML string or array containing wiki links or plain-text targets. Short paths, full paths, aliases, `.md`, and heading subpaths resolve through Obsidian's Metadata Cache; arbitrary outgoing links and embeds in the note body are not source conditions. Wiki Link targets are edited as independent tokens with a floating note suggestion popover. Full paths distinguish same-name notes in different folders.
 
 Source Profile icons provide suggestions from Obsidian's installed icon set. Default background and text colors can use a selected Obsidian CSS variable or **Use style settings fallback**. Style priority is note property → first matching Event Type Rule → explicit Source Profile default → Style Settings Event fallback → Obsidian theme fallback.
 
-Delete a Source Profile from its list trash button or from **Profile actions → Delete profile** inside the profile. Calendar Note View asks for confirmation and removes only the profile, its indexed Sidebar items, and related diagnostics; it never deletes event notes from the vault.
+The Source Profile page is divided into Overview, Source matching, Property mapping, Display defaults, Event creation, Advanced, and Actions. A live sentence explains the effective All, Any, or Start-only logic, and inline validation identifies incomplete Wiki Link pairs, missing Start properties, duplicate display names, and event-creation paths. Creation-only fields stay hidden until **Allow event creation** is enabled.
+
+Delete a Source Profile from its list action or from **Actions → Delete** inside the profile. Calendar Note View asks for confirmation and removes only the profile, its indexed Sidebar items, and related diagnostics; it never deletes event notes from the vault.
+
+## Event Type Rules
+
+Event Type Rules are checked from top to bottom, and the first enabled matching value supplies any configured icon, background, or text color. Rule rows show their enabled state and style summary without opening the detail page. Rules use immutable generated IDs, so Type values can be renamed safely; duplicate values show a warning because the first enabled rule wins. Drag, duplicate, or use **Move up** and **Move down** to manage precedence.
 
 ## Event properties
 
@@ -153,11 +162,11 @@ File name, generated title, and note templates can use:
 
 ## Time zone and date formats
 
-**Time zone** can use System, UTC, or a validated custom IANA time zone such as `Asia/Taipei`. It affects Today highlighting and the default date in event creation. It never shifts a date-only event to another calendar date.
+**Time zone** can use System, UTC, or a searchable, validated custom IANA time zone such as `Asia/Taipei`. A live preview shows the current instant in the selected zone. It affects Today highlighting and the default date in event creation. It never shifts a date-only event to another calendar date.
 
-**Display date format** controls dates in the interface, tooltips, previews, and confirmation text.
+**Display date format** controls dates in the interface, tooltips, previews, and confirmation text. Common formats are available as presets, while Custom retains strict validation and a live example.
 
-**Event property date format** strictly parses and writes event properties. Internally, every calendar date remains `YYYY-MM-DD`.
+**Event property date format** strictly parses and writes event properties. It has an independent preset or Custom value and example. Internally, every calendar date remains `YYYY-MM-DD`.
 
 Daily Note file names continue to use the Core Daily Notes format.
 
@@ -179,11 +188,13 @@ Event fallback colors apply only when the note, matching Type Style Rule, and So
 
 ## Diagnostics
 
-Run **Calendar Note View: Open calendar diagnostics** to inspect indexed note issues. The dialog shows the diagnostic code, message, file, and Source Profile. Select a file to open it.
+The Settings **Quick status** section shows enabled Source Profiles, indexed Events, diagnostics, index readiness, and automatic save state. Use **Open diagnostics** or **Refresh index** directly from Settings. Refresh performs one full rebuild and one Sidebar notification.
+
+Run **Calendar Note View: Open calendar diagnostics** to inspect indexed note issues. The dialog shows the diagnostic code, message, file, and Source Profile. Select a file to open it. Profile-level issues are labeled as Profile settings instead of rendering an empty file action.
 
 ## Mobile
 
-The Sidebar Calendar, Bases Calendar, date actions, event actions, and Create Event dialog use responsive layouts and public Obsidian APIs. No desktop-only Node or Electron APIs are used.
+The Sidebar Calendar, Bases Calendar, date actions, event actions, Create Event dialog, token editors, action menus, and floating suggestions use responsive layouts and public Obsidian APIs. Settings provide keyboard alternatives to drag-and-drop, viewport-clamped suggestions, screen-reader state, and touch-sized controls. No desktop-only Node or Electron APIs are used.
 
 ## Known limitations
 

@@ -129,11 +129,16 @@ describe('calendar index', () => {
 		app.add('Events/A.md', { start: '2024-07-24' });
 		const current = settings([profile('one'), profile('two')]);
 		const service = new CalendarIndexService(app as unknown as App, () => current, new CalendarDiagnosticsService());
+		expect(service.getStatus()).toBe('not-initialized');
 		await service.initialize();
+		expect(service.getStatus()).toBe('ready');
 		expect(service.getAllItems()).toHaveLength(2);
+		expect(service.getItemCountByProfile('one')).toBe(1);
+		expect(service.getItemCountByProfile('two')).toBe(1);
 		await service.reindexFile(app.files[0] as unknown as TFile);
 		expect(service.getAllItems()).toHaveLength(2);
 		service.dispose();
+		expect(service.getStatus()).toBe('not-initialized');
 	});
 
 	it('incrementally updates, renames, moves, and deletes without stale paths', async () => {

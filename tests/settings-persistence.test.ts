@@ -68,4 +68,35 @@ describe('settings persistence', () => {
 		expect(applyImpact).toHaveBeenCalledTimes(1);
 		vi.unstubAllGlobals();
 	});
+
+	it('reports Saving, Saved, and Save failed while retaining a failed latest write for retry', async () => {
+		vi.stubGlobal('window', { setTimeout, clearTimeout });
+		let current = settings('Latest');
+		let shouldFail = true;
+		const statuses: string[] = [];
+		const saved: string[] = [];
+		const persistence = new CalendarSettingsPersistence({
+			getSettings: () => current,
+			saveData: async (value) => {
+				if (shouldFail) throw new Error('disk unavailable');
+				saved.push(value.sourceProfiles[0]?.name ?? '');
+			},
+			applyImpact: vi.fn(),
+			onStatusChange: (status) => statuses.push(status),
+			debounceMilliseconds: 10_000,
+		});
+
+		persistence.schedule(settings('Before'), 'save');
+		await expect(persistence.flush()).rejects.toThrow('disk unavailable');
+		expect(persistence.getStatus()).toBe('error');
+		expect(persistence.hasPendingChanges()).toBe(true);
+		shouldFail = false;
+		current = settings('Newest retry');
+		persistence.schedule(settings('Latest'), 'save');
+		await persistence.flush();
+
+		expect(saved).toEqual(['Newest retry']);
+		expect(statuses).toEqual(['saving', 'error', 'saving', 'saved']);
+		vi.unstubAllGlobals();
+	});
 });

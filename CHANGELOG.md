@@ -2,6 +2,31 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.2.9
+
+### Added
+
+- Add a Quick status dashboard with enabled Profile, indexed Event, diagnostics, index, and settings-save status
+- Add guided Folder, Tag, Wiki Link, Start-property-only, and Advanced presets for new Source Profiles
+- Add Source Profile and Event Type Rule duplication, move up, move down, and contextual action menus
+- Add accessible Folder, Tag, and Wiki Link token editors with contextual floating suggestions
+- Add live matching summaries, Profile validation, date-format examples, time-zone previews, and Event Type Rule previews
+
+### Changed
+
+- Reorganize Source Profile settings into Overview, Source matching, Property mapping, Display defaults, Event creation, Advanced, and Actions
+- Use immutable IDs as declarative settings page identities so renaming or duplicate display values cannot invalidate navigation
+- Replace numeric Weekend input with human-readable weekday buttons while preserving the existing persisted weekday array
+- Show event-creation fields only when creation is enabled and show Match mode or Start-only controls only when they are relevant
+- Make Source Profile and Event Type Rule list rows summarize their state, matching source, style, and indexed event count
+- Improve Settings controls for keyboard, screen-reader, touch, mobile viewport, Light, Dark, and custom themes
+
+### Fixed
+
+- Keep failed writes visible and retryable while continuing to serialize saves so an older asynchronous write cannot win
+- Keep Folder, Tag, and Wiki Link suggestions above the Settings modal, clamped to the visual viewport, and connected through ARIA listbox state
+- Prevent Profile names and Event Type values from acting as mutable settings navigation identities
+
 ## 0.2.8
 
 ### Changed

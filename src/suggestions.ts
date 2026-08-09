@@ -1,4 +1,4 @@
-import { AbstractInputSuggest, type App, type EventRef, getIconIds, TFolder } from 'obsidian';
+import { AbstractInputSuggest, type App, type EventRef, getAllTags, getIconIds, TFolder } from 'obsidian';
 import {
 	commitInputSuggestion,
 	type CommitInputValue,
@@ -10,6 +10,7 @@ import { rankSuggestions } from './suggestion-ranking';
 export class CalendarSuggestionProvider {
 	private folders: string[] = [];
 	private properties: string[] = [];
+	private tags: string[] = [];
 	private wikiLinks: string[] = [];
 	private icons: string[] = [];
 	private refs: Array<{ owner: 'vault' | 'metadata'; ref: EventRef }> = [];
@@ -19,13 +20,17 @@ export class CalendarSuggestionProvider {
 	initialize(): void {
 		this.refreshFolders();
 		this.refreshProperties();
+		this.refreshTags();
 		this.refreshWikiLinks();
 		this.icons = getIconIds().sort((left, right) => left.localeCompare(right));
 		this.refs.push(
 			{ owner: 'vault', ref: this.app.vault.on('create', () => this.refreshVaultSuggestions()) },
 			{ owner: 'vault', ref: this.app.vault.on('delete', () => this.refreshVaultSuggestions()) },
 			{ owner: 'vault', ref: this.app.vault.on('rename', () => this.refreshVaultSuggestions()) },
-			{ owner: 'metadata', ref: this.app.metadataCache.on('changed', () => this.refreshProperties()) },
+			{ owner: 'metadata', ref: this.app.metadataCache.on('changed', () => {
+				this.refreshProperties();
+				this.refreshTags();
+			}) },
 		);
 	}
 
@@ -45,13 +50,25 @@ export class CalendarSuggestionProvider {
 		return rankSuggestions(query, this.properties);
 	}
 
+	getTagSuggestions(query: string): string[] {
+		return rankSuggestions(query.replace(/^#/, ''), this.tags);
+	}
+
 	getWikiLinkSuggestions(query: string): string[] {
 		const normalized = query.replace(/^\[\[/, '').replace(/\]\]$/, '').trim();
 		return rankSuggestions(normalized, this.wikiLinks);
 	}
 
+	getMarkdownFileSuggestions(query: string): string[] {
+		return rankSuggestions(query, this.wikiLinks.map((value) => value.slice(2, -2) + '.md'));
+	}
+
 	getIconSuggestions(query: string): string[] {
 		return rankSuggestions(query, this.icons);
+	}
+
+	getTimeZoneSuggestions(query: string): string[] {
+		return rankSuggestions(query, getIanaTimeZones());
 	}
 
 	private refreshVaultSuggestions(): void {
@@ -76,6 +93,18 @@ export class CalendarSuggestionProvider {
 			}
 		}
 		this.properties = [...properties].sort((left, right) => left.localeCompare(right));
+	}
+
+	refreshTags(): void {
+		const tags = new Set<string>();
+		for (const file of this.app.vault.getMarkdownFiles()) {
+			const metadata = this.app.metadataCache.getFileCache(file);
+			for (const tag of getAllTags(metadata ?? {}) ?? []) {
+				const normalized = tag.trim().replace(/^#+/, '');
+				if (normalized) tags.add(`#${normalized}`);
+			}
+		}
+		this.tags = [...tags].sort((left, right) => left.localeCompare(right));
 	}
 
 	refreshWikiLinks(): void {
@@ -174,6 +203,11 @@ export class CalendarFloatingSuggest {
 		this.lastCursor = input.selectionStart ?? input.value.length;
 		this.suggestionsEl = input.ownerDocument.createElement('div');
 		this.suggestionsEl.className = 'calendar-note-settings-suggestions';
+		this.suggestionsEl.id = `calendar-note-suggestions-${Math.random().toString(36).slice(2, 10)}`;
+		this.suggestionsEl.setAttribute('role', 'listbox');
+		input.setAttribute('aria-autocomplete', 'list');
+		input.setAttribute('aria-controls', this.suggestionsEl.id);
+		input.setAttribute('aria-expanded', 'false');
 		input.ownerDocument.body.append(this.suggestionsEl);
 		input.addEventListener('input', this.handleInput);
 		input.addEventListener('focus', this.handleFocus);
@@ -183,6 +217,8 @@ export class CalendarFloatingSuggest {
 		input.addEventListener('keydown', this.handleKeydown);
 		input.addEventListener('blur', this.handleBlur);
 		this.ownerWindow.addEventListener('resize', this.handlePositionChange);
+		this.ownerWindow.visualViewport?.addEventListener('resize', this.handlePositionChange);
+		this.ownerWindow.visualViewport?.addEventListener('scroll', this.handlePositionChange);
 		input.ownerDocument.addEventListener('scroll', this.handlePositionChange, true);
 	}
 
@@ -195,7 +231,13 @@ export class CalendarFloatingSuggest {
 		this.input.removeEventListener('keydown', this.handleKeydown);
 		this.input.removeEventListener('blur', this.handleBlur);
 		this.ownerWindow.removeEventListener('resize', this.handlePositionChange);
+		this.ownerWindow.visualViewport?.removeEventListener('resize', this.handlePositionChange);
+		this.ownerWindow.visualViewport?.removeEventListener('scroll', this.handlePositionChange);
 		this.input.ownerDocument.removeEventListener('scroll', this.handlePositionChange, true);
+		this.input.removeAttribute('aria-autocomplete');
+		this.input.removeAttribute('aria-controls');
+		this.input.removeAttribute('aria-expanded');
+		this.input.removeAttribute('aria-activedescendant');
 		this.cancelClearTimer();
 		this.suggestionsEl.remove();
 	}
@@ -209,6 +251,9 @@ export class CalendarFloatingSuggest {
 			const button = this.input.ownerDocument.createElement('button');
 			button.type = 'button';
 			button.className = 'suggestion-item';
+			button.id = `${this.suggestionsEl.id}-${index}`;
+			button.setAttribute('role', 'option');
+			button.setAttribute('aria-selected', String(index === this.selectedIndex));
 			button.textContent = value;
 			button.toggleClass('is-selected', index === this.selectedIndex);
 			let selectedOnMouseDown = false;
@@ -222,13 +267,19 @@ export class CalendarFloatingSuggest {
 			});
 			this.suggestionsEl.append(button);
 		}
-		if (this.values.length > 0) this.position();
+		this.input.setAttribute('aria-expanded', String(this.values.length > 0));
+		if (this.values.length > 0) {
+			this.updateSelectedItem();
+			this.position();
+		}
 	}
 
 	private clear(): void {
 		this.values = [];
 		this.selectedIndex = 0;
 		this.suggestionsEl.replaceChildren();
+		this.input.setAttribute('aria-expanded', 'false');
+		this.input.removeAttribute('aria-activedescendant');
 	}
 
 	private captureCursor(): void {
@@ -253,16 +304,21 @@ export class CalendarFloatingSuggest {
 	private updateSelectedItem(): void {
 		for (const [index, element] of Array.from(this.suggestionsEl.children).entries()) {
 			element.toggleClass('is-selected', index === this.selectedIndex);
+			element.setAttribute('aria-selected', String(index === this.selectedIndex));
 		}
-		this.suggestionsEl.children[this.selectedIndex]?.scrollIntoView({ block: 'nearest' });
+		const selected = this.suggestionsEl.children[this.selectedIndex];
+		if (selected) {
+			this.input.setAttribute('aria-activedescendant', selected.id);
+			selected.scrollIntoView({ block: 'nearest' });
+		}
 	}
 
 	private position(): void {
 		if (this.values.length === 0) return;
 		const layout = getFloatingSuggestionLayout(
 			this.input.getBoundingClientRect(),
-			this.ownerWindow.innerWidth,
-			this.ownerWindow.innerHeight,
+			this.ownerWindow.visualViewport?.width ?? this.ownerWindow.innerWidth,
+			this.ownerWindow.visualViewport?.height ?? this.ownerWindow.innerHeight,
 		);
 		this.suggestionsEl.style.left = `${layout.left}px`;
 		this.suggestionsEl.style.width = `${layout.width}px`;
@@ -270,4 +326,14 @@ export class CalendarFloatingSuggest {
 		this.suggestionsEl.style.top = layout.top === undefined ? '' : `${layout.top}px`;
 		this.suggestionsEl.style.bottom = layout.bottom === undefined ? '' : `${layout.bottom}px`;
 	}
+}
+
+function getIanaTimeZones(): string[] {
+	const supportedValuesOf = (Intl as typeof Intl & { supportedValuesOf?: (key: 'timeZone') => string[] }).supportedValuesOf;
+	if (supportedValuesOf) return supportedValuesOf('timeZone');
+	return [
+		'Asia/Taipei', 'Asia/Tokyo', 'Asia/Seoul', 'Asia/Hong_Kong', 'Asia/Singapore',
+		'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'America/New_York',
+		'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'Australia/Sydney',
+	];
 }

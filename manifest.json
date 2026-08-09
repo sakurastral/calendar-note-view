@@ -1,8 +1,8 @@
 {
 	"id": "calendar-note-view",
 	"name": "Calendar Note View",
-	"version": "0.2.8",
-	"minAppVersion": "1.13.0",
+	"version": "0.2.9",
+	"minAppVersion": "1.13.1",
 	"description": "View date-based notes and properties through calendar interfaces.",
 	"author": "sakurastral",
 	"isDesktopOnly": false
