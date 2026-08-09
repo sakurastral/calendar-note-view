@@ -1,5 +1,8 @@
 # Calendar Note View
 
+> [!WARNING]
+> **Beta status:** Calendar Note View is still under active development and testing. Features, settings, and stored configuration may change before a stable release. Back up your vault and plugin settings before testing.
+
 Calendar Note View adds a note-backed month calendar to Obsidian. It includes a Sidebar Calendar for events collected from across your vault and a Calendar view for Bases entries that have already been filtered by the current Base.
 
 ## Features
@@ -198,7 +201,7 @@ The Sidebar Calendar, Bases Calendar, date actions, event actions, Create Event 
 
 ## Known limitations
 
-- Version 0.2.x provides month views only; it does not include year, week, day, or hour timelines.
+- Version 0.3.x provides month views only; it does not include year, week, day, or hour timelines.
 - Recurring events, reminders, external calendar sync, drag-and-drop, and event resizing are not included.
 - Daily Notes integration uses `obsidian-daily-notes-interface` as a compatibility layer around the Core Daily Notes plugin.
 - Formula values in Bases must render to a value compatible with the configured strict event property date format.
@@ -213,4 +216,4 @@ This plugin was developed with significant AI assistance. The project owner dire
 
 ## License
 
-[0BSD](LICENSE)
+Calendar Note View is released under the [MIT License](LICENSE).

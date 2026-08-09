@@ -2,6 +2,13 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.3.0
+
+### Changed
+
+- Re-license Calendar Note View under the MIT License
+- Mark the plugin as beta in the README before its initial public release
+
 ## 0.2.9
 
 ### Added
