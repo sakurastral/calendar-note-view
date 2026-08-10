@@ -86,14 +86,14 @@ export class CalendarBasesView extends BasesView {
 		const grid = buildCalendarMonthGrid(this.year, this.month, options.firstDayOfWeek, options.weekendDays);
 		const visibleCells = options.showAdjacentMonthDates ? grid.cells : grid.cells.filter((cell) => cell.inCurrentMonth);
 		const rangeStart = visibleCells[0]?.date;
-		const rangeEnd = visibleCells.at(-1)?.date;
+		const rangeEnd = visibleCells[visibleCells.length - 1]?.date;
 		if (!rangeStart || !rangeEnd) return;
 		const items = this.getItems(options).filter((item) =>
 			compareCalendarDates(item.startDate, rangeEnd) <= 0 && compareCalendarDates(item.endDate, rangeStart) >= 0);
 		const segments = segmentCalendarItems(
 			items,
 			grid.cells[0]?.date ?? rangeStart,
-			grid.cells.at(-1)?.date ?? rangeEnd,
+			grid.cells[grid.cells.length - 1]?.date ?? rangeEnd,
 			rangeStart,
 			rangeEnd,
 		);

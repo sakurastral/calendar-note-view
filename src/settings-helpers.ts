@@ -212,5 +212,5 @@ function summarizeValues(values: readonly string[]): string {
 
 function joinNatural(values: readonly string[]): string {
 	if (values.length <= 1) return values[0] ?? '';
-	return `${values.slice(0, -1).join(', ')} or ${values.at(-1)}`;
+	return `${values.slice(0, -1).join(', ')} or ${values[values.length - 1]}`;
 }

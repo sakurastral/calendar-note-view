@@ -2,6 +2,14 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.3.2
+
+### Fixed
+
+- Avoid ES2022 `Array.prototype.at()` in runtime source so official ES2021 type analysis remains safe
+- Narrow the Daily Notes `moment()` result before returning it from typed code
+- Resolve the remaining official unsafe assignment, call, member access, argument, and return warnings
+
 ## 0.3.1
 
 ### Changed

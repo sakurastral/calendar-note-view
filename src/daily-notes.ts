@@ -41,7 +41,9 @@ export class DailyNoteService {
 
 	private toMoment(date: string): moment.Moment {
 		if (!isCanonicalDate(date)) throw new TypeError('Expected a canonical calendar date.');
-		return moment(date, 'YYYY-MM-DD', true);
+		const parsed: unknown = moment(date, 'YYYY-MM-DD', true);
+		if (!moment.isMoment(parsed)) throw new TypeError('Failed to parse the daily note date.');
+		return parsed;
 	}
 
 	private confirm(date: string): Promise<boolean> {
