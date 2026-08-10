@@ -201,14 +201,12 @@ export class CalendarFloatingSuggest {
 	) {
 		this.ownerWindow = input.ownerDocument.defaultView ?? window;
 		this.lastCursor = input.selectionStart ?? input.value.length;
-		this.suggestionsEl = input.ownerDocument.createElement('div');
-		this.suggestionsEl.className = 'calendar-note-settings-suggestions';
+		this.suggestionsEl = input.ownerDocument.body.createDiv({ cls: 'calendar-note-settings-suggestions' });
 		this.suggestionsEl.id = `calendar-note-suggestions-${Math.random().toString(36).slice(2, 10)}`;
 		this.suggestionsEl.setAttribute('role', 'listbox');
 		input.setAttribute('aria-autocomplete', 'list');
 		input.setAttribute('aria-controls', this.suggestionsEl.id);
 		input.setAttribute('aria-expanded', 'false');
-		input.ownerDocument.body.append(this.suggestionsEl);
 		input.addEventListener('input', this.handleInput);
 		input.addEventListener('focus', this.handleFocus);
 		input.addEventListener('click', this.handleSelection);
@@ -248,7 +246,7 @@ export class CalendarFloatingSuggest {
 		if (!query.trim()) return;
 		this.values = this.getValues(query).slice(0, 8);
 		for (const [index, value] of this.values.entries()) {
-			const button = this.input.ownerDocument.createElement('button');
+			const button = this.suggestionsEl.createEl('button');
 			button.type = 'button';
 			button.className = 'suggestion-item';
 			button.id = `${this.suggestionsEl.id}-${index}`;
@@ -265,7 +263,6 @@ export class CalendarFloatingSuggest {
 			button.addEventListener('click', () => {
 				if (!selectedOnMouseDown) this.select(value);
 			});
-			this.suggestionsEl.append(button);
 		}
 		this.input.setAttribute('aria-expanded', String(this.values.length > 0));
 		if (this.values.length > 0) {

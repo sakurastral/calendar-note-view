@@ -1,6 +1,6 @@
 {
 	"name": "calendar-note-view",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "Calendar views backed by Obsidian notes and properties",
 	"main": "main.js",
 	"type": "module",
@@ -21,7 +21,7 @@
 		"@types/node": "^22.15.17",
 		"esbuild": "0.25.5",
 		"eslint": "^9.39.4",
-		"eslint-plugin-obsidianmd": "^0.4.0",
+		"eslint-plugin-obsidianmd": "^0.4.1",
 		"globals": "^17.6.0",
 		"jiti": "^2.6.1",
 		"obsidian": "^1.13.1",

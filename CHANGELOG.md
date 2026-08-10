@@ -2,6 +2,17 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.3.1
+
+### Changed
+
+- Update the Obsidian ESLint rules to match the current official reviewer
+
+### Fixed
+
+- Create floating suggestion elements with Obsidian's public element helpers
+- Eliminate the official `prefer-create-el` source review warnings
+
 ## 0.3.0
 
 ### Changed
