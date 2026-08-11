@@ -82,7 +82,7 @@ describe('Style Settings colors', () => {
 		const sidebarWeekend = runtimeCss.indexOf('.calendar-note-date-cell.is-weekend');
 		const sidebarAdjacent = runtimeCss.indexOf('.calendar-note-date-cell.is-adjacent-month');
 		const sidebarToday = runtimeCss.indexOf('.calendar-note-date-cell.is-today');
-		const sidebarHover = runtimeCss.indexOf('.calendar-note-date-button:hover');
+		const sidebarHover = runtimeCss.indexOf('.calendar-note-sidebar .calendar-note-date-button:hover');
 		const basesWeekend = runtimeCss.indexOf('.calendar-note-bases-date-cell.is-weekend');
 		const basesAdjacent = runtimeCss.indexOf('.calendar-note-bases-date-cell.is-adjacent-month');
 		expect(sidebarWeekend).toBeLessThan(sidebarAdjacent);
@@ -90,6 +90,8 @@ describe('Style Settings colors', () => {
 		expect(sidebarToday).toBeLessThan(sidebarHover);
 		expect(basesWeekend).toBeLessThan(basesAdjacent);
 		expect(runtimeCss).toContain('.calendar-note-bases .calendar-note-bases-date-number');
+		expect(settings).toContain('id: calendar-note-date-hover-text-source');
+		expect(runtimeCss).toContain('color: var(--calendar-note-date-hover-text-resolved, var(--text-normal));');
 	});
 
 	it('applies Sidebar default cell and date colors with theme-resistant selectors', () => {
@@ -121,5 +123,19 @@ describe('Bases property mapping options', () => {
 		const behavior = getBasesCalendarOptions()[1];
 		if (!behavior || behavior.type !== 'group') return;
 		expect(behavior.items.map((option) => option.key)).not.toEqual(expect.arrayContaining(['hideCompletedTasks', 'dimCompletedTasks']));
+		const displayMode = behavior.items.find((option) => option.key === 'eventDisplayMode');
+		expect(displayMode?.type).toBe('dropdown');
+		if (!displayMode || displayMode.type !== 'dropdown') return;
+		expect(displayMode.options).toMatchObject({ properties: 'Visible Base properties' });
+		const maximum = behavior.items.find((option) => option.key === 'maximumVisibleEvents');
+		expect(maximum).toMatchObject({ type: 'slider', min: 1, max: 12 });
+	});
+});
+
+describe('Sidebar indicator tooltip', () => {
+	it('uses the Obsidian tooltip API without a native title attribute', () => {
+		const source = readFileSync(new URL('../src/sidebar-view.ts', import.meta.url), 'utf8');
+		expect(source).toContain('setTooltip(indicator, item.title)');
+		expect(source).not.toContain("attr: { title: item.title, 'aria-label': item.title }");
 	});
 });

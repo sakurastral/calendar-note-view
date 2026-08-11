@@ -8,13 +8,14 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 ## Features
 
 - Sidebar month calendar with independent year and month controls
+- Selectable calendar language with System, English, Traditional Chinese, Simplified Chinese, Japanese, and Korean options
 - Calendar view for Obsidian Bases
 - Date-only single-day and inclusive multi-day events
 - Continuous multi-day bars with stable lanes across weeks
 - Daily Notes indicators, opening, and confirmed creation
 - Event creation from the command palette, calendar dates, and context menus
 - Source Profiles for folder, tag, property-scoped wiki-link, and start-property matching
-- Configurable property mapping and strict property date formats
+- Configurable property mapping with strict date and datetime property support
 - Event type style rules and safe note-level color overrides
 - Time zone-aware Today highlighting without shifting date-only events
 - Light, dark, custom theme, desktop, and mobile support
@@ -37,6 +38,8 @@ Use the ribbon icon or run **Calendar Note View: Open sidebar calendar**. The he
 
 Date cells show Daily Note status and colored event dots or icon badges selected independently by each Source Profile. Indicators from different profiles can use different modes in the same date cell. Select a date number to open or create its Daily Note. Use the plus button or date context menu to create an event. Select an event indicator to open its note.
 
+Choose **Calendar language** under **Calendar behavior** to localize month and weekday labels, navigation accessibility labels, calendar menus, and status messages. **System default** follows the current device language. Event indicators use Obsidian tooltips without also showing a browser-native title tooltip.
+
 Refresh safely rebuilds the Sidebar event index while preserving the viewed month.
 
 ## Bases Calendar
@@ -49,13 +52,15 @@ The view supports:
 
 - Independent Previous Month, Next Month, Today, Year, and Month controls
 - Start, end, title, type, icon, background color, and text color property mapping
-- Icon, Title, or Icon + Title event display
+- Icon, Title, Icon + Title, or Visible Base properties event display
 - First day of week and weekend selection
 - Adjacent-month date visibility
-- Maximum visible events and `+N more`
+- A configurable maximum of 1–12 event rows per day and `+N more`
 - Daily Notes and event creation actions
 
 Updating Base data does not reset the month being viewed.
+
+Choose **Visible Base properties** to render the properties currently enabled in the Base properties menu. Their configured display names and current `Value` results are used in order. This continues to use only the filtered, sorted, formula-evaluated, and limited entries in `this.data.data`.
 
 ## Daily Notes
 
@@ -94,6 +99,8 @@ Tag matching uses Obsidian's combined cached Properties and inline tags. Tags ar
 Wiki Link matching reads only the frontmatter property selected in **Wiki link property**. Its value may be a YAML string or array containing wiki links or plain-text targets. Short paths, full paths, aliases, `.md`, and heading subpaths resolve through Obsidian's Metadata Cache; arbitrary outgoing links and embeds in the note body are not source conditions. Wiki Link targets are edited as independent tokens with a floating note suggestion popover. Full paths distinguish same-name notes in different folders.
 
 Source Profile icons provide suggestions from Obsidian's installed icon set. Default background and text colors can use a selected Obsidian CSS variable or **Use style settings fallback**. Style priority is note property → first matching Event Type Rule → explicit Source Profile default → Style Settings Event fallback → Obsidian theme fallback.
+
+**Default type** is selected from a dropdown populated by Event Type Rules, other Profile defaults, and types already present in the Sidebar index. The Create Event dialog provides matching type intellisense while still allowing a new plain-text or Wiki Link value.
 
 The Source Profile page is divided into Overview, Source matching, Property mapping, Display defaults, Event creation, Advanced, and Actions. A live sentence explains the effective All, Any, or Start-only logic, and inline validation identifies incomplete Wiki Link pairs, missing Start properties, duplicate display names, and event-creation paths. Creation-only fields stay hidden until **Allow event creation** is enabled.
 
@@ -169,7 +176,7 @@ File name, generated title, and note templates can use:
 
 **Display date format** controls dates in the interface, tooltips, previews, and confirmation text. Common formats are available as presets, while Custom retains strict validation and a live example.
 
-**Event property date format** strictly parses and writes event properties. It has an independent preset or Custom value and example. Internally, every calendar date remains `YYYY-MM-DD`.
+**Event property date format** strictly parses and writes event properties. It has an independent preset or Custom value and example. Start and end properties may also be Obsidian datetime values such as `2026-08-09T14:30`; the calendar preserves the date portion as written rather than shifting it through a time zone. Internally, every calendar date remains `YYYY-MM-DD`.
 
 Daily Note file names continue to use the Core Daily Notes format.
 
@@ -201,10 +208,10 @@ The Sidebar Calendar, Bases Calendar, date actions, event actions, Create Event 
 
 ## Known limitations
 
-- Version 0.3.x provides month views only; it does not include year, week, day, or hour timelines.
+- Version 0.4.x provides month views only; it does not include year, week, day, or hour timelines.
 - Recurring events, reminders, external calendar sync, drag-and-drop, and event resizing are not included.
 - Daily Notes integration uses `obsidian-daily-notes-interface` as a compatibility layer around the Core Daily Notes plugin.
-- Formula values in Bases must render to a value compatible with the configured strict event property date format.
+- Formula values in Bases must render to a date or datetime compatible with the configured event property date format.
 
 ## Privacy
 

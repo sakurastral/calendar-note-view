@@ -1,13 +1,14 @@
 import {
 	BasesView,
 	Menu,
-	moment,
 	setIcon,
+	type BasesPropertyId,
 	type QueryController,
 } from 'obsidian';
 export { getBasesCalendarOptions } from './bases-options';
-import { BasesCalendarNormalizer, type BasesCalendarPropertyMap } from './bases-normalizer';
+import { BasesCalendarNormalizer, basesPropertiesToDisplayText, type BasesCalendarPropertyMap } from './bases-normalizer';
 import { buildCalendarMonthGrid, moveCalendarMonth } from './calendar-grid';
+import { calendarMonthLabels, calendarText, calendarWeekdayLabels, type CalendarTextKey } from './calendar-locale';
 import { sortCalendarItems } from './calendar-sort';
 import { CreateEventModal } from './create-event-modal';
 import {
@@ -23,7 +24,7 @@ import { CalendarStyleResolver } from './style-resolver';
 
 export const CALENDAR_BASES_VIEW_TYPE = 'calendar-note-month';
 
-type EventDisplayMode = 'icon' | 'title' | 'icon-title';
+type EventDisplayMode = 'icon' | 'title' | 'icon-title' | 'properties';
 
 interface BasesCalendarViewOptions {
 	properties?: BasesCalendarPropertyMap;
@@ -32,6 +33,7 @@ interface BasesCalendarViewOptions {
 	showAdjacentMonthDates: boolean;
 	maximumVisibleEvents: number;
 	eventDisplayMode: EventDisplayMode;
+	visibleProperties: BasesPropertyId[];
 }
 
 const BASES_STYLE_PROFILE: CalendarSourceProfile = {
@@ -54,6 +56,7 @@ export class CalendarBasesView extends BasesView {
 	private readonly normalizer = new BasesCalendarNormalizer();
 	private readonly styleResolver = new CalendarStyleResolver();
 	private readonly containerEl: HTMLElement;
+	private readonly propertyContentByItemId = new Map<string, string>();
 	private year: number;
 	private month: number;
 
@@ -79,7 +82,7 @@ export class CalendarBasesView extends BasesView {
 		const options = this.readOptions();
 		this.renderHeader();
 		if (!options.properties) {
-			this.containerEl.createDiv({ cls: 'calendar-note-empty-state', text: 'Choose a start property in the view options.' });
+			this.containerEl.createDiv({ cls: 'calendar-note-empty-state', text: this.text('chooseStartProperty') });
 			return;
 		}
 
@@ -102,8 +105,9 @@ export class CalendarBasesView extends BasesView {
 		const dailyNotes = this.plugin.dailyNotes.getAll();
 
 		const weekdayHeader = this.containerEl.createDiv({ cls: 'calendar-note-bases-weekdays' });
+		const weekdayLabels = calendarWeekdayLabels(this.plugin.settings.calendarLocale);
 		for (const weekday of grid.weekdays) {
-			weekdayHeader.createDiv({ cls: 'calendar-note-bases-weekday', text: moment.weekdaysMin()[weekday] ?? '' });
+			weekdayHeader.createDiv({ cls: 'calendar-note-bases-weekday', text: weekdayLabels[weekday] ?? '' });
 		}
 		const monthGrid = this.containerEl.createDiv({ cls: 'calendar-note-bases-month' });
 		for (let weekIndex = 0; weekIndex < 6; weekIndex += 1) {
@@ -128,11 +132,11 @@ export class CalendarBasesView extends BasesView {
 				});
 				dateButton.addEventListener('click', () => { void this.plugin.dailyNotes.open(cell.date); });
 				if (this.plugin.dailyNotes.find(cell.date, dailyNotes)) {
-					dateCell.createSpan({ cls: 'calendar-note-bases-daily-indicator', attr: { title: 'Daily note exists' } });
+					dateCell.createSpan({ cls: 'calendar-note-bases-daily-indicator', attr: { title: this.text('dailyNoteExists') } });
 				}
 				const addButton = dateCell.createEl('button', {
 					cls: 'clickable-icon calendar-note-bases-add',
-					attr: { 'aria-label': `Create event on ${this.dateLabel(cell.date)}` },
+					attr: { 'aria-label': this.text('createEventOn', { date: this.dateLabel(cell.date) }) },
 				});
 				setIcon(addButton, 'plus');
 				addButton.addEventListener('click', () => new CreateEventModal(this.plugin, this.plugin.eventCreation, cell.date).open());
@@ -147,11 +151,11 @@ export class CalendarBasesView extends BasesView {
 
 	private renderHeader(): void {
 		const header = this.containerEl.createDiv({ cls: 'calendar-note-bases-header' });
-		this.addHeaderButton(header, 'chevron-left', 'Previous month', () => this.moveMonth(-1));
+		this.addHeaderButton(header, 'chevron-left', this.text('previousMonth'), () => this.moveMonth(-1));
 		const picker = header.createDiv({ cls: 'calendar-note-bases-picker' });
 		const year = picker.createEl('input', {
 			cls: 'calendar-note-bases-year',
-			attr: { type: 'number', min: '1', max: '9999', 'aria-label': 'Calendar year' },
+			attr: { type: 'number', min: '1', max: '9999', 'aria-label': this.text('calendarYear') },
 		});
 		year.value = String(this.year);
 		year.addEventListener('change', () => {
@@ -161,9 +165,10 @@ export class CalendarBasesView extends BasesView {
 				this.renderCalendar();
 			}
 		});
-		const month = picker.createEl('select', { cls: 'calendar-note-bases-month-select', attr: { 'aria-label': 'Calendar month' } });
+		const month = picker.createEl('select', { cls: 'calendar-note-bases-month-select', attr: { 'aria-label': this.text('calendarMonth') } });
+		const monthLabels = calendarMonthLabels(this.plugin.settings.calendarLocale);
 		for (let value = 1; value <= 12; value += 1) {
-			const option = month.createEl('option', { text: moment.monthsShort()[value - 1] ?? String(value) });
+			const option = month.createEl('option', { text: monthLabels[value - 1] ?? String(value) });
 			option.value = String(value);
 		}
 		month.value = String(this.month);
@@ -171,8 +176,8 @@ export class CalendarBasesView extends BasesView {
 			this.month = Number(month.value);
 			this.renderCalendar();
 		});
-		this.addHeaderButton(header, 'calendar-check', 'Today', () => this.goToToday());
-		this.addHeaderButton(header, 'chevron-right', 'Next month', () => this.moveMonth(1));
+		this.addHeaderButton(header, 'calendar-check', this.text('today'), () => this.goToToday());
+		this.addHeaderButton(header, 'chevron-right', this.text('nextMonth'), () => this.moveMonth(1));
 	}
 
 	private renderWeekEvents(
@@ -200,11 +205,18 @@ export class CalendarBasesView extends BasesView {
 			eventButton.style.gridRow = String(segment.lane + 1);
 			eventButton.style.setProperty('--calendar-note-item-bg', style.backgroundColor);
 			eventButton.style.setProperty('--calendar-note-item-text', style.textColor);
-			if (options.eventDisplayMode !== 'title') {
+			if (options.eventDisplayMode !== 'title' && options.eventDisplayMode !== 'properties') {
 				const icon = eventButton.createSpan({ cls: 'calendar-note-bases-event-icon' });
 				setIcon(icon, style.icon);
 			}
-			if (options.eventDisplayMode !== 'icon') eventButton.createSpan({ cls: 'calendar-note-bases-event-title', text: segment.item.title });
+			if (options.eventDisplayMode === 'properties') {
+				eventButton.createSpan({
+					cls: 'calendar-note-bases-event-properties',
+					text: this.propertyContentByItemId.get(segment.item.id) || segment.item.title,
+				});
+			} else if (options.eventDisplayMode !== 'icon') {
+				eventButton.createSpan({ cls: 'calendar-note-bases-event-title', text: segment.item.title });
+			}
 			eventButton.addEventListener('click', () => { void this.openEvent(segment.item, false); });
 			eventButton.addEventListener('contextmenu', (event) => {
 				event.preventDefault();
@@ -222,8 +234,8 @@ export class CalendarBasesView extends BasesView {
 			if (hiddenCount === 0) continue;
 			const more = layer.createEl('button', {
 				cls: 'calendar-note-bases-more',
-				text: `+${hiddenCount} more`,
-				attr: { 'aria-label': `${hiddenCount} more events on ${this.dateLabel(date)}` },
+				text: this.text('more', { count: hiddenCount }),
+				attr: { 'aria-label': this.text('moreEventsOn', { count: hiddenCount, date: this.dateLabel(date) }) },
 			});
 			more.style.gridColumn = String(column + 1);
 			more.style.gridRow = String(options.maximumVisibleEvents + 1);
@@ -246,16 +258,26 @@ export class CalendarBasesView extends BasesView {
 			firstDayOfWeek: integerOption(this.config.get('firstDayOfWeek'), 0, 6, this.plugin.settings.firstDayOfWeek),
 			weekendDays: weekdayOptions(this.config.get('weekendDays'), this.plugin.settings.weekendDays),
 			showAdjacentMonthDates: booleanOption(this.config.get('showAdjacentMonthDates'), true),
-			maximumVisibleEvents: integerOption(this.config.get('maximumVisibleEvents'), 1, 8, 3),
+			maximumVisibleEvents: integerOption(this.config.get('maximumVisibleEvents'), 1, 12, 3),
 			eventDisplayMode: displayMode(this.config.get('eventDisplayMode')),
+			visibleProperties: [...this.data.properties],
 		};
 	}
 
 	private getItems(options: BasesCalendarViewOptions): CalendarItem[] {
+		this.propertyContentByItemId.clear();
 		if (!options.properties) return [];
-		const items = this.data.data
-			.map((entry) => this.normalizer.normalize(entry, options.properties!, this.plugin.settings.eventPropertyDateFormat))
-			.filter((item): item is CalendarItem => item !== undefined);
+		const items: CalendarItem[] = [];
+		for (const entry of this.data.data) {
+			const item = this.normalizer.normalize(entry, options.properties, this.plugin.settings.eventPropertyDateFormat);
+			if (!item) continue;
+			items.push(item);
+			this.propertyContentByItemId.set(item.id, basesPropertiesToDisplayText(
+				entry,
+				options.visibleProperties ?? [],
+				(property) => this.config.getDisplayName(property),
+			));
+		}
 		return sortCalendarItems(items);
 	}
 
@@ -286,8 +308,8 @@ export class CalendarBasesView extends BasesView {
 
 	private showDateMenu(date: string, items: CalendarItem[], event: MouseEvent): void {
 		const menu = new Menu();
-		menu.addItem((item) => item.setTitle(this.plugin.dailyNotes.find(date) ? 'Open daily note' : 'Create daily note').setIcon('calendar-check').onClick(() => this.plugin.dailyNotes.open(date)));
-		menu.addItem((item) => item.setTitle('Create event').setIcon('calendar-plus').onClick(() => new CreateEventModal(this.plugin, this.plugin.eventCreation, date).open()));
+		menu.addItem((item) => item.setTitle(this.plugin.dailyNotes.find(date) ? this.text('openDailyNote') : this.text('createDailyNote')).setIcon('calendar-check').onClick(() => this.plugin.dailyNotes.open(date)));
+		menu.addItem((item) => item.setTitle(this.text('createEvent')).setIcon('calendar-plus').onClick(() => new CreateEventModal(this.plugin, this.plugin.eventCreation, date).open()));
 		menu.addSeparator();
 		this.addItemsToMenu(menu, items);
 		menu.showAtMouseEvent(event);
@@ -300,8 +322,8 @@ export class CalendarBasesView extends BasesView {
 	}
 
 	private addItemsToMenu(menu: Menu, items: CalendarItem[]): void {
-		menu.addItem((item) => item.setTitle('Events on this date').setIsLabel(true));
-		if (items.length === 0) menu.addItem((item) => item.setTitle('No events').setDisabled(true));
+		menu.addItem((item) => item.setTitle(this.text('eventsOnDate')).setIsLabel(true));
+		if (items.length === 0) menu.addItem((item) => item.setTitle(this.text('noEvents')).setDisabled(true));
 		for (const calendarItem of items) {
 			menu.addItem((item) => item.setTitle(calendarItem.title).setIcon(calendarItem.icon ?? 'calendar').onClick(() => this.openEvent(calendarItem, false)));
 		}
@@ -309,8 +331,8 @@ export class CalendarBasesView extends BasesView {
 
 	private showEventMenu(item: CalendarItem, event: MouseEvent): void {
 		const menu = new Menu();
-		menu.addItem((menuItem) => menuItem.setTitle('Open note').setIcon('file-text').onClick(() => this.openEvent(item, false)));
-		menu.addItem((menuItem) => menuItem.setTitle('Open in new tab').setIcon('file-plus').onClick(() => this.openEvent(item, true)));
+		menu.addItem((menuItem) => menuItem.setTitle(this.text('openNote')).setIcon('file-text').onClick(() => this.openEvent(item, false)));
+		menu.addItem((menuItem) => menuItem.setTitle(this.text('openInNewTab')).setIcon('file-plus').onClick(() => this.openEvent(item, true)));
 		this.plugin.app.workspace.handleLinkContextMenu(menu, item.filePath, '');
 		menu.showAtMouseEvent(event);
 	}
@@ -322,6 +344,10 @@ export class CalendarBasesView extends BasesView {
 
 	private dateLabel(date: string): string {
 		return formatCalendarDate(date, this.plugin.settings.displayDateFormat) ?? date;
+	}
+
+	private text(key: CalendarTextKey, values: Record<string, string | number> = {}): string {
+		return calendarText(this.plugin.settings.calendarLocale, key, values);
 	}
 }
 
@@ -341,5 +367,5 @@ function weekdayOptions(value: unknown, fallback: number[]): number[] {
 }
 
 function displayMode(value: unknown): EventDisplayMode {
-	return value === 'icon' || value === 'title' ? value : 'icon-title';
+	return value === 'icon' || value === 'title' || value === 'properties' ? value : 'icon-title';
 }

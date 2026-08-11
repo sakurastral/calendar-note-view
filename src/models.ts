@@ -57,8 +57,11 @@ export type CalendarTimeZone =
 	| { mode: 'utc' }
 	| { mode: 'custom'; timeZone: string };
 
+export type CalendarLocale = 'system' | 'en' | 'zh-TW' | 'zh-CN' | 'ja' | 'ko';
+
 export interface CalendarSettings {
-	schemaVersion: 7;
+	schemaVersion: 8;
+	calendarLocale: CalendarLocale;
 	firstDayOfWeek: number;
 	weekendDays: number[];
 	timeZone: CalendarTimeZone;

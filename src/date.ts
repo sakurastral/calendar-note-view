@@ -35,6 +35,23 @@ export function parseCalendarDate(value: unknown, format = CANONICAL_DATE_FORMAT
 	return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+/** Parse a date or datetime property while preserving the date written by the user. */
+export function parseCalendarPropertyDate(value: unknown, format = CANONICAL_DATE_FORMAT): string | null {
+	const exact = parseCalendarDate(value, format);
+	if (exact) return exact;
+	const input = stringifyScalar(value)?.trim();
+	if (!input) return null;
+	const datetime = /^(.*?)(?:T|\s)(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:?\d{2})?$/.exec(input);
+	if (!datetime) return null;
+	const hour = Number(datetime[2]);
+	const minute = Number(datetime[3]);
+	const second = datetime[4] === undefined ? 0 : Number(datetime[4]);
+	if (hour > 23 || minute > 59 || second > 59) return null;
+	const datePart = datetime[1]?.trim();
+	if (!datePart) return null;
+	return parseCalendarDate(datePart, format) ?? (format === CANONICAL_DATE_FORMAT ? null : parseCalendarDate(datePart));
+}
+
 export function formatCalendarDate(canonicalDate: string, format: string): string | null {
 	if (!isCanonicalDate(canonicalDate) || !isSupportedDateFormat(format)) return null;
 	const [year = '', month = '', day = ''] = canonicalDate.split('-');

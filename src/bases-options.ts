@@ -17,11 +17,11 @@ export function getBasesCalendarOptions(): BasesAllOptions[] {
 		type: 'group',
 		displayName: 'Calendar behavior',
 		items: [
-			{ type: 'dropdown', key: 'eventDisplayMode', displayName: 'Event display mode', default: 'icon-title', options: { icon: 'Icon', title: 'Title', 'icon-title': 'Icon + title' } },
+			{ type: 'dropdown', key: 'eventDisplayMode', displayName: 'Event display mode', default: 'icon-title', options: { icon: 'Icon', title: 'Title', 'icon-title': 'Icon + title', properties: 'Visible Base properties' } },
 			{ type: 'dropdown', key: 'firstDayOfWeek', displayName: 'First day of week', default: '0', options: { '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday' } },
 			{ type: 'multitext', key: 'weekendDays', displayName: 'Weekend days', default: ['0', '6'] },
 			{ type: 'toggle', key: 'showAdjacentMonthDates', displayName: 'Show adjacent month dates', default: true },
-			{ type: 'slider', key: 'maximumVisibleEvents', displayName: 'Maximum visible events', default: 3, min: 1, max: 8, step: 1 },
+			{ type: 'slider', key: 'maximumVisibleEvents', displayName: 'Maximum event rows per day', default: 3, min: 1, max: 12, step: 1 },
 		],
 	}];
 }

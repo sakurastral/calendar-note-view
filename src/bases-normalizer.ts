@@ -1,5 +1,5 @@
 import type { BasesEntry, BasesPropertyId, Value } from 'obsidian';
-import { compareCalendarDates, parseCalendarDate } from './date';
+import { compareCalendarDates, parseCalendarPropertyDate } from './date';
 import type { CalendarItem } from './models';
 import { isSafeCssColor, normalizeDisplayValue, normalizeWikiLinkTarget } from './value-normalizers';
 
@@ -24,10 +24,10 @@ export class BasesCalendarNormalizer {
 		properties: BasesCalendarPropertyMap,
 		propertyDateFormat: string,
 	): CalendarItem | undefined {
-		const startDate = parseCalendarDate(valueToRaw(entry.getValue(properties.start)), propertyDateFormat);
+		const startDate = parseCalendarPropertyDate(valueToRaw(entry.getValue(properties.start)), propertyDateFormat);
 		if (!startDate) return undefined;
 		const endRaw = properties.end ? valueToRaw(entry.getValue(properties.end)) : undefined;
-		const endDate = isBlank(endRaw) ? startDate : parseCalendarDate(endRaw, propertyDateFormat);
+		const endDate = isBlank(endRaw) ? startDate : parseCalendarPropertyDate(endRaw, propertyDateFormat);
 		if (!endDate || compareCalendarDates(endDate, startDate) < 0) return undefined;
 
 		const title = properties.title
@@ -63,6 +63,26 @@ export function basesValueToRaw(value: Value | null): unknown {
 		return values;
 	}
 	return value.toString();
+}
+
+export function basesValueToDisplayText(value: Value | null): string | null {
+	const raw = basesValueToRaw(value);
+	if (Array.isArray(raw)) {
+		const values = raw.map((entry) => normalizeDisplayValue(entry)).filter((entry): entry is string => Boolean(entry));
+		return values.length > 0 ? values.join(', ') : null;
+	}
+	return normalizeDisplayValue(raw);
+}
+
+export function basesPropertiesToDisplayText(
+	entry: BasesEntry | BasesEntryLike,
+	properties: readonly BasesPropertyId[],
+	getDisplayName: (property: BasesPropertyId) => string,
+): string {
+	return properties.map((property) => {
+		const value = basesValueToDisplayText(entry.getValue(property));
+		return value ? `${getDisplayName(property)}: ${value}` : '';
+	}).filter(Boolean).join(' · ');
 }
 
 function valueToRaw(value: Value | null): unknown {

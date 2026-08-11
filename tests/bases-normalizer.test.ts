@@ -1,6 +1,12 @@
 import type { BasesPropertyId, Value } from 'obsidian';
 import { describe, expect, it } from 'vitest';
-import { BasesCalendarNormalizer, basesValueToRaw, type BasesEntryLike } from '../src/bases-normalizer';
+import {
+	BasesCalendarNormalizer,
+	basesPropertiesToDisplayText,
+	basesValueToDisplayText,
+	basesValueToRaw,
+	type BasesEntryLike,
+} from '../src/bases-normalizer';
 
 const start = 'note.start' as BasesPropertyId;
 const end = 'note.end' as BasesPropertyId;
@@ -36,6 +42,15 @@ describe('Bases calendar normalizer', () => {
 		expect(item?.endDate).toBe('2026-08-09');
 	});
 
+	it('accepts datetime-shaped DateValue start and end properties', () => {
+		const entry = createEntry('Events/Timed.md', {
+			[start]: new DateValueShape('2026-08-09T23:30:00+08:00'),
+			[end]: new DateValueShape('2026-08-11 09:00:00'),
+		});
+		const item = new BasesCalendarNormalizer().normalize(entry, { start, end }, 'YYYY-MM-DD');
+		expect(item).toMatchObject({ startDate: '2026-08-09', endDate: '2026-08-11' });
+	});
+
 	it('rejects invalid ranges and unsafe colors without creating task state', () => {
 		const normalizer = new BasesCalendarNormalizer();
 		expect(normalizer.normalize(createEntry('Bad.md', { [start]: new DateValueShape('2026-02-30') }), { start }, 'YYYY-MM-DD')).toBeUndefined();
@@ -52,6 +67,19 @@ describe('Bases calendar normalizer', () => {
 		const entry = createEntry('Events/List.md', { [start]: new DateValueShape('2026-08-09'), [type]: list });
 		expect(basesValueToRaw(list as unknown as Value)).toEqual(['[[Work]]', 'Personal']);
 		expect(new BasesCalendarNormalizer().normalize(entry, { start, type }, 'YYYY-MM-DD')?.type).toBe('Work');
+	});
+
+	it('renders every selected Base property from real Value shapes', () => {
+		const list = new ListValueShape([new LinkValueShape('[[Work]]'), new StringValueShape('Personal')]);
+		const entry = createEntry('Events/Display.md', {
+			[start]: new DateValueShape('2026-08-09'),
+			[title]: new StringValueShape('Planning'),
+			[type]: list,
+		});
+		expect(basesValueToDisplayText(list as unknown as Value)).toBe('Work, Personal');
+		expect(basesPropertiesToDisplayText(entry, [title, type], (property) => property === title ? 'Label' : 'Type')).toBe(
+			'Label: Planning · Type: Work, Personal',
+		);
 	});
 });
 

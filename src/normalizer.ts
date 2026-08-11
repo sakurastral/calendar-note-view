@@ -1,4 +1,4 @@
-import { compareCalendarDates, parseCalendarDate } from './date';
+import { compareCalendarDates, parseCalendarPropertyDate } from './date';
 import { createDiagnostic } from './diagnostics';
 import type {
 	CalendarDiagnostic,
@@ -33,7 +33,7 @@ export class CalendarItemNormalizer {
 			diagnostics.push(this.diagnostic('missing-start-property', 'warning', file, profile, 'The start property is missing.', profile.startProperty, startRaw));
 			return { diagnostics };
 		}
-		const startDate = parseCalendarDate(startRaw, propertyDateFormat);
+		const startDate = parseCalendarPropertyDate(startRaw, propertyDateFormat);
 		if (!startDate) {
 			diagnostics.push(this.diagnostic('invalid-start-date', 'error', file, profile, 'The start date is invalid.', profile.startProperty, startRaw));
 			return { diagnostics };
@@ -43,7 +43,7 @@ export class CalendarItemNormalizer {
 		if (profile.endProperty) {
 			const endRaw = frontmatter[profile.endProperty];
 			if (!isBlank(endRaw)) {
-				const parsedEnd = parseCalendarDate(endRaw, propertyDateFormat);
+				const parsedEnd = parseCalendarPropertyDate(endRaw, propertyDateFormat);
 				if (!parsedEnd) {
 					diagnostics.push(this.diagnostic('invalid-end-date', 'error', file, profile, 'The end date is invalid.', profile.endProperty, endRaw));
 					return { diagnostics };

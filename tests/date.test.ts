@@ -6,6 +6,7 @@ import {
 	isCanonicalDate,
 	isValidIanaTimeZone,
 	parseCalendarDate,
+	parseCalendarPropertyDate,
 } from '../src/date';
 
 describe('calendar dates', () => {
@@ -20,6 +21,14 @@ describe('calendar dates', () => {
 		expect(isCanonicalDate('2023-02-29')).toBe(false);
 		expect(isCanonicalDate('2024-13-01')).toBe(false);
 		expect(parseCalendarDate('2024-7-24')).toBeNull();
+	});
+
+	it('accepts datetime property values without shifting the written calendar date', () => {
+		expect(parseCalendarPropertyDate('2026-08-09T23:30:00Z')).toBe('2026-08-09');
+		expect(parseCalendarPropertyDate('2026-08-09 08:15+08:00')).toBe('2026-08-09');
+		expect(parseCalendarPropertyDate('09/08/2026T12:30:45.123', 'DD/MM/YYYY')).toBe('2026-08-09');
+		expect(parseCalendarPropertyDate('2026-08-09T24:00')).toBeNull();
+		expect(parseCalendarPropertyDate('2026-08-09T10:60')).toBeNull();
 	});
 
 	it('calculates inclusive duration without converting dates to timestamps', () => {

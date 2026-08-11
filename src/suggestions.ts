@@ -67,6 +67,10 @@ export class CalendarSuggestionProvider {
 		return rankSuggestions(query, this.icons);
 	}
 
+	getEventTypeSuggestions(query: string, values: Iterable<string>): string[] {
+		return rankSuggestions(query, values);
+	}
+
 	getTimeZoneSuggestions(query: string): string[] {
 		return rankSuggestions(query, getIanaTimeZones());
 	}

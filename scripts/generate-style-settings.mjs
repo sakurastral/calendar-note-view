@@ -110,6 +110,7 @@ const settings = [
 	slider('calendar-note-date-size', 'Date number size', 12, 9, 20, 1, 'px', 'Applies to date numbers in both calendars.'),
 	...color('calendar-note-date-text', 'Default date number color', 'Applies to ordinary dates in both calendars.', 'var(--text-normal)', '#2e3338', '#dcddde', textOptions),
 	...color('calendar-note-date-hover-bg', 'Date hover background', 'Applies to the Sidebar day cell and Bases date badge under the pointer or keyboard focus.', 'var(--background-modifier-hover)', '#e5e7eb', '#343434', backgroundOptions),
+	...color('calendar-note-date-hover-text', 'Date hover text', 'Applies to the date text under the pointer or keyboard focus, including Weekend and Today.', 'var(--text-normal)', '#2e3338', '#dcddde', textOptions),
 	...color('calendar-note-adjacent-bg', 'Other-month cell background', 'Applies to dates outside the displayed month and takes priority over Weekend.', 'var(--background-primary-alt)', '#f7f7f7', '#242424', backgroundOptions),
 	...color('calendar-note-adjacent-text', 'Other-month date number color', 'Applies to dates outside the displayed month.', 'var(--text-faint)', '#9a9a9a', '#777777', textOptions),
 	...color('calendar-note-weekend-bg', 'Weekend cell background', 'Applies to configured weekend days in the displayed month.', 'transparent', '#ffffff', '#1e1e1e', backgroundOptions),

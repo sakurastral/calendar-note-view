@@ -52,6 +52,14 @@ describe('calendar item normalization', () => {
 		expect(reversed.diagnostics[0]?.code).toBe('end-before-start');
 	});
 
+	it('normalizes datetime frontmatter values as their written calendar dates', () => {
+		const result = new CalendarItemNormalizer().normalize(file, { frontmatter: {
+			start: '2024-07-24T23:30:00+08:00',
+			end: '2024-07-26 09:15:00',
+		} }, source(), 'YYYY-MM-DD');
+		expect(result.item).toMatchObject({ startDate: '2024-07-24', endDate: '2024-07-26' });
+	});
+
 	it('ignores unsafe colors without invalidating the event', () => {
 		const result = new CalendarItemNormalizer().normalize(file, { frontmatter: {
 			start: '2024-07-24', color: 'red; background:url(x)',

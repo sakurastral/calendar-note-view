@@ -704,6 +704,49 @@ settings:
     format: 'hex'
     default-light: '#e5e7eb'
     default-dark: '#343434'
+  - id: calendar-note-date-hover-text-source
+    title: Date hover text
+    description: Applies to the date text under the pointer or keyboard focus, including Weekend and Today. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--text-normal)'
+    options:
+      - label: Plugin default (Normal text)
+        value: 'var(--text-normal)'
+      - label: Muted text
+        value: 'var(--text-muted)'
+      - label: Faint text
+        value: 'var(--text-faint)'
+      - label: Accent text
+        value: 'var(--text-accent)'
+      - label: Accent hover text
+        value: 'var(--text-accent-hover)'
+      - label: Text on accent
+        value: 'var(--text-on-accent)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-date-hover-text)'
+  - id: calendar-note-date-hover-text
+    title: Custom light and dark color
+    description: Used only when Date hover text is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#2e3338'
+    default-dark: '#dcddde'
   - id: calendar-note-adjacent-bg-source
     title: Other-month cell background
     description: Applies to dates outside the displayed month and takes priority over Weekend. Select Custom to use the light and dark colors in the next setting.
@@ -1156,6 +1199,7 @@ body {
 	--calendar-note-date-cell-bg: transparent;
 	--calendar-note-date-text: var(--text-normal);
 	--calendar-note-date-hover-bg: var(--background-modifier-hover);
+	--calendar-note-date-hover-text: var(--text-normal);
 	--calendar-note-adjacent-bg: var(--background-primary-alt);
 	--calendar-note-adjacent-text: var(--text-faint);
 	--calendar-note-date-size: var(--font-ui-smaller);
@@ -1187,6 +1231,7 @@ body {
 	--calendar-note-date-cell-bg-resolved: var(--calendar-note-date-cell-bg-source, var(--calendar-note-date-cell-bg));
 	--calendar-note-date-text-resolved: var(--calendar-note-date-text-source, var(--calendar-note-date-text));
 	--calendar-note-date-hover-bg-resolved: var(--calendar-note-date-hover-bg-source, var(--calendar-note-date-hover-bg));
+	--calendar-note-date-hover-text-resolved: var(--calendar-note-date-hover-text-source, var(--calendar-note-date-hover-text));
 	--calendar-note-adjacent-bg-resolved: var(--calendar-note-adjacent-bg-source, var(--calendar-note-adjacent-bg));
 	--calendar-note-adjacent-text-resolved: var(--calendar-note-adjacent-text-source, var(--calendar-note-adjacent-text));
 	--calendar-note-today-bg-resolved: var(--calendar-note-today-bg-source, var(--calendar-note-today-bg));
@@ -1309,9 +1354,10 @@ body {
 	font-weight: var(--font-semibold);
 }
 
-.calendar-note-date-button:hover,
-.calendar-note-date-button:focus-visible {
+.calendar-note-sidebar .calendar-note-date-button:hover,
+.calendar-note-sidebar .calendar-note-date-button:focus-visible {
 	background: var(--calendar-note-date-hover-bg-resolved, var(--background-modifier-hover));
+	color: var(--calendar-note-date-hover-text-resolved, var(--text-normal));
 }
 
 .calendar-note-date-add {
@@ -1837,6 +1883,7 @@ body {
 .calendar-note-bases-date-number:hover,
 .calendar-note-bases-date-number:focus-visible {
 	background: var(--calendar-note-date-hover-bg-resolved, var(--background-modifier-hover));
+	color: var(--calendar-note-date-hover-text-resolved, var(--text-normal));
 }
 
 .calendar-note-bases-add {
@@ -1915,7 +1962,8 @@ body {
 	height: var(--calendar-note-event-icon-size, var(--icon-xs));
 }
 
-.calendar-note-bases-event-title {
+.calendar-note-bases-event-title,
+.calendar-note-bases-event-properties {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;

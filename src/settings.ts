@@ -14,12 +14,14 @@ import {
 	isSupportedDateFormat,
 	isValidIanaTimeZone,
 } from './date';
+import { CALENDAR_LOCALE_OPTIONS } from './calendar-locale';
 import {
 	OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
 	OBSIDIAN_TEXT_COLOR_OPTIONS,
 } from './color-options';
 import type CalendarNoteViewPlugin from './main';
 import type { CalendarSettings, CalendarSourceProfile, CalendarTypeStyleRule } from './models';
+import { collectEventTypeValues } from './event-types';
 import {
 	removeSourceProfile,
 	updateSourceProfile,
@@ -113,6 +115,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	getControlValue(key: string): unknown {
 		switch (key) {
 			case 'firstDayOfWeek': return String(this.plugin.settings.firstDayOfWeek);
+			case 'calendarLocale': return this.plugin.settings.calendarLocale;
 			case 'confirmBeforeCreatingDailyNote': return this.plugin.settings.confirmBeforeCreatingDailyNote;
 			case 'maxIndicatorsPerDay': return this.plugin.settings.maxIndicatorsPerDay;
 			case 'timeZoneMode': return this.plugin.settings.timeZone.mode;
@@ -123,6 +126,9 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	async setControlValue(key: string, value: unknown): Promise<void> {
 		const previous = this.snapshot();
 		switch (key) {
+			case 'calendarLocale':
+				this.plugin.settings.calendarLocale = isCalendarLocale(value) ? value : 'system';
+				break;
 			case 'firstDayOfWeek':
 				this.plugin.settings.firstDayOfWeek = Number(value);
 				break;
@@ -196,6 +202,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			type: 'group',
 			heading: 'Calendar behavior',
 			items: [{
+				name: 'Calendar language',
+				desc: 'Controls month, weekday, navigation, menu, and calendar status labels.',
+				control: { type: 'dropdown', key: 'calendarLocale', options: CALENDAR_LOCALE_OPTIONS },
+			}, {
 				name: 'First day of week',
 				desc: 'Choose the first column used by calendar views.',
 				control: {
@@ -285,7 +295,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				],
 			}, {
 				type: 'group', heading: 'Display defaults', items: [
-					this.profileText(profile, 'Default type', 'Initial type used by event creation.', 'defaultType'),
+					this.profileDefaultType(profile),
 					this.profileText(profile, 'Default icon', 'Used when no note property or Event Type Rule supplies an icon.', 'defaultIcon', 'icon'),
 					this.profileColorDropdown(profile, 'Default background color', 'Choose Style Settings fallback to inherit the Event fallback.', 'defaultBackgroundColor', OBSIDIAN_BACKGROUND_COLOR_OPTIONS),
 					this.profileColorDropdown(profile, 'Default text color', 'Choose Style Settings fallback to inherit the Event fallback.', 'defaultTextColor', OBSIDIAN_TEXT_COLOR_OPTIONS),
@@ -542,6 +552,19 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 				.addOptions(options)
 				.setValue(profile[key] ?? '')
 				.onChange(async (value) => this.updateProfile(profile.id, (current) => { current[key] = value || undefined; }, 'render')));
+		});
+	}
+
+	private profileDefaultType(profile: CalendarSourceProfile): SettingDefinition {
+		return this.renderDefinition('Default type', 'Initial type used by event creation. Values come from Event Type Rules, other Profile defaults, and the current Sidebar index.', (setting) => {
+			const values = collectEventTypeValues(this.plugin.settings, this.plugin.index.getAllItems(), [profile.defaultType]);
+			setting.addDropdown((dropdown) => {
+				dropdown.addOption('', 'None');
+				for (const value of values) dropdown.addOption(value, value);
+				dropdown.setValue(profile.defaultType ?? '').onChange(async (value) => {
+					await this.updateProfile(profile.id, (current) => { current.defaultType = value || undefined; }, 'save');
+				});
+			});
 		});
 	}
 
@@ -923,6 +946,10 @@ type RuleStringKey = 'typeValue' | 'icon' | 'backgroundColor' | 'textColor';
 function controlImpact(key: string): CalendarSettingsImpact {
 	if (key === 'confirmBeforeCreatingDailyNote') return 'save';
 	return 'render';
+}
+
+function isCalendarLocale(value: unknown): value is CalendarSettings['calendarLocale'] {
+	return typeof value === 'string' && Object.prototype.hasOwnProperty.call(CALENDAR_LOCALE_OPTIONS, value);
 }
 
 function profileImpact(key: ProfileStringKey | ProfileBooleanKey): CalendarSettingsImpact {

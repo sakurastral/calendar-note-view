@@ -1,12 +1,13 @@
 import {
 	ItemView,
 	Menu,
-	moment,
 	Notice,
 	setIcon,
+	setTooltip,
 	type WorkspaceLeaf,
 } from 'obsidian';
 import { buildCalendarMonthGrid, moveCalendarMonth } from './calendar-grid';
+import { calendarMonthLabels, calendarText, calendarWeekdayLabels, type CalendarTextKey } from './calendar-locale';
 import { CreateEventModal } from './create-event-modal';
 import { formatCalendarDate, getCalendarDateParts, getTodayCanonical } from './date';
 import type { CalendarItem } from './models';
@@ -61,11 +62,11 @@ export class CalendarSidebarView extends ItemView {
 		this.contentEl.empty();
 		this.contentEl.addClass('calendar-note-sidebar');
 		const header = this.contentEl.createDiv({ cls: 'calendar-note-sidebar-header' });
-		this.addHeaderButton(header, 'chevron-left', 'Previous month', () => this.moveMonth(-1));
+		this.addHeaderButton(header, 'chevron-left', this.text('previousMonth'), () => this.moveMonth(-1));
 		this.renderPicker(header);
-		this.addHeaderButton(header, 'calendar-check', 'Today', () => this.goToToday());
-		this.addHeaderButton(header, 'chevron-right', 'Next month', () => this.moveMonth(1));
-		const refresh = this.addHeaderButton(header, 'refresh-cw', 'Refresh calendar', () => { void this.refresh(refresh); });
+		this.addHeaderButton(header, 'calendar-check', this.text('today'), () => this.goToToday());
+		this.addHeaderButton(header, 'chevron-right', this.text('nextMonth'), () => this.moveMonth(1));
+		const refresh = this.addHeaderButton(header, 'refresh-cw', this.text('refreshCalendar'), () => { void this.refresh(refresh); });
 		refresh.disabled = this.refreshing;
 		refresh.toggleClass('is-loading', this.refreshing);
 
@@ -74,9 +75,8 @@ export class CalendarSidebarView extends ItemView {
 		const today = getTodayCanonical(settings.timeZone);
 		const dailyNotes = this.plugin.dailyNotes.getAll();
 		const calendar = this.contentEl.createDiv({ cls: 'calendar-note-month-grid' });
-		for (const weekday of grid.weekdays) {
-			calendar.createDiv({ cls: 'calendar-note-weekday', text: moment.weekdaysMin()[weekday] ?? '' });
-		}
+		const weekdayLabels = calendarWeekdayLabels(settings.calendarLocale);
+		for (const weekday of grid.weekdays) calendar.createDiv({ cls: 'calendar-note-weekday', text: weekdayLabels[weekday] ?? '' });
 		for (const cell of grid.cells) {
 			const wrapper = calendar.createDiv({ cls: 'calendar-note-date-cell' });
 			wrapper.toggleClass('is-adjacent-month', !cell.inCurrentMonth);
@@ -88,10 +88,13 @@ export class CalendarSidebarView extends ItemView {
 				attr: { 'aria-label': this.dateLabel(cell.date) },
 			});
 			button.createSpan({ cls: 'calendar-note-date-number', text: String(cell.day) });
-			const add = button.createSpan({ cls: 'calendar-note-date-add', attr: { 'aria-label': `Create event on ${cell.date}` } });
+			const add = button.createSpan({
+				cls: 'calendar-note-date-add',
+				attr: { 'aria-label': this.text('createEventOn', { date: this.dateLabel(cell.date) }) },
+			});
 			setIcon(add, 'plus');
 			if (this.plugin.dailyNotes.find(cell.date, dailyNotes)) {
-				button.createSpan({ cls: 'calendar-note-daily-indicator', attr: { title: 'Daily note exists' } });
+				button.createSpan({ cls: 'calendar-note-daily-indicator', attr: { title: this.text('dailyNoteExists') } });
 			}
 			const items = this.plugin.index.getItemsForDate(cell.date);
 			this.renderIndicators(button, items);
@@ -118,7 +121,7 @@ export class CalendarSidebarView extends ItemView {
 		const picker = container.createDiv({ cls: 'calendar-note-month-picker' });
 		const year = picker.createEl('input', {
 			cls: 'calendar-note-year-input',
-			attr: { type: 'number', min: '1', max: '9999', 'aria-label': 'Calendar year' },
+			attr: { type: 'number', min: '1', max: '9999', 'aria-label': this.text('calendarYear') },
 		});
 		year.value = String(this.year);
 		year.addEventListener('change', () => {
@@ -128,9 +131,10 @@ export class CalendarSidebarView extends ItemView {
 				this.renderCalendar();
 			}
 		});
-		const month = picker.createEl('select', { cls: 'calendar-note-month-select', attr: { 'aria-label': 'Calendar month' } });
+		const month = picker.createEl('select', { cls: 'calendar-note-month-select', attr: { 'aria-label': this.text('calendarMonth') } });
+		const monthLabels = calendarMonthLabels(this.plugin.settings.calendarLocale);
 		for (let value = 1; value <= 12; value += 1) {
-			const option = month.createEl('option', { text: moment.monthsShort()[value - 1] ?? String(value) });
+			const option = month.createEl('option', { text: monthLabels[value - 1] ?? String(value) });
 			option.value = String(value);
 		}
 		month.value = String(this.month);
@@ -152,8 +156,9 @@ export class CalendarSidebarView extends ItemView {
 			const presentation = getSidebarIndicatorPresentation(profile, resolved.icon);
 			const indicator = indicators.createSpan({
 				cls: `calendar-note-indicator ${presentation.className}`,
-				attr: { title: item.title, 'aria-label': item.title },
+				attr: { 'aria-label': item.title },
 			});
+			setTooltip(indicator, item.title);
 			indicator.style.setProperty('--calendar-note-item-bg', resolved.backgroundColor);
 			indicator.style.setProperty('--calendar-note-item-text', resolved.textColor);
 			if (presentation.icon) setIcon(indicator, presentation.icon);
@@ -199,7 +204,7 @@ export class CalendarSidebarView extends ItemView {
 		try {
 			await this.plugin.index.refresh();
 		} catch {
-			new Notice('Could not refresh the calendar index.');
+			new Notice(this.text('refreshFailed'));
 		} finally {
 			this.refreshing = false;
 			this.renderCalendar();
@@ -210,21 +215,21 @@ export class CalendarSidebarView extends ItemView {
 		const menu = new Menu();
 		const existing = this.plugin.dailyNotes.find(date);
 		menu.addItem((item) => item
-			.setTitle('Open daily note')
+			.setTitle(this.text('openDailyNote'))
 			.setIcon('calendar-check')
 			.setDisabled(!existing)
 			.onClick(() => this.plugin.dailyNotes.open(date)));
 		menu.addItem((item) => item
-			.setTitle('Create daily note')
+			.setTitle(this.text('createDailyNote'))
 			.setIcon('calendar-plus')
 			.setDisabled(Boolean(existing))
 			.onClick(() => this.plugin.dailyNotes.open(date)));
-		menu.addItem((item) => item.setTitle('Create event').setIcon('calendar-plus').onClick(() => {
+		menu.addItem((item) => item.setTitle(this.text('createEvent')).setIcon('calendar-plus').onClick(() => {
 			new CreateEventModal(this.plugin, this.plugin.eventCreation, date).open();
 		}));
 		menu.addSeparator();
-		menu.addItem((item) => item.setTitle('Events on this date').setIsLabel(true));
-		if (items.length === 0) menu.addItem((item) => item.setTitle('No events').setDisabled(true));
+		menu.addItem((item) => item.setTitle(this.text('eventsOnDate')).setIsLabel(true));
+		if (items.length === 0) menu.addItem((item) => item.setTitle(this.text('noEvents')).setDisabled(true));
 		for (const calendarItem of items) {
 			menu.addItem((item) => item
 				.setTitle(calendarItem.title)
@@ -236,9 +241,9 @@ export class CalendarSidebarView extends ItemView {
 
 	private showEventMenu(item: CalendarItem, event: MouseEvent): void {
 		const menu = new Menu();
-		menu.addItem((menuItem) => menuItem.setTitle('Open note').setIcon('file-text').onClick(() => this.openEvent(item, false)));
-		menu.addItem((menuItem) => menuItem.setTitle('Open in new tab').setIcon('file-plus').onClick(() => this.openEvent(item, true)));
-		menu.addItem((menuItem) => menuItem.setTitle('Copy Obsidian link').setIcon('copy').onClick(() => this.copyEventLink(item)));
+		menu.addItem((menuItem) => menuItem.setTitle(this.text('openNote')).setIcon('file-text').onClick(() => this.openEvent(item, false)));
+		menu.addItem((menuItem) => menuItem.setTitle(this.text('openInNewTab')).setIcon('file-plus').onClick(() => this.openEvent(item, true)));
+		menu.addItem((menuItem) => menuItem.setTitle(this.text('copyObsidianLink')).setIcon('copy').onClick(() => this.copyEventLink(item)));
 		this.plugin.app.workspace.handleLinkContextMenu(menu, item.filePath, '');
 		menu.showAtMouseEvent(event);
 	}
@@ -253,7 +258,7 @@ export class CalendarSidebarView extends ItemView {
 		if (!file) return;
 		const link = this.plugin.app.fileManager.generateMarkdownLink(file, '');
 		await navigator.clipboard.writeText(link);
-		new Notice('Copied Obsidian link.');
+		new Notice(this.text('copiedObsidianLink'));
 	}
 
 	private bindLongPress(button: HTMLButtonElement, date: string, items: CalendarItem[]): void {
@@ -275,5 +280,9 @@ export class CalendarSidebarView extends ItemView {
 
 	private dateLabel(date: string): string {
 		return formatCalendarDate(date, this.plugin.settings.displayDateFormat) ?? date;
+	}
+
+	private text(key: CalendarTextKey, values: Record<string, string | number> = {}): string {
+		return calendarText(this.plugin.settings.calendarLocale, key, values);
 	}
 }

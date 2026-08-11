@@ -37,7 +37,8 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 };
 
 export const DEFAULT_SETTINGS: CalendarSettings = {
-	schemaVersion: 7,
+	schemaVersion: 8,
+	calendarLocale: 'system',
 	firstDayOfWeek: 0,
 	weekendDays: [0, 6],
 	timeZone: { mode: 'system' },
@@ -75,7 +76,8 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		? Number(raw.firstDayOfWeek)
 		: DEFAULT_SETTINGS.firstDayOfWeek;
 	const settings: CalendarSettings = {
-		schemaVersion: 7,
+		schemaVersion: 8,
+		calendarLocale: normalizeCalendarLocale(raw.calendarLocale),
 		firstDayOfWeek,
 		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
 		timeZone: normalizeTimeZone(raw.timeZone, warnings),
@@ -88,7 +90,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	};
 	return {
 		settings,
-		migrated: raw.schemaVersion !== 7 || JSON.stringify(settings) !== JSON.stringify(raw),
+		migrated: raw.schemaVersion !== 8 || JSON.stringify(settings) !== JSON.stringify(raw),
 		warnings,
 	};
 }
@@ -197,6 +199,10 @@ function normalizeTimeZone(raw: unknown, warnings: string[]): CalendarTimeZone {
 	}
 	warnings.push('The time zone setting was invalid and was reset to System.');
 	return { mode: 'system' };
+}
+
+function normalizeCalendarLocale(raw: unknown): CalendarSettings['calendarLocale'] {
+	return raw === 'en' || raw === 'zh-TW' || raw === 'zh-CN' || raw === 'ja' || raw === 'ko' ? raw : 'system';
 }
 
 function validFormat(raw: unknown, fallback: string, warnings: string[], label: string): string {

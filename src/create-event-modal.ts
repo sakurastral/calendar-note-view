@@ -3,11 +3,14 @@ import { formatCalendarDate, getTodayCanonical } from './date';
 import type { CreateEventInput, EventNoteCreationService } from './event-creation';
 import type CalendarNoteViewPlugin from './main';
 import { sortSourceProfiles } from './source-profile';
+import { collectEventTypeValues } from './event-types';
+import { CalendarInputSuggest } from './suggestions';
 
 export class CreateEventModal extends Modal {
 	private input: CreateEventInput;
 	private previewEl?: HTMLElement;
 	private readonly textInputs = new Map<'type' | 'icon' | 'backgroundColor' | 'textColor', HTMLInputElement>();
+	private eventTypeSuggest?: CalendarInputSuggest;
 
 	constructor(
 		private readonly plugin: CalendarNoteViewPlugin,
@@ -94,6 +97,8 @@ export class CreateEventModal extends Modal {
 	}
 
 	onClose(): void {
+		this.eventTypeSuggest?.close();
+		this.eventTypeSuggest = undefined;
 		this.contentEl.empty();
 	}
 
@@ -114,6 +119,20 @@ export class CreateEventModal extends Modal {
 					this.refreshPreview();
 				}).then((text) => {
 					if (key !== 'title') this.textInputs.set(key, text.inputEl);
+					if (key === 'type') {
+						const values = collectEventTypeValues(this.plugin.settings, this.plugin.index.getAllItems(), [this.input.type]);
+						const commit = (value: string): void => {
+							this.input.type = value;
+							this.refreshPreview();
+						};
+						this.eventTypeSuggest = new CalendarInputSuggest(
+							this.app,
+							text.inputEl,
+							(query) => this.plugin.suggestions.getEventTypeSuggestions(query, values),
+							undefined,
+							commit,
+						);
+					}
 				}));
 	}
 

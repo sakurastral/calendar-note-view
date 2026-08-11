@@ -2,6 +2,22 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.4.0
+
+### Added
+
+- Add a Calendar language dropdown with System, English, Traditional Chinese, Simplified Chinese, Japanese, and Korean calendar labels
+- Add Event Type intellisense to the Create Event dialog
+- Add a Bases event display mode that renders the properties currently visible in the Base
+- Accept date and datetime Values for Sidebar and Bases Start and End property mappings without shifting the written date
+
+### Changed
+
+- Change Source Profile Default type to a dropdown populated from configured and indexed event types
+- Expand the Bases maximum event row limit to 12 and clarify that the option controls rows shown per day
+- Add a configurable hover text color and ensure Weekend and Today cells receive complete hover feedback
+- Show Sidebar event names through Obsidian tooltips without a duplicate native browser tooltip
+
 ## 0.3.2
 
 ### Fixed
