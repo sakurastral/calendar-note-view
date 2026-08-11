@@ -25,6 +25,7 @@ All notable changes to Calendar Note View are documented in this file.
 
 ### Fixed
 
+- Preserve explicitly configured file-name and generated-title templates after the legacy template migration has already completed
 - Prevent Profile changes in Create Event from overwriting manually edited Type, icon, or color values
 - Restore focus to the initiating Agenda control and keep the viewed month stable across index and settings rerenders
 - Remove native title tooltips from Sidebar Daily Note and Event indicators

@@ -62,8 +62,15 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	if (!isRecord(raw)) return { settings: cloneDefaults(), migrated: true, warnings };
 
 	const legacyIndicatorMode = raw.sidebarIndicatorMode === 'icons' ? 'icons' : 'dots';
+	const migrateLegacyEventTemplates = typeof raw.schemaVersion === 'number' && raw.schemaVersion <= 2;
 	const sourceProfiles = Array.isArray(raw.sourceProfiles)
-		? raw.sourceProfiles.map((profile, index) => normalizeProfile(profile, index, warnings, legacyIndicatorMode)).filter(isDefined)
+		? raw.sourceProfiles.map((profile, index) => normalizeProfile(
+			profile,
+			index,
+			warnings,
+			legacyIndicatorMode,
+			migrateLegacyEventTemplates,
+		)).filter(isDefined)
 		: [createDefaultProfile()];
 	const typeStyleRules = Array.isArray(raw.typeStyleRules)
 		? raw.typeStyleRules.map((rule, index) => normalizeRule(rule, index, warnings)).filter(isDefined)
@@ -136,6 +143,7 @@ function normalizeProfile(
 	index: number,
 	warnings: string[],
 	legacyIndicatorMode: 'icons' | 'dots',
+	migrateLegacyEventTemplates: boolean,
 ): CalendarSourceProfile | undefined {
 	if (!isRecord(raw)) {
 		warnings.push(`Source profile ${index + 1} was ignored because it is invalid.`);
@@ -171,9 +179,9 @@ function normalizeProfile(
 		allowCreate: boolean(raw.allowCreate, false),
 		createFolder: text(raw.createFolder),
 		noteTemplatePath: text(raw.noteTemplatePath),
-		fileNameTemplate: migrateEventTemplate(raw.fileNameTemplate),
+		fileNameTemplate: normalizeEventTemplate(raw.fileNameTemplate, migrateLegacyEventTemplates),
 		generatedTitleProperty: text(raw.generatedTitleProperty),
-		generatedTitleTemplate: migrateEventTemplate(raw.generatedTitleTemplate),
+		generatedTitleTemplate: normalizeEventTemplate(raw.generatedTitleTemplate, migrateLegacyEventTemplates),
 		titleDateFormat: text(raw.titleDateFormat),
 	};
 }
@@ -231,9 +239,9 @@ function text(value: unknown): string | undefined {
 	return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
-function migrateEventTemplate(value: unknown): string | undefined {
+function normalizeEventTemplate(value: unknown, migrateLegacyDefault: boolean): string | undefined {
 	const template = text(value);
-	return template === '{date-range}《{title}》' ? '{date-range} {title}' : template;
+	return migrateLegacyDefault && template === '{date-range}《{title}》' ? '{date-range} {title}' : template;
 }
 
 function stringArray(value: unknown): string[] {

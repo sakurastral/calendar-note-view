@@ -78,6 +78,39 @@ describe('settings infrastructure', () => {
 		expect(reloaded.sourceProfiles[0]).toEqual(rawProfile);
 	});
 
+	it('preserves current custom event templates that match the former legacy default', () => {
+		const current = loadCalendarSettings({
+			schemaVersion: 9,
+			sourceProfiles: [{
+				id: 'events',
+				name: 'Events',
+				startProperty: 'start',
+				fileNameTemplate: '{date-range}《{title}》',
+				generatedTitleTemplate: '{date-range}《{title}》',
+			}],
+			typeStyleRules: [],
+		}).settings;
+		const reloaded = loadCalendarSettings(JSON.parse(JSON.stringify(current))).settings;
+
+		expect(reloaded.sourceProfiles[0]?.fileNameTemplate).toBe('{date-range}《{title}》');
+		expect(reloaded.sourceProfiles[0]?.generatedTitleTemplate).toBe('{date-range}《{title}》');
+	});
+
+	it('migrates the former event template default only for legacy schema data', () => {
+		const legacy = loadCalendarSettings({
+			schemaVersion: 2,
+			sourceProfiles: [{
+				id: 'events',
+				startProperty: 'start',
+				fileNameTemplate: '{date-range}《{title}》',
+				generatedTitleTemplate: '{date-range}《{title}》',
+			}],
+		}).settings.sourceProfiles[0];
+
+		expect(legacy?.fileNameTemplate).toBe('{date-range} {title}');
+		expect(legacy?.generatedTitleTemplate).toBe('{date-range} {title}');
+	});
+
 	it('preserves an explicit Style Settings fallback instead of forcing profile colors', () => {
 		const defaults = structuredClone(DEFAULT_EVENT_PROFILE);
 		expect(defaults.defaultBackgroundColor).toBeUndefined();
