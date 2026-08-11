@@ -125,6 +125,8 @@ export class CalendarBasesView extends BasesView {
 			this.resizeObserver.observe(this.containerEl);
 			this.register(() => this.resizeObserver?.disconnect());
 		}
+		const unsubscribeRollover = this.plugin.dayRollover?.subscribe(() => this.renderCalendar());
+		if (unsubscribeRollover) this.register(unsubscribeRollover);
 	}
 
 	onDataUpdated(): void {

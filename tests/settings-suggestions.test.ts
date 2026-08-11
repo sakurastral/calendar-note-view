@@ -39,6 +39,12 @@ describe('settings infrastructure', () => {
 		expect(loadCalendarSettings({ schemaVersion: 8, calendarLocale: 'unknown' }).settings.calendarLocale).toBe('system');
 	});
 
+	it('round-trips the last create Profile ID as UI-only state', () => {
+		const settings = loadCalendarSettings({ schemaVersion: 9, lastCreateProfileId: 'profile-events' }).settings;
+		expect(settings.lastCreateProfileId).toBe('profile-events');
+		expect(loadCalendarSettings(JSON.parse(JSON.stringify(settings))).settings.lastCreateProfileId).toBe('profile-events');
+	});
+
 	it('migrates partial legacy data and safely ignores removed task settings', () => {
 		const result = loadCalendarSettings({
 			schemaVersion: 4,
@@ -51,7 +57,7 @@ describe('settings infrastructure', () => {
 			}],
 		});
 		expect(result.migrated).toBe(true);
-		expect(result.settings.schemaVersion).toBe(8);
+		expect(result.settings.schemaVersion).toBe(9);
 		expect(result.settings.displayDateFormat).toBe('DD/MM/YYYY');
 		expect(result.settings.sourceProfiles[0]).toMatchObject({ id: 'events', startProperty: 'start', folders: ['Events'] });
 		expect(JSON.stringify(result.settings)).not.toMatch(/kind|completed|hideCompleted|dimCompleted/);

@@ -60,7 +60,7 @@ export type CalendarTimeZone =
 export type CalendarLocale = 'system' | 'en' | 'zh-TW' | 'zh-CN' | 'ja' | 'ko';
 
 export interface CalendarSettings {
-	schemaVersion: 8;
+	schemaVersion: 9;
 	calendarLocale: CalendarLocale;
 	firstDayOfWeek: number;
 	weekendDays: number[];
@@ -69,6 +69,7 @@ export interface CalendarSettings {
 	eventPropertyDateFormat: string;
 	confirmBeforeCreatingDailyNote: boolean;
 	maxIndicatorsPerDay: number;
+	lastCreateProfileId?: string;
 	sourceProfiles: CalendarSourceProfile[];
 	typeStyleRules: CalendarTypeStyleRule[];
 }
@@ -111,4 +112,12 @@ export interface ResolvedCalendarItemStyle {
 	icon: string;
 	backgroundColor: string;
 	textColor: string;
+}
+
+export type CalendarStyleSource = 'note' | 'type-rule' | 'source-profile' | 'style-settings' | 'theme';
+
+export interface ResolvedCalendarItemStyleSources {
+	icon: CalendarStyleSource;
+	backgroundColor: CalendarStyleSource;
+	textColor: CalendarStyleSource;
 }

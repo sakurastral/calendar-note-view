@@ -6,6 +6,11 @@ import { createSourceProfileId, sortSourceProfiles } from './source-profile';
 
 export type SourceProfilePreset = 'folder' | 'tag' | 'wiki-link' | 'start-only' | 'advanced';
 
+export interface SourceProfileSetupDraft {
+	profile: CalendarSourceProfile;
+	preset: SourceProfilePreset;
+}
+
 export interface ProfileValidationIssue {
 	code: 'missing-start' | 'empty-source' | 'incomplete-wiki-link' | 'missing-folder' | 'missing-template' | 'invalid-date-format' | 'duplicate-name';
 	message: string;
@@ -24,6 +29,39 @@ export function createSourceProfileFromPreset(
 	profile.order = profiles.length + 1;
 	profile.enabled = false;
 	profile.matchFilesWithStartPropertyOnly = preset === 'start-only';
+	return profile;
+}
+
+export function createSourceProfileSetupDraft(
+	profiles: readonly CalendarSourceProfile[],
+	preset: SourceProfilePreset = 'folder',
+): SourceProfileSetupDraft {
+	const profile = createSourceProfileFromPreset(profiles, preset);
+	profile.id = 'setup-draft';
+	profile.enabled = true;
+	return { profile, preset };
+}
+
+export function applySourceProfileSetupPreset(
+	draft: SourceProfileSetupDraft,
+	preset: SourceProfilePreset,
+): void {
+	draft.preset = preset;
+	draft.profile.folders = [];
+	draft.profile.tags = [];
+	draft.profile.wikiLinkProperty = undefined;
+	draft.profile.wikiLinkTargets = [];
+	draft.profile.matchFilesWithStartPropertyOnly = preset === 'start-only';
+}
+
+export function finalizeSourceProfileSetupDraft(
+	draft: SourceProfileSetupDraft,
+	profiles: readonly CalendarSourceProfile[],
+): CalendarSourceProfile {
+	const profile = structuredClone(draft.profile);
+	profile.id = createSourceProfileId();
+	profile.name = createUniqueName(profiles.map((candidate) => candidate.name), profile.name);
+	profile.order = profiles.length + 1;
 	return profile;
 }
 

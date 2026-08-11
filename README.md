@@ -22,6 +22,10 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 - Optional Style Settings controls through CSS variables
 - Diagnostics for invalid indexed notes
 - Guided, mobile-friendly settings with live matching summaries and validation
+- First-run Sidebar setup assistant with draft-only Back/Next steps and a single final save
+- Source Profile matching inspector for one selected note, including style provenance and diagnostics
+- Keyboard-accessible Sidebar Agenda, semantic date actions, and time-zone-aware day rollover
+- Command Palette workflows for Today, today's events, Profile-selected creation, refresh, and diagnostics
 
 ## Installation
 
@@ -36,11 +40,17 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 
 Use the ribbon icon or run **Calendar Note View: Open sidebar calendar**. The header provides Previous Month, Next Month, Today, separate Year and Month controls, and Refresh.
 
-Date cells show Daily Note status and colored event dots or icon badges selected independently by each Source Profile. Indicators from different profiles can use different modes in the same date cell. Select a date number to open or create its Daily Note. Use the plus button or date context menu to create an event. Select an event indicator to open its note.
+Date cells expose separate semantic controls for the Daily Note, event creation, Agenda, each Event, and `+N` overflow. Date numbers open or create Daily Notes; the plus button creates an Event; the list button and `+N` open the selected date's Sidebar Agenda. Event indicators are keyboard-operable buttons and open their notes directly.
+
+When no valid Source Profile exists, the Sidebar explains that Profiles are required only for Sidebar events—not Bases Calendar—and offers **Set up Sidebar Calendar**. The setup assistant keeps every step in a temporary draft, supports Back and Next without saving partial state, and creates one immutable Profile only on Finish.
+
+The Sidebar grid supports Arrow keys between dates, Page Up/Down between months, Shift + Page Up/Down between years, and Home for Today. Month changes are announced to assistive technology, while index and settings rerenders preserve the viewed month and restore a reasonable focus target. Today state updates after midnight in the configured time zone without rebuilding the event index.
 
 Choose **Calendar language** under **Calendar behavior** to localize month and weekday labels, navigation accessibility labels, calendar menus, and status messages. **System default** follows the current device language. Event indicators use Obsidian tooltips without also showing a browser-native title tooltip.
 
 Refresh safely rebuilds the Sidebar event index while preserving the viewed month.
+
+The Sidebar Agenda uses only items already present in the Sidebar index. It preserves index order, shows inclusive ranges, Type and Source Profile, and provides Open note, Open in new tab, and Copy Obsidian link actions. It never scans the vault or reads Bases Values.
 
 ## Bases Calendar
 
@@ -112,6 +122,8 @@ Source Profile icons provide suggestions from Obsidian's installed icon set. Def
 
 The Source Profile page is divided into Overview, Source matching, Property mapping, Display defaults, Event creation, Advanced, and Actions. A live sentence explains the effective All, Any, or Start-only logic, and inline validation identifies incomplete Wiki Link pairs, missing Start properties, duplicate display names, and event-creation paths. Creation-only fields stay hidden until **Allow event creation** is enabled.
 
+Choose **Test this profile** to inspect one note selected from cached Markdown suggestions. The inspector reports enabled state, Markdown/frontmatter prerequisites, Start and End parsing, Folder/Tag/Wiki Link group results, All/Any or Start-only resolution, normalized event values, first matching Event Type Rule, style sources, and diagnostics. It calls the same production matcher, normalizer, and style resolver used by the Sidebar and does not alter settings or the index.
+
 Delete a Source Profile from its list action or from **Actions → Delete** inside the profile. Calendar Note View asks for confirmation and removes only the profile, its indexed Sidebar items, and related diagnostics; it never deletes event notes from the vault.
 
 ## Event Type Rules
@@ -154,7 +166,7 @@ Each Source Profile and each Bases Calendar view maps its own properties. Bases 
 
 ## Event creation
 
-Run **Calendar Note View: Create event**, use a calendar date's plus button, or use its context menu. Choose an enabled Source Profile, enter a title and date range, then review the generated file path and properties before creating the note.
+Run **Calendar Note View: Create event**, use a calendar date's plus button, or use its context menu. Basics contain the Profile, title, Start, inclusive End, and Type. Icon/color overrides, collision behavior, style-source provenance, and generated output are grouped under collapsible Advanced details. Profile changes preserve dirty fields, and the last valid Profile is remembered by immutable ID. Cmd/Ctrl + Enter submits once; inline validation keeps invalid input in place.
 
 The creation service supports nested folders, frontmatter property mapping, note templates, safe file names, and automatic suffixes when a file name already exists.
 
@@ -212,13 +224,15 @@ The Settings **Quick status** section shows enabled Source Profiles, indexed Eve
 
 Run **Calendar Note View: Open calendar diagnostics** to inspect indexed note issues. The dialog shows the diagnostic code, message, file, and Source Profile. Select a file to open it. Profile-level issues are labeled as Profile settings instead of rendering an empty file action.
 
+Diagnostics also provides severity counts, separate Open/Open in new tab actions only when a file path exists, Copy Profile ID, and **Copy support summary**. The default support summary contains version, platform, index state, counts, diagnostic codes/severity, and settings schema only. Vault names, note titles, frontmatter, templates, and paths are excluded unless file paths are explicitly enabled.
+
 ## Mobile
 
 The Sidebar Calendar, Bases Calendar, date actions, event actions, Create Event dialog, token editors, action menus, and floating suggestions use responsive layouts and public Obsidian APIs. Settings provide keyboard alternatives to drag-and-drop, viewport-clamped suggestions, screen-reader state, and touch-sized controls. No desktop-only Node or Electron APIs are used.
 
 ## Known limitations
 
-- Version 0.4.x provides month views only; it does not include year, week, day, or hour timelines.
+- Version 0.5.x provides month views only; it does not include year, week, day, or hour timelines.
 - Recurring events, reminders, external calendar sync, drag-and-drop, and event resizing are not included.
 - Daily Notes integration uses `obsidian-daily-notes-interface` as a compatibility layer around the Core Daily Notes plugin.
 - Formula values in Bases must render to a date or datetime compatible with the configured event property date format.

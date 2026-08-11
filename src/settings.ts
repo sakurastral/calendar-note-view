@@ -14,7 +14,7 @@ import {
 	isSupportedDateFormat,
 	isValidIanaTimeZone,
 } from './date';
-import { CALENDAR_LOCALE_OPTIONS } from './calendar-locale';
+import { CALENDAR_LOCALE_OPTIONS, calendarText, type CalendarTextKey } from './calendar-locale';
 import {
 	OBSIDIAN_BACKGROUND_COLOR_OPTIONS,
 	OBSIDIAN_TEXT_COLOR_OPTIONS,
@@ -54,6 +54,9 @@ import type { CalendarSettingsImpact, CalendarSettingsSaveState } from './settin
 import { moveSourceProfileToOrder } from './source-profile';
 import { CalendarInputSuggest, CalendarFloatingSuggest } from './suggestions';
 import { CalendarDiagnosticsModal } from './diagnostics-modal';
+import { hasSourceConditions } from './matcher';
+import { ProfileMatchingInspectorModal } from './profile-inspector';
+import { SetupAssistantModal } from './setup-assistant-modal';
 
 const EVENT_TEMPLATE_VARIABLES = [
 	'{title}', '{start}', '{end}', '{start-date}', '{end-date}', '{date-range}',
@@ -79,6 +82,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private readonly matchingSummaryElements = new Map<string, Set<HTMLElement>>();
 	private readonly customDateModes = new Set<'displayDateFormat' | 'eventPropertyDateFormat'>();
 	private readonly unsubscribeIndex: () => void;
+	private profileFilter = '';
+	private ruleFilter = '';
+	private profileFilterTimer?: number;
+	private ruleFilterTimer?: number;
 
 	constructor(app: App, private readonly plugin: CalendarNoteViewPlugin) {
 		super(app, plugin);
@@ -87,6 +94,8 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 
 	dispose(): void {
 		this.unsubscribeIndex();
+		if (this.profileFilterTimer !== undefined) window.clearTimeout(this.profileFilterTimer);
+		if (this.ruleFilterTimer !== undefined) window.clearTimeout(this.ruleFilterTimer);
 	}
 
 	hide(): void {
@@ -96,7 +105,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 
 	setSaveStatus(status: CalendarSettingsSaveState): void {
 		for (const element of this.saveStatusElements) {
-			element.setText(saveStatusLabel(status));
+			element.setText(this.text(status === 'saving' ? 'saving' : status === 'error' ? 'saveFailed' : 'saved'));
 			element.dataset.status = status;
 		}
 	}
@@ -106,8 +115,8 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			this.quickStatusDefinitions(),
 			this.calendarBehaviorDefinitions(),
 			this.dateTimeDefinitions(),
-			this.sourceProfileDefinitions(),
-			this.typeRuleDefinitions(),
+			...this.sourceProfileDefinitions(),
+			...this.typeRuleDefinitions(),
 			this.diagnosticsDefinitions(),
 		];
 	}
@@ -155,40 +164,52 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private quickStatusDefinitions(): SettingDefinitionItem {
 		return {
 			type: 'group',
-			heading: 'Quick status',
+			heading: this.text('quickStatus'),
 			cls: 'calendar-note-settings-status-group',
-			items: [this.renderDefinition('Calendar status', 'A live summary from the existing Sidebar index.', (setting) => {
+			items: [this.renderDefinition(this.text('calendarStatus'), 'A live summary from the existing Sidebar index.', (setting) => {
 				setting.settingEl.addClass('calendar-note-status-setting');
 				setting.descEl.empty();
 				const dashboard = setting.descEl.createDiv({ cls: 'calendar-note-status-grid' });
 				const elements: QuickStatusElements = {
-					profiles: this.statusCard(dashboard, 'Enabled profiles'),
-					events: this.statusCard(dashboard, 'Indexed events'),
-					diagnostics: this.statusCard(dashboard, 'Diagnostics'),
-					index: this.statusCard(dashboard, 'Index status'),
+					profiles: this.statusCard(dashboard, this.text('enabledProfiles')),
+					events: this.statusCard(dashboard, this.text('indexedEvents')),
+					diagnostics: this.statusCard(dashboard, this.text('diagnosticsLabel')),
+					index: this.statusCard(dashboard, this.text('indexStatus')),
 				};
 				this.quickStatusElements.add(elements);
 				this.updateQuickStatus(elements);
 				setting.addButton((button) => button
-					.setButtonText('Open diagnostics')
+					.setButtonText(this.text('openDiagnostics'))
 					.setIcon('circle-alert')
 					.onClick(() => new CalendarDiagnosticsModal(this.plugin).open()));
 				setting.addButton((button) => button
-					.setButtonText('Refresh index')
+					.setButtonText(this.text('refreshIndex'))
 					.setIcon('refresh-cw')
 					.onClick(async () => {
-						button.setDisabled(true).setButtonText('Refreshing…');
+						button.setDisabled(true).setButtonText(this.text('refreshing'));
 						try {
 							await this.plugin.index.refresh();
 						} catch {
 							new Notice('Could not refresh the calendar index.');
 						} finally {
-							button.setDisabled(false).setButtonText('Refresh index');
+							button.setDisabled(false).setButtonText(this.text('refreshIndex'));
 							this.refreshRuntimeStatus();
 						}
 					}));
+				const hasValidProfile = this.plugin.settings.sourceProfiles.some((profile) => profile.enabled && profile.startProperty.trim() &&
+					(hasSourceConditions(profile) || profile.matchFilesWithStartPropertyOnly));
+				if (!hasValidProfile) {
+					setting.addButton((button) => button
+						.setButtonText(this.text('createFirstProfile'))
+						.setCta()
+						.onClick(() => this.openSetupAssistant()));
+				} else if (!this.plugin.settings.sourceProfiles.some((profile) => profile.enabled && profile.allowCreate && profile.startProperty.trim())) {
+					setting.addButton((button) => button
+						.setButtonText(this.text('configureEventCreation'))
+						.onClick(() => this.openSetupAssistant()));
+				}
 				return () => this.quickStatusElements.delete(elements);
-			}), this.renderDefinition('Settings save status', 'Changes save automatically and are coalesced before expensive updates.', (setting) => {
+			}), this.renderDefinition(this.text('settingsSaveStatus'), 'Changes save automatically and are coalesced before expensive updates.', (setting) => {
 				const status = setting.controlEl.createSpan({ cls: 'calendar-note-save-status' });
 				this.saveStatusElements.add(status);
 				this.setSaveStatus(this.plugin.getSettingsSaveState());
@@ -200,24 +221,24 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private calendarBehaviorDefinitions(): SettingDefinitionItem {
 		return {
 			type: 'group',
-			heading: 'Calendar behavior',
+			heading: this.text('calendarBehavior'),
 			items: [{
-				name: 'Calendar language',
+				name: this.text('calendarLanguage'),
 				desc: 'Controls month, weekday, navigation, menu, and calendar status labels.',
 				control: { type: 'dropdown', key: 'calendarLocale', options: CALENDAR_LOCALE_OPTIONS },
 			}, {
-				name: 'First day of week',
+				name: this.text('firstDayOfWeek'),
 				desc: 'Choose the first column used by calendar views.',
 				control: {
 					type: 'dropdown', key: 'firstDayOfWeek',
 					options: { '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday' },
 				},
 			}, this.weekendDaysDefinition(), {
-				name: 'Confirm before creating daily note',
+				name: this.text('confirmDailyCreation'),
 				desc: 'Ask before a missing daily note is created from the calendar.',
 				control: { type: 'toggle', key: 'confirmBeforeCreatingDailyNote' },
 			}, {
-				name: 'Maximum indicators per date',
+				name: this.text('maximumIndicators'),
 				desc: 'Additional events are summarized as +N.',
 				control: { type: 'slider', key: 'maxIndicatorsPerDay', min: 1, max: 8, step: 1 },
 			}],
@@ -227,34 +248,40 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private dateTimeDefinitions(): SettingDefinitionItem {
 		return {
 			type: 'group',
-			heading: 'Date & time',
+			heading: this.text('dateAndTime'),
 			items: [{
-				name: 'Time zone',
+				name: this.text('timeZone'),
 				desc: 'Used to determine today. Date-only events are never shifted between dates.',
 				control: {
 					type: 'dropdown', key: 'timeZoneMode',
 					options: { system: 'System', utc: 'UTC', custom: 'Custom IANA time zone' },
 				},
 			}, this.customTimeZoneDefinition(),
-			this.dateFormatDefinition('Display date format', 'Controls calendar labels, tooltips, and previews. It does not change stored event values.', 'displayDateFormat', 'render'),
-			this.dateFormatDefinition('Event property date format', 'Strictly parses Start and End properties. Internal dates remain YYYY-MM-DD.', 'eventPropertyDateFormat', 'index')],
+			this.dateFormatDefinition(this.text('displayDateFormat'), 'Controls calendar labels, tooltips, and previews. It does not change stored event values.', 'displayDateFormat', 'render'),
+			this.dateFormatDefinition(this.text('propertyDateFormat'), 'Strictly parses Start and End properties. Internal dates remain YYYY-MM-DD.', 'eventPropertyDateFormat', 'index')],
 		};
 	}
 
-	private sourceProfileDefinitions(): SettingDefinitionItem {
+	private sourceProfileDefinitions(): SettingDefinitionItem[] {
 		const orderedProfiles = sortProfilesForDisplay(this.plugin.settings.sourceProfiles);
-		return {
+		const filteredProfiles = this.profileFilter
+			? orderedProfiles.filter((profile) => `${profile.name} ${profile.startProperty} ${describeProfileSource(profile)}`.toLocaleLowerCase().includes(this.profileFilter.toLocaleLowerCase()))
+			: orderedProfiles;
+		const definitions: SettingDefinitionItem[] = [];
+		if (orderedProfiles.length >= 8) definitions.push(this.localFilterDefinition('Source Profile filter', this.profileFilter, 'profile'));
+		definitions.push({
 			type: 'list',
-			heading: 'Source profiles',
+			heading: this.text('sourceProfiles'),
 			emptyState: 'No source profiles are configured.',
-			items: orderedProfiles.map((profile) => this.sourceProfilePage(profile)),
-			addItem: { name: 'Add source profile', action: () => this.openAddSourceProfile() },
+			items: filteredProfiles.map((profile) => this.sourceProfilePage(profile)),
+			addItem: { name: this.text('addSourceProfile'), action: () => this.openAddSourceProfile() },
 			onDelete: (index) => {
 				const profile = orderedProfiles[index];
 				if (profile) this.confirmDeleteSourceProfile(profile);
 			},
 			onReorder: (oldIndex, newIndex) => { void this.reorderSourceProfiles(orderedProfiles, oldIndex, newIndex); },
-		};
+		});
+		return definitions;
 	}
 
 	private sourceProfilePage(profile: CalendarSourceProfile): SettingDefinitionPage {
@@ -263,10 +290,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			type: 'page',
 			name: getStableProfilePageName(profile),
 			desc: this.profileListDescription(profile),
-			displayValue: () => `${profile.enabled ? 'Enabled' : 'Disabled'} · ${profile.sidebarIndicatorMode === 'icons' ? 'Icons' : 'Dots'} · ${this.plugin.index.getItemCountByProfile(profile.id)} events`,
+			displayValue: () => `${this.text(profile.enabled ? 'enabled' : 'disabled')} · ${profile.sidebarIndicatorMode === 'icons' ? 'Icons' : 'Dots'} · ${this.plugin.index.getItemCountByProfile(profile.id)} events`,
 			status: () => issues.length > 0 ? 'warning' : null,
 			items: [{
-				type: 'group', heading: 'Overview', items: [
+				type: 'group', heading: this.text('overview'), items: [
 					this.profileText(profile, 'Name', 'Display label used in settings and event creation. The immutable ID keeps duplicate names separate.', 'name', undefined, true),
 					this.profileToggle(profile, 'Enabled', 'Include this profile in the Sidebar Calendar index.', 'enabled', true),
 					this.profileIndicatorMode(profile),
@@ -274,8 +301,13 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					...issues.map((issue) => this.validationDefinition(issue.message, issue.severity)),
 				],
 			}, {
-				type: 'group', heading: 'Source matching', items: [
+				type: 'group', heading: this.text('sourceMatching'), items: [
 					this.matchingSummaryDefinition(profile),
+					this.renderDefinition(this.text('testThisProfile'), this.text('chooseNote'), (setting) => {
+						setting.addButton((button) => button.setButtonText(this.text('testNote')).setIcon('flask-conical').onClick(() => {
+							new ProfileMatchingInspectorModal(this.plugin, profile).open();
+						}));
+					}),
 					this.profileDropdown(profile, 'Match mode', 'Combine only non-empty source groups. Values within a group always use OR.', 'matchMode', { all: 'All configured groups', any: 'Any configured group' }, () => getSourceGroupCount(profile) >= 2),
 					this.profileMultiValue(profile, 'Folders', 'Matches selected folders and their descendants.', 'folders', 'Add a folder', (query) => this.plugin.suggestions.getFolderSuggestions(query), normalizeMultiValue),
 					this.profileMultiValue(profile, 'Tags', 'Matches complete Properties or inline tags. Nested tags must be selected explicitly.', 'tags', 'Add a tag', (query) => this.plugin.suggestions.getTagSuggestions(query), normalizeTagToken),
@@ -284,7 +316,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileToggle(profile, 'Match start property only', 'Use the required Start property as the only source filter.', 'matchFilesWithStartPropertyOnly', true, () => !hasAnyConfiguredSource(profile)),
 				],
 			}, {
-				type: 'group', heading: 'Property mapping', items: [
+				type: 'group', heading: this.text('propertyMapping'), items: [
 					this.profileText(profile, 'Start property', 'Required event start date property.', 'startProperty', 'property', true),
 					this.profileText(profile, 'End property', 'Optional inclusive end date property.', 'endProperty', 'property'),
 					this.profileText(profile, 'Title property', 'Optional display title property.', 'titleProperty', 'property'),
@@ -294,14 +326,14 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileText(profile, 'Text color property', 'Optional safe CSS color property.', 'textColorProperty', 'property'),
 				],
 			}, {
-				type: 'group', heading: 'Display defaults', items: [
+				type: 'group', heading: this.text('displayDefaults'), items: [
 					this.profileDefaultType(profile),
 					this.profileText(profile, 'Default icon', 'Used when no note property or Event Type Rule supplies an icon.', 'defaultIcon', 'icon'),
 					this.profileColorDropdown(profile, 'Default background color', 'Choose Style Settings fallback to inherit the Event fallback.', 'defaultBackgroundColor', OBSIDIAN_BACKGROUND_COLOR_OPTIONS),
 					this.profileColorDropdown(profile, 'Default text color', 'Choose Style Settings fallback to inherit the Event fallback.', 'defaultTextColor', OBSIDIAN_TEXT_COLOR_OPTIONS),
 				],
 			}, {
-				type: 'group', heading: 'Event creation', items: [
+				type: 'group', heading: this.text('eventCreation'), items: [
 					this.profileToggle(profile, 'Allow event creation', 'Make this profile available in the Create Event modal.', 'allowCreate', true),
 					this.profileText(profile, 'Create folder', 'Folder used for newly created event notes.', 'createFolder', 'folder', true, undefined, () => profile.allowCreate),
 					this.profileText(profile, 'Note template path', `Optional Markdown template. Variables: ${EVENT_TEMPLATE_VARIABLES}`, 'noteTemplatePath', 'file', true, undefined, () => profile.allowCreate),
@@ -311,26 +343,32 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.profileText(profile, 'Title date format', 'Date format used by title and filename variables.', 'titleDateFormat', undefined, true, undefined, () => profile.allowCreate),
 				],
 			}, {
-				type: 'group', heading: 'Advanced', items: [this.profileId(profile), this.profileOrder(profile)],
+				type: 'group', heading: this.text('advancedDetails'), items: [this.profileId(profile), this.profileOrder(profile)],
 			}, {
-				type: 'group', heading: 'Actions', items: [this.profileActions(profile)],
+				type: 'group', heading: this.text('actions'), items: [this.profileActions(profile)],
 			}],
 		};
 	}
 
-	private typeRuleDefinitions(): SettingDefinitionItem {
-		return {
+	private typeRuleDefinitions(): SettingDefinitionItem[] {
+		const rules = this.ruleFilter
+			? this.plugin.settings.typeStyleRules.filter((rule) => `${rule.typeValue} ${rule.icon ?? ''}`.toLocaleLowerCase().includes(this.ruleFilter.toLocaleLowerCase()))
+			: this.plugin.settings.typeStyleRules;
+		const definitions: SettingDefinitionItem[] = [];
+		if (this.plugin.settings.typeStyleRules.length >= 8) definitions.push(this.localFilterDefinition('Event Type Rule filter', this.ruleFilter, 'rule'));
+		definitions.push({
 			type: 'list',
-			heading: 'Event type rules',
+			heading: this.text('eventTypeRules'),
 			emptyState: 'No event type rules are configured.',
-			items: this.plugin.settings.typeStyleRules.map((rule) => this.typeRulePage(rule)),
-			addItem: { name: 'Add type rule', action: () => { void this.addTypeRule(); } },
+			items: rules.map((rule) => this.typeRulePage(rule)),
+			addItem: { name: this.text('addTypeRule'), action: () => { void this.addTypeRule(); } },
 			onDelete: (index) => {
 				const rule = this.plugin.settings.typeStyleRules[index];
 				if (rule) this.confirmDeleteTypeRule(rule);
 			},
 			onReorder: (oldIndex, newIndex) => { void this.reorderTypeRules(oldIndex, newIndex); },
-		};
+		});
+		return definitions;
 	}
 
 	private typeRulePage(rule: CalendarTypeStyleRule): SettingDefinitionPage {
@@ -339,10 +377,10 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			type: 'page',
 			name: getStableTypeRulePageName(rule),
 			desc: this.typeRuleListDescription(rule),
-			displayValue: () => rule.enabled ? 'Enabled' : 'Disabled',
+			displayValue: () => this.text(rule.enabled ? 'enabled' : 'disabled'),
 			status: () => duplicate ? 'warning' : null,
 			items: [{
-				type: 'group', heading: 'Overview', items: [
+				type: 'group', heading: this.text('overview'), items: [
 					this.ruleToggle(rule, 'Enabled', 'Include this rule in style resolution.', 'enabled'),
 					this.ruleText(rule, 'Type value', 'Plain text and equivalent wiki links match the same type.', 'typeValue', undefined, true),
 					...(duplicate ? [this.validationDefinition('Another enabled rule has the same Type value. The first enabled rule wins.', 'warning')] : []),
@@ -355,7 +393,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 					this.ruleStylePreview(rule),
 				],
 			}, {
-				type: 'group', heading: 'Actions', items: [this.typeRuleActions(rule)],
+				type: 'group', heading: this.text('actions'), items: [this.typeRuleActions(rule)],
 			}],
 		};
 	}
@@ -365,12 +403,12 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		const counts = { error: 0, warning: 0, info: 0 };
 		for (const diagnostic of diagnostics) counts[diagnostic.severity] += 1;
 		return {
-			type: 'group', heading: 'Diagnostics', items: [this.renderDefinition(
+			type: 'group', heading: this.text('diagnosticsLabel'), items: [this.renderDefinition(
 				'Index diagnostics',
 				`${diagnostics.length} issues · ${counts.error} errors · ${counts.warning} warnings · ${counts.info} info`,
 				(setting) => {
-					setting.addButton((button) => button.setButtonText('Open diagnostics').setIcon('circle-alert').onClick(() => new CalendarDiagnosticsModal(this.plugin).open()));
-					setting.addButton((button) => button.setButtonText('Refresh index').setIcon('refresh-cw').onClick(async () => {
+					setting.addButton((button) => button.setButtonText(this.text('openDiagnostics')).setIcon('circle-alert').onClick(() => new CalendarDiagnosticsModal(this.plugin).open()));
+					setting.addButton((button) => button.setButtonText(this.text('refreshIndex')).setIcon('refresh-cw').onClick(async () => {
 						button.setDisabled(true);
 						try { await this.plugin.index.refresh(); } finally { button.setDisabled(false); }
 					}));
@@ -380,8 +418,8 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	}
 
 	private weekendDaysDefinition(): SettingDefinition {
-		return this.renderDefinition('Weekend days', 'Select one or more days. This setting is shared by Sidebar and Bases defaults.', (setting) => {
-			const group = setting.controlEl.createDiv({ cls: 'calendar-note-weekday-picker', attr: { role: 'group', 'aria-label': 'Weekend days' } });
+		return this.renderDefinition(this.text('weekendDays'), 'Select one or more days. This setting is shared by Sidebar and Bases defaults.', (setting) => {
+			const group = setting.controlEl.createDiv({ cls: 'calendar-note-weekday-picker', attr: { role: 'group', 'aria-label': this.text('weekendDays') } });
 			for (const weekday of WEEKDAYS) {
 				const button = group.createEl('button', { cls: 'calendar-note-weekday-button', text: weekday.label, attr: { type: 'button' } });
 				const refresh = () => {
@@ -661,6 +699,12 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 
 	private profileActions(profile: CalendarSourceProfile): SettingDefinition {
 		return this.renderDefinition('Profile actions', 'Duplicate, move, or remove this Source Profile.', (setting) => {
+			setting.addButton((button) => button.setButtonText(this.text(profile.enabled ? 'disable' : 'enable')).onClick(() => {
+				void this.updateProfile(profile.id, (current) => { current.enabled = !current.enabled; }, 'index').then(() => this.updatePreservingScroll());
+			}));
+			setting.addButton((button) => button.setButtonText(this.text('testThisProfile')).setIcon('flask-conical').onClick(() => {
+				new ProfileMatchingInspectorModal(this.plugin, profile).open();
+			}));
 			setting.addButton((button) => button.setButtonText('Duplicate').setIcon('copy').onClick(() => { void this.duplicateProfile(profile.id); }));
 			setting.addButton((button) => button.setButtonText('Move up').setIcon('arrow-up').setDisabled(profile.order <= 1).onClick(() => { void this.moveProfile(profile.id, -1); }));
 			setting.addButton((button) => button.setButtonText('Move down').setIcon('arrow-down').setDisabled(profile.order >= this.plugin.settings.sourceProfiles.length).onClick(() => { void this.moveProfile(profile.id, 1); }));
@@ -711,6 +755,9 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private typeRuleActions(rule: CalendarTypeStyleRule): SettingDefinition {
 		const index = this.plugin.settings.typeStyleRules.findIndex((candidate) => candidate.id === rule.id);
 		return this.renderDefinition('Rule actions', 'Duplicate, move, or remove this Event Type Rule.', (setting) => {
+			setting.addButton((button) => button.setButtonText(this.text(rule.enabled ? 'disable' : 'enable')).onClick(() => {
+				void this.updateRule(rule.id, (current) => { current.enabled = !current.enabled; }).then(() => this.updatePreservingScroll());
+			}));
 			setting.addButton((button) => button.setButtonText('Duplicate').setIcon('copy').onClick(() => { void this.duplicateRule(rule.id); }));
 			setting.addButton((button) => button.setButtonText('Move up').setIcon('arrow-up').setDisabled(index <= 0).onClick(() => { void this.moveRule(rule.id, -1); }));
 			setting.addButton((button) => button.setButtonText('Move down').setIcon('arrow-down').setDisabled(index >= this.plugin.settings.typeStyleRules.length - 1).onClick(() => { void this.moveRule(rule.id, 1); }));
@@ -735,6 +782,33 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		return { name, desc, visible, render: (setting) => render(setting) };
 	}
 
+	private localFilterDefinition(name: string, value: string, target: 'profile' | 'rule'): SettingDefinitionItem {
+		return {
+			type: 'group',
+			heading: name,
+			items: [this.renderDefinition(name, 'Filters only the current settings list and never scans the vault.', (setting) => {
+				setting.addSearch((search) => {
+					search.setValue(value).onChange((next) => {
+						if (target === 'profile') this.profileFilter = next;
+						else this.ruleFilter = next;
+						const timer = target === 'profile' ? this.profileFilterTimer : this.ruleFilterTimer;
+						if (timer !== undefined) window.clearTimeout(timer);
+						const nextTimer = window.setTimeout(() => {
+							this.updatePreservingScroll();
+							window.setTimeout(() => {
+								const input = this.containerEl.querySelector<HTMLInputElement>('.calendar-note-local-filter');
+								input?.focus();
+							}, 0);
+						}, 160);
+						if (target === 'profile') this.profileFilterTimer = nextTimer;
+						else this.ruleFilterTimer = nextTimer;
+					});
+					search.inputEl.addClass('calendar-note-local-filter');
+				});
+			})],
+		};
+	}
+
 	private statusCard(container: HTMLElement, label: string): HTMLElement {
 		const card = container.createDiv({ cls: 'calendar-note-status-card' });
 		card.createDiv({ cls: 'calendar-note-status-label', text: label });
@@ -745,7 +819,8 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		elements.profiles.setText(String(this.plugin.settings.sourceProfiles.filter((profile) => profile.enabled).length));
 		elements.events.setText(String(this.plugin.index.getAllItems().length));
 		elements.diagnostics.setText(String(this.plugin.diagnostics.getAll().length));
-		elements.index.setText(indexStatusLabel(this.plugin.index.getStatus()));
+		const status = this.plugin.index.getStatus();
+		elements.index.setText(this.text(status === 'not-initialized' ? 'indexNotInitialized' : status === 'initializing' ? 'indexInitializing' : 'indexReady'));
 	}
 
 	private refreshRuntimeStatus(): void {
@@ -788,12 +863,15 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			event.preventDefault();
 			event.stopPropagation();
 			const menu = new Menu();
-			menu.addItem((item) => item.setTitle('Edit').setIcon('pencil').onClick(() => this.activatePageRow(container)));
-			menu.addItem((item) => item.setTitle('Duplicate').setIcon('copy').onClick(() => { void this.duplicateProfile(profile.id); }));
-			menu.addItem((item) => item.setTitle('Move up').setIcon('arrow-up').setDisabled(profile.order <= 1).onClick(() => { void this.moveProfile(profile.id, -1); }));
-			menu.addItem((item) => item.setTitle('Move down').setIcon('arrow-down').setDisabled(profile.order >= this.plugin.settings.sourceProfiles.length).onClick(() => { void this.moveProfile(profile.id, 1); }));
+			menu.addItem((item) => item.setTitle(this.text('edit')).setIcon('pencil').onClick(() => this.activatePageRow(container)));
+			menu.addItem((item) => item.setTitle(this.text(profile.enabled ? 'disable' : 'enable')).setIcon(profile.enabled ? 'circle-pause' : 'circle-play').onClick(() => {
+				void this.updateProfile(profile.id, (current) => { current.enabled = !current.enabled; }, 'index').then(() => this.updatePreservingScroll());
+			}));
+			menu.addItem((item) => item.setTitle(this.text('duplicate')).setIcon('copy').onClick(() => { void this.duplicateProfile(profile.id); }));
+			menu.addItem((item) => item.setTitle(this.text('moveUp')).setIcon('arrow-up').setDisabled(profile.order <= 1).onClick(() => { void this.moveProfile(profile.id, -1); }));
+			menu.addItem((item) => item.setTitle(this.text('moveDown')).setIcon('arrow-down').setDisabled(profile.order >= this.plugin.settings.sourceProfiles.length).onClick(() => { void this.moveProfile(profile.id, 1); }));
 			menu.addSeparator();
-			menu.addItem((item) => item.setTitle('Delete').setIcon('trash').onClick(() => this.confirmDeleteSourceProfile(profile)));
+			menu.addItem((item) => item.setTitle(this.text('delete')).setIcon('trash').onClick(() => this.confirmDeleteSourceProfile(profile)));
 			menu.showAtMouseEvent(event);
 		});
 	}
@@ -806,18 +884,25 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			event.preventDefault();
 			event.stopPropagation();
 			const menu = new Menu();
-			menu.addItem((item) => item.setTitle('Edit').setIcon('pencil').onClick(() => this.activatePageRow(container)));
-			menu.addItem((item) => item.setTitle('Duplicate').setIcon('copy').onClick(() => { void this.duplicateRule(rule.id); }));
-			menu.addItem((item) => item.setTitle('Move up').setIcon('arrow-up').setDisabled(index <= 0).onClick(() => { void this.moveRule(rule.id, -1); }));
-			menu.addItem((item) => item.setTitle('Move down').setIcon('arrow-down').setDisabled(index >= this.plugin.settings.typeStyleRules.length - 1).onClick(() => { void this.moveRule(rule.id, 1); }));
+			menu.addItem((item) => item.setTitle(this.text('edit')).setIcon('pencil').onClick(() => this.activatePageRow(container)));
+			menu.addItem((item) => item.setTitle(this.text(rule.enabled ? 'disable' : 'enable')).setIcon(rule.enabled ? 'circle-pause' : 'circle-play').onClick(() => {
+				void this.updateRule(rule.id, (current) => { current.enabled = !current.enabled; }).then(() => this.updatePreservingScroll());
+			}));
+			menu.addItem((item) => item.setTitle(this.text('duplicate')).setIcon('copy').onClick(() => { void this.duplicateRule(rule.id); }));
+			menu.addItem((item) => item.setTitle(this.text('moveUp')).setIcon('arrow-up').setDisabled(index <= 0).onClick(() => { void this.moveRule(rule.id, -1); }));
+			menu.addItem((item) => item.setTitle(this.text('moveDown')).setIcon('arrow-down').setDisabled(index >= this.plugin.settings.typeStyleRules.length - 1).onClick(() => { void this.moveRule(rule.id, 1); }));
 			menu.addSeparator();
-			menu.addItem((item) => item.setTitle('Delete').setIcon('trash').onClick(() => this.confirmDeleteTypeRule(rule)));
+			menu.addItem((item) => item.setTitle(this.text('delete')).setIcon('trash').onClick(() => this.confirmDeleteTypeRule(rule)));
 			menu.showAtMouseEvent(event);
 		});
 	}
 
 	private openAddSourceProfile(): void {
-		new AddSourceProfileModal(this.app, (preset) => { void this.addSourceProfile(preset); }).open();
+		new AddSourceProfileModal(this.app, (preset) => { void this.addSourceProfile(preset); }, this.plugin.settings.calendarLocale).open();
+	}
+
+	private openSetupAssistant(): void {
+		new SetupAssistantModal(this.plugin, (profile) => this.plugin.addSetupProfile(profile)).open();
 	}
 
 	private activatePageRow(container: HTMLElement): void {
@@ -931,6 +1016,16 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	private snapshot(): CalendarSettings {
 		return structuredClone(this.plugin.settings);
 	}
+
+	private updatePreservingScroll(): void {
+		const scrollTop = this.containerEl.scrollTop;
+		this.update();
+		window.setTimeout(() => { this.containerEl.scrollTop = scrollTop; }, 0);
+	}
+
+	private text(key: CalendarTextKey, values: Record<string, string | number> = {}): string {
+		return calendarText(this.plugin.settings.calendarLocale, key, values);
+	}
 }
 
 type ProfileStringKey =
@@ -959,18 +1054,6 @@ function profileImpact(key: ProfileStringKey | ProfileBooleanKey): CalendarSetti
 	].includes(key)) return 'index';
 	if (['defaultIcon', 'defaultBackgroundColor', 'defaultTextColor'].includes(key)) return 'render';
 	return 'save';
-}
-
-function saveStatusLabel(status: CalendarSettingsSaveState): string {
-	if (status === 'saving') return 'Saving…';
-	if (status === 'error') return 'Save failed';
-	return 'Saved';
-}
-
-function indexStatusLabel(status: ReturnType<CalendarNoteViewPlugin['index']['getStatus']>): string {
-	if (status === 'not-initialized') return 'Not initialized';
-	if (status === 'initializing') return 'Initializing…';
-	return 'Ready';
 }
 
 function timeZonePreview(timeZone: string): string {

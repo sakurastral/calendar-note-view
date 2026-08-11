@@ -1,13 +1,14 @@
 import { getAllTags, Plugin, type CachedMetadata, type WorkspaceLeaf } from 'obsidian';
 import { CalendarBasesView, CALENDAR_BASES_VIEW_TYPE, getBasesCalendarOptions } from './bases-view';
-import { CreateEventModal } from './create-event-modal';
+import { calendarText } from './calendar-locale';
+import { registerCalendarCommands } from './commands';
+import { CalendarDayRolloverService } from './day-rollover';
 import { DailyNoteService } from './daily-notes';
-import { CalendarDiagnosticsModal } from './diagnostics-modal';
 import { CalendarDiagnosticsService } from './diagnostics';
 import { EventNoteCreationService } from './event-creation';
 import { CalendarIndexService } from './index-service';
 import { CalendarSourceMatcher } from './matcher';
-import type { CalendarSettings } from './models';
+import type { CalendarSettings, CalendarSourceProfile } from './models';
 import { loadCalendarSettings } from './settings-data';
 import {
 	CalendarSettingsPersistence,
@@ -28,6 +29,8 @@ export default class CalendarNoteViewPlugin extends Plugin {
 	suggestions!: CalendarSuggestionProvider;
 	dailyNotes!: DailyNoteService;
 	eventCreation!: EventNoteCreationService;
+	dayRollover!: CalendarDayRolloverService;
+	sourceMatcher!: CalendarSourceMatcher;
 
 	async onload(): Promise<void> {
 		const loaded = loadCalendarSettings(await this.loadData());
@@ -35,9 +38,10 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		if (loaded.migrated) await this.saveData(this.settings);
 
 		this.diagnostics = new CalendarDiagnosticsService();
+		this.dayRollover = new CalendarDayRolloverService(() => this.settings.timeZone);
 		this.suggestions = new CalendarSuggestionProvider(this.app);
 		this.suggestions.initialize();
-		const sourceMatcher = new CalendarSourceMatcher(
+		this.sourceMatcher = new CalendarSourceMatcher(
 			this.app.metadataCache,
 			(metadata) => getAllTags(metadata as CachedMetadata) ?? [],
 		);
@@ -47,7 +51,7 @@ export default class CalendarNoteViewPlugin extends Plugin {
 			this.diagnostics,
 			undefined,
 			undefined,
-			sourceMatcher,
+			this.sourceMatcher,
 		);
 		this.dailyNotes = new DailyNoteService(this.app, () => this.settings.confirmBeforeCreatingDailyNote);
 		this.eventCreation = new EventNoteCreationService(this.app, () => this.settings, this.index);
@@ -56,6 +60,7 @@ export default class CalendarNoteViewPlugin extends Plugin {
 			saveData: (settings) => this.saveData(settings),
 			applyImpact: async (previous, next, impact) => {
 				if (this.unloading) return;
+				if (JSON.stringify(previous.timeZone) !== JSON.stringify(next.timeZone)) this.dayRollover.reschedule(true);
 				if (impact === 'index') await this.index.handleSettingsChanged(previous, next);
 				if (impact !== 'save') this.renderSidebarCalendars();
 			},
@@ -72,22 +77,8 @@ export default class CalendarNoteViewPlugin extends Plugin {
 			factory: (controller, containerEl) => new CalendarBasesView(controller, containerEl, this),
 			options: getBasesCalendarOptions,
 		});
-		this.addRibbonIcon('calendar-days', 'Open calendar note view', () => { void this.activateSidebar(); });
-		this.addCommand({
-			id: 'open-sidebar-calendar',
-			name: 'Open sidebar calendar',
-			callback: () => { void this.activateSidebar(); },
-		});
-		this.addCommand({
-			id: 'create-event',
-			name: 'Create event',
-			callback: () => new CreateEventModal(this, this.eventCreation).open(),
-		});
-		this.addCommand({
-			id: 'open-calendar-diagnostics',
-			name: 'Open calendar diagnostics',
-			callback: () => new CalendarDiagnosticsModal(this).open(),
-		});
+		this.addRibbonIcon('calendar-days', calendarText(this.settings.calendarLocale, 'openSidebarCalendar'), () => { void this.activateSidebar(); });
+		registerCalendarCommands(this);
 		this.app.workspace.onLayoutReady(() => {
 			void this.index.initialize();
 		});
@@ -98,6 +89,7 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		void this.flushSettings().catch(() => undefined);
 		this.index?.dispose();
 		this.suggestions?.dispose();
+		this.dayRollover?.dispose();
 	}
 
 	async saveSettings(
@@ -117,7 +109,7 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		return this.settingsPersistence?.getStatus() ?? 'saved';
 	}
 
-	private renderSidebarCalendars(): void {
+	renderSidebarCalendars(): void {
 		for (const leaf of this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)) {
 			if (leaf.view instanceof CalendarSidebarView) leaf.view.renderCalendar();
 		}
@@ -131,5 +123,24 @@ export default class CalendarNoteViewPlugin extends Plugin {
 			await leaf.setViewState({ type: CALENDAR_SIDEBAR_VIEW_TYPE, active: true });
 		}
 		await this.app.workspace.revealLeaf(leaf);
+	}
+
+	async goToToday(): Promise<void> {
+		await this.activateSidebar();
+		const leaf = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)[0];
+		if (leaf?.view instanceof CalendarSidebarView) leaf.view.goToToday();
+	}
+
+	async showTodaysEvents(): Promise<void> {
+		await this.activateSidebar();
+		const leaf = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)[0];
+		if (leaf?.view instanceof CalendarSidebarView) leaf.view.showAgenda();
+	}
+
+	async addSetupProfile(profile: CalendarSourceProfile): Promise<void> {
+		const previous = structuredClone(this.settings);
+		this.settings.sourceProfiles.push(profile);
+		await this.saveSettings(previous, 'index', true);
+		this.settingTab?.update();
 	}
 }

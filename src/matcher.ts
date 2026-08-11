@@ -11,6 +11,26 @@ export interface CalendarLinkMetadataCache {
 
 type CalendarTagCollector = (metadata: CalendarMetadata) => readonly string[];
 
+export interface CalendarSourceGroupEvaluation {
+	configured: boolean;
+	matched: boolean;
+}
+
+export interface CalendarSourceMatchEvaluation {
+	enabled: boolean;
+	markdown: boolean;
+	frontmatterExists: boolean;
+	startPropertyConfigured: boolean;
+	containsStartProperty: boolean;
+	folder: CalendarSourceGroupEvaluation;
+	tag: CalendarSourceGroupEvaluation;
+	wikiLink: CalendarSourceGroupEvaluation & { propertyConfigured: boolean; targetsConfigured: boolean };
+	matchMode: 'all' | 'any';
+	startOnlyActive: boolean;
+	matchesIfEnabled: boolean;
+	matches: boolean;
+}
+
 /** Matches Source Profiles exclusively against file paths and cached metadata. */
 export class CalendarSourceMatcher {
 	constructor(
@@ -23,33 +43,70 @@ export class CalendarSourceMatcher {
 		metadata: CalendarMetadata | null,
 		profile: CalendarSourceProfile,
 	): boolean {
-		if (!profile.enabled || file.extension.toLowerCase() !== 'md' || !metadata?.frontmatter) return false;
-		const startProperty = profile.startProperty.trim();
-		if (!startProperty || !Object.prototype.hasOwnProperty.call(metadata.frontmatter, startProperty)) return false;
+		return this.evaluate(file, metadata, profile).matches;
+	}
 
-		const groups: boolean[] = [];
+	evaluate(
+		file: CalendarFileData,
+		metadata: CalendarMetadata | null,
+		profile: CalendarSourceProfile,
+	): CalendarSourceMatchEvaluation {
+		const markdown = file.extension.toLowerCase() === 'md';
+		const frontmatterExists = Boolean(metadata?.frontmatter);
+		const startProperty = profile.startProperty.trim();
+		const startPropertyConfigured = Boolean(startProperty);
+		const containsStartProperty = Boolean(metadata?.frontmatter && startPropertyConfigured &&
+			Object.prototype.hasOwnProperty.call(metadata.frontmatter, startProperty));
+
 		const folders = normalizeFolders(profile.folders);
-		if (folders.length > 0) groups.push(folders.some((folder) => matchesFolder(file.path, folder)));
+		const folder = {
+			configured: folders.length > 0,
+			matched: folders.length > 0 && folders.some((value) => matchesFolder(file.path, value)),
+		};
 
 		const expectedTags = normalizedTags(profile.tags);
-		if (expectedTags.length > 0) {
-			const actualTags = new Set(this.collectObsidianTags(metadata).map(normalizeTag).filter(isString));
-			groups.push(expectedTags.some((tag) => actualTags.has(tag)));
-		}
+		const actualTags = new Set((metadata ? this.collectObsidianTags(metadata) : []).map(normalizeTag).filter(isString));
+		const tag = {
+			configured: expectedTags.length > 0,
+			matched: expectedTags.length > 0 && expectedTags.some((value) => actualTags.has(value)),
+		};
 
 		const wikiLinkProperty = profile.wikiLinkProperty?.trim() ?? '';
 		const expectedWikiLinks = normalizedWikiLinks(profile.wikiLinkTargets);
-		if (wikiLinkProperty || expectedWikiLinks.length > 0) {
-			groups.push(Boolean(wikiLinkProperty) && expectedWikiLinks.length > 0 && this.matchesWikiLinkProperty(
+		const wikiLink = {
+			configured: Boolean(wikiLinkProperty) || expectedWikiLinks.length > 0,
+			propertyConfigured: Boolean(wikiLinkProperty),
+			targetsConfigured: expectedWikiLinks.length > 0,
+			matched: Boolean(metadata?.frontmatter) && Boolean(wikiLinkProperty) && expectedWikiLinks.length > 0 && this.matchesWikiLinkProperty(
 				file.path,
-				metadata.frontmatter,
+				metadata?.frontmatter ?? {},
 				wikiLinkProperty,
 				expectedWikiLinks,
-			));
-		}
+			),
+		};
 
-		if (groups.length === 0) return profile.matchFilesWithStartPropertyOnly === true;
-		return profile.matchMode === 'any' ? groups.some(Boolean) : groups.every(Boolean);
+		const groups = [folder, tag, wikiLink].filter((group) => group.configured);
+		const startOnlyActive = groups.length === 0 && profile.matchFilesWithStartPropertyOnly === true;
+		const sourceMatched = groups.length === 0
+			? startOnlyActive
+			: profile.matchMode === 'any'
+				? groups.some((group) => group.matched)
+				: groups.every((group) => group.matched);
+		const matchesIfEnabled = markdown && frontmatterExists && startPropertyConfigured && containsStartProperty && sourceMatched;
+		return {
+			enabled: profile.enabled,
+			markdown,
+			frontmatterExists,
+			startPropertyConfigured,
+			containsStartProperty,
+			folder,
+			tag,
+			wikiLink,
+			matchMode: profile.matchMode,
+			startOnlyActive,
+			matchesIfEnabled,
+			matches: profile.enabled && matchesIfEnabled,
+		};
 	}
 
 	private matchesWikiLinkProperty(

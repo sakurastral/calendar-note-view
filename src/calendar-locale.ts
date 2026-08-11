@@ -20,7 +20,46 @@ export type CalendarTextKey =
 	| 'openAgenda' | 'selectedDate' | 'eventTypeLabel' | 'visiblePropertiesLabel'
 	| 'baseCreateTitle' | 'eventTitleLabel' | 'startDateLabel' | 'endDateLabel'
 	| 'eventTypeOptional' | 'cancel' | 'create' | 'baseStartNotWritable' | 'baseCreateFailed'
-	| 'invalidStart' | 'invalidEnd' | 'endBeforeStart' | 'unreadableValue';
+	| 'invalidStart' | 'invalidEnd' | 'endBeforeStart' | 'unreadableValue'
+	| 'calendarNoteView' | 'openSidebarCalendar' | 'goToToday' | 'showTodaysEvents'
+	| 'createEventWithProfile' | 'refreshSidebarIndex' | 'openCalendarDiagnostics'
+	| 'sidebarSetupTitle' | 'sidebarSetupDescription' | 'setupSidebarCalendar'
+	| 'configureEventCreation' | 'eventCreationUnavailable' | 'viewAgenda'
+	| 'sourceProfileLabel' | 'sourceProfileDescription' | 'inclusiveEndDateLabel'
+	| 'eventTypeLabelOptional' | 'advancedDetails' | 'advancedOverrides'
+	| 'iconOverride' | 'backgroundOverride' | 'textOverride' | 'collisionBehavior'
+	| 'appendNumber' | 'cancelCreation' | 'generatedOutput' | 'generatedTitle'
+	| 'fileName' | 'createFolder' | 'template' | 'vaultRoot' | 'none'
+	| 'displayedStartDate' | 'completeRequiredFields' | 'eventTitleRequired'
+	| 'profileUnavailable' | 'creating' | 'created' | 'createFailed' | 'filenameExists'
+	| 'userOverride' | 'profileDefault' | 'eventTypeRule' | 'styleSettingsFallback' | 'themeFallback'
+	| 'chooseProfile' | 'searchProfiles' | 'noCreateProfiles'
+	| 'setupAssistant' | 'setupChooseSource' | 'setupSourceMatching' | 'setupPropertyMapping'
+	| 'setupEventCreation' | 'setupReview' | 'back' | 'next' | 'finish'
+	| 'choosePresetDescription' | 'folderBased' | 'tagBased' | 'wikiLinkBased'
+	| 'startPropertyOnly' | 'advancedEmpty' | 'profileName' | 'foldersLabel' | 'tagsLabel'
+	| 'wikiLinkPropertyLabel' | 'wikiLinkTargetsLabel' | 'startPropertyLabel'
+	| 'endPropertyLabel' | 'titlePropertyLabel' | 'typePropertyLabel' | 'allowEventCreation'
+	| 'setupCancelNotice' | 'testThisProfile' | 'matchingInspector' | 'chooseNote'
+	| 'testNote' | 'testResult' | 'pass' | 'fail' | 'notApplicable' | 'profileEnabled'
+	| 'markdownFile' | 'frontmatterExists' | 'startConfigured' | 'containsStart'
+	| 'startParse' | 'endParse' | 'folderGroup' | 'tagGroup' | 'wikiLinkGroup'
+	| 'finalMatch' | 'startOnlyActive' | 'normalizedEvent' | 'matchedTypeRule'
+	| 'styleSources' | 'diagnosticsLabel' | 'disabledAssumption' | 'fileNotFound'
+	| 'calendarDiagnostics' | 'noDiagnostics' | 'severitySummary' | 'codeLabel'
+	| 'messageLabel' | 'fileLabel' | 'sourceProfileColumn' | 'profileSetting'
+	| 'copyProfileId' | 'copySupportSummary' | 'supportSummaryCopied' | 'includeFilePaths'
+	| 'indexNotInitialized' | 'indexInitializing' | 'indexReady' | 'saving' | 'saved' | 'saveFailed'
+	| 'enabled' | 'disabled' | 'enable' | 'disable' | 'edit' | 'duplicate'
+	| 'moveUp' | 'moveDown' | 'delete' | 'moreActions' | 'refreshing'
+	| 'profileAdded' | 'profileCreated' | 'recommendedAction' | 'createFirstProfile'
+	| 'dailyNoteAction' | 'dailyNoteIndicator' | 'eventIndicator' | 'monthChanged'
+	| 'quickStatus' | 'calendarBehavior' | 'dateAndTime' | 'sourceProfiles' | 'eventTypeRules'
+	| 'overview' | 'sourceMatching' | 'propertyMapping' | 'displayDefaults' | 'eventCreation'
+	| 'actions' | 'calendarLanguage' | 'firstDayOfWeek' | 'weekendDays' | 'timeZone'
+	| 'displayDateFormat' | 'propertyDateFormat' | 'confirmDailyCreation' | 'maximumIndicators'
+	| 'enabledProfiles' | 'indexedEvents' | 'indexStatus' | 'settingsSaveStatus'
+	| 'openDiagnostics' | 'refreshIndex' | 'calendarStatus' | 'addSourceProfile' | 'addTypeRule';
 
 const ENGLISH: Record<CalendarTextKey, string> = {
 	previousMonth: 'Previous month', nextMonth: 'Next month', today: 'Today', refreshCalendar: 'Refresh calendar',
@@ -40,9 +79,59 @@ const ENGLISH: Record<CalendarTextKey, string> = {
 	baseStartNotWritable: 'Event creation is unavailable because Start property is not a writable note property.',
 	baseCreateFailed: 'Could not create the Base event.', invalidStart: 'Invalid start date', invalidEnd: 'Invalid end date',
 	endBeforeStart: 'End date is before start date', unreadableValue: 'A property value could not be read',
+	calendarNoteView: 'Calendar note view', openSidebarCalendar: 'Open Sidebar Calendar', goToToday: 'Go to today',
+	showTodaysEvents: "Show today's events", createEventWithProfile: 'Create event with Source Profile…',
+	refreshSidebarIndex: 'Refresh Sidebar index', openCalendarDiagnostics: 'Open Calendar diagnostics',
+	sidebarSetupTitle: 'Set up Sidebar Calendar', sidebarSetupDescription: 'Sidebar Calendar needs a Source Profile. Bases Calendar works without one.',
+	setupSidebarCalendar: 'Set up Sidebar Calendar', configureEventCreation: 'Configure event creation',
+	eventCreationUnavailable: 'No enabled Source Profile allows event creation.', viewAgenda: 'View agenda',
+	sourceProfileLabel: 'Source Profile', sourceProfileDescription: 'Controls the folder, template, property mapping, and defaults.',
+	inclusiveEndDateLabel: 'Inclusive end date', eventTypeLabelOptional: 'Event type (optional)', advancedDetails: 'Advanced details',
+	advancedOverrides: '{count} overrides', iconOverride: 'Icon override', backgroundOverride: 'Background override', textOverride: 'Text override',
+	collisionBehavior: 'If the filename already exists', appendNumber: 'Append a number', cancelCreation: 'Cancel creation',
+	generatedOutput: 'Generated output', generatedTitle: 'Generated title', fileName: 'File name', createFolder: 'Create folder',
+	template: 'Template', vaultRoot: 'Vault root', none: 'None', displayedStartDate: 'Displayed start date',
+	completeRequiredFields: 'Complete the required fields.', eventTitleRequired: 'Event title is required.',
+	profileUnavailable: 'Choose a Source Profile that allows event creation.', creating: 'Creating…', created: 'Created',
+	createFailed: 'Could not create the event note.', filenameExists: 'An event note with that filename already exists.',
+	userOverride: 'User override', profileDefault: 'Source Profile default', eventTypeRule: 'Event Type Rule',
+	styleSettingsFallback: 'Style Settings fallback', themeFallback: 'Obsidian theme fallback', chooseProfile: 'Choose Source Profile',
+	searchProfiles: 'Search Source Profiles', noCreateProfiles: 'No create-enabled Source Profiles are available.',
+	setupAssistant: 'Sidebar Calendar setup', setupChooseSource: 'Choose source', setupSourceMatching: 'Source matching',
+	setupPropertyMapping: 'Required property mapping', setupEventCreation: 'Optional event creation', setupReview: 'Review and test',
+	back: 'Back', next: 'Next', finish: 'Finish', choosePresetDescription: 'Choose how notes become Sidebar events.',
+	folderBased: 'Folder-based', tagBased: 'Tag-based', wikiLinkBased: 'Wiki Link-based', startPropertyOnly: 'Start-property-only',
+	advancedEmpty: 'Advanced / empty', profileName: 'Profile name', foldersLabel: 'Folders', tagsLabel: 'Tags',
+	wikiLinkPropertyLabel: 'Wiki Link property', wikiLinkTargetsLabel: 'Wiki Link targets', startPropertyLabel: 'Start property',
+	endPropertyLabel: 'End property', titlePropertyLabel: 'Title property', typePropertyLabel: 'Type property', allowEventCreation: 'Allow event creation',
+	setupCancelNotice: 'Setup was cancelled. No Source Profile was saved.', testThisProfile: 'Test this profile',
+	matchingInspector: 'Source Profile matching inspector', chooseNote: 'Choose a Markdown note', testNote: 'Test note', testResult: 'Test result',
+	pass: 'Pass', fail: 'Fail', notApplicable: 'Not configured', profileEnabled: 'Profile enabled', markdownFile: 'Markdown file',
+	frontmatterExists: 'Frontmatter exists', startConfigured: 'Start property configured', containsStart: 'Note contains Start property',
+	startParse: 'Start date parses', endParse: 'End date parses', folderGroup: 'Folder group', tagGroup: 'Tag group',
+	wikiLinkGroup: 'Wiki Link group', finalMatch: 'Final match', startOnlyActive: 'Start-only active', normalizedEvent: 'Normalized event',
+	matchedTypeRule: 'First matching Event Type Rule', styleSources: 'Resolved style sources', diagnosticsLabel: 'Diagnostics',
+	disabledAssumption: 'This Profile is disabled. The checks below also show whether it would match if enabled.',
+	fileNotFound: 'The selected Markdown note could not be found.', calendarDiagnostics: 'Calendar diagnostics', noDiagnostics: 'No calendar diagnostics.',
+	severitySummary: '{errors} errors · {warnings} warnings · {info} info', codeLabel: 'Code', messageLabel: 'Message', fileLabel: 'File',
+	sourceProfileColumn: 'Source Profile', profileSetting: 'Profile setting', copyProfileId: 'Copy Profile ID',
+	copySupportSummary: 'Copy support summary', supportSummaryCopied: 'Support summary copied.', includeFilePaths: 'Include file paths',
+	indexNotInitialized: 'Not initialized', indexInitializing: 'Initializing…', indexReady: 'Ready', saving: 'Saving…', saved: 'Saved',
+	saveFailed: 'Save failed', enabled: 'Enabled', disabled: 'Disabled', enable: 'Enable', disable: 'Disable', edit: 'Edit',
+	duplicate: 'Duplicate', moveUp: 'Move up', moveDown: 'Move down', delete: 'Delete', moreActions: 'More actions', refreshing: 'Refreshing…',
+	profileAdded: 'Source Profile added.', profileCreated: 'Source Profile created.', recommendedAction: 'Recommended action',
+	createFirstProfile: 'Create your first Source Profile', dailyNoteAction: 'Open or create daily note for {date}',
+	dailyNoteIndicator: 'Daily note exists for {date}', eventIndicator: 'Open {title}', monthChanged: 'Showing {month}',
+	quickStatus: 'Quick status', calendarBehavior: 'Calendar behavior', dateAndTime: 'Date & time', sourceProfiles: 'Source Profiles',
+	eventTypeRules: 'Event Type Rules', overview: 'Overview', sourceMatching: 'Source matching', propertyMapping: 'Property mapping',
+	displayDefaults: 'Display defaults', eventCreation: 'Event creation', actions: 'Actions', calendarLanguage: 'Calendar language',
+	firstDayOfWeek: 'First day of week', weekendDays: 'Weekend days', timeZone: 'Time zone', displayDateFormat: 'Display date format',
+	propertyDateFormat: 'Event property date format', confirmDailyCreation: 'Confirm before creating daily note', maximumIndicators: 'Maximum indicators per date',
+	enabledProfiles: 'Enabled Profiles', indexedEvents: 'Indexed events', indexStatus: 'Index status', settingsSaveStatus: 'Settings save status',
+	openDiagnostics: 'Open diagnostics', refreshIndex: 'Refresh index', calendarStatus: 'Calendar status', addSourceProfile: 'Add Source Profile', addTypeRule: 'Add type rule',
 };
 
-const TRANSLATIONS: Partial<Record<Exclude<CalendarLocale, 'system' | 'en'>, Record<CalendarTextKey, string>>> = {
+const TRANSLATION_OVERRIDES: Record<Exclude<CalendarLocale, 'system' | 'en'>, Partial<Record<CalendarTextKey, string>>> = {
 	'zh-TW': {
 		previousMonth: '上個月', nextMonth: '下個月', today: '今天', refreshCalendar: '重新整理日曆',
 		calendarYear: '日曆年份', calendarMonth: '日曆月份', createEventOn: '在 {date} 建立事件',
@@ -59,6 +148,28 @@ const TRANSLATIONS: Partial<Record<Exclude<CalendarLocale, 'system' | 'en'>, Rec
 		startDateLabel: '開始日期', endDateLabel: '結束日期', eventTypeOptional: '事件類型（選填）', cancel: '取消', create: '建立',
 		baseStartNotWritable: '開始日期屬性不是可寫入的筆記屬性，因此無法建立事件。', baseCreateFailed: '無法建立 Base 事件。',
 		invalidStart: '開始日期無效', invalidEnd: '結束日期無效', endBeforeStart: '結束日期早於開始日期', unreadableValue: '無法讀取屬性值',
+		calendarNoteView: '日曆筆記檢視', openSidebarCalendar: '開啟側邊欄日曆', goToToday: '前往今天', showTodaysEvents: '顯示今天的事件',
+		createEventWithProfile: '使用來源設定檔建立事件…', refreshSidebarIndex: '重新整理側邊欄索引', openCalendarDiagnostics: '開啟日曆診斷',
+		sidebarSetupTitle: '設定側邊欄日曆', sidebarSetupDescription: '側邊欄日曆需要來源設定檔；Bases 日曆不需要。', setupSidebarCalendar: '設定側邊欄日曆',
+		configureEventCreation: '設定事件建立功能', eventCreationUnavailable: '沒有已啟用且允許建立事件的來源設定檔。', viewAgenda: '查看日程',
+		sourceProfileLabel: '來源設定檔', inclusiveEndDateLabel: '包含當日的結束日期', advancedDetails: '進階詳細資料', creating: '建立中…',
+		created: '已建立', createFailed: '無法建立事件筆記。', setupAssistant: '側邊欄日曆設定精靈', setupChooseSource: '選擇來源',
+		setupSourceMatching: '來源比對', setupPropertyMapping: '必要屬性對應', setupEventCreation: '選用的事件建立功能', setupReview: '檢閱與測試',
+		back: '返回', next: '下一步', finish: '完成', testThisProfile: '測試此設定檔', matchingInspector: '來源設定檔比對檢查器',
+		chooseNote: '選擇 Markdown 筆記', testNote: '測試筆記', pass: '通過', fail: '未通過', notApplicable: '未設定', profileEnabled: '設定檔已啟用',
+		markdownFile: 'Markdown 檔案', frontmatterExists: '存在 frontmatter', startConfigured: '已設定開始日期屬性', containsStart: '筆記包含開始日期屬性',
+		startParse: '開始日期可解析', endParse: '結束日期可解析', folderGroup: '資料夾群組', tagGroup: '標籤群組', wikiLinkGroup: 'Wiki Link 群組',
+		finalMatch: '最終比對', startOnlyActive: '僅開始日期屬性模式生效', calendarDiagnostics: '日曆診斷', noDiagnostics: '沒有日曆診斷。',
+		copySupportSummary: '複製支援摘要', supportSummaryCopied: '已複製支援摘要。', indexNotInitialized: '尚未初始化', indexInitializing: '初始化中…',
+		indexReady: '就緒', saving: '儲存中…', saved: '已儲存', saveFailed: '儲存失敗', enabled: '已啟用', disabled: '已停用', enable: '啟用',
+		disable: '停用', edit: '編輯', duplicate: '複製', moveUp: '上移', moveDown: '下移', delete: '刪除', createFirstProfile: '建立第一個來源設定檔',
+		dailyNoteAction: '開啟或建立 {date} 的每日筆記', dailyNoteIndicator: '{date} 已有每日筆記', monthChanged: '目前顯示 {month}',
+		quickStatus: '快速狀態', calendarBehavior: '日曆行為', dateAndTime: '日期與時間', sourceProfiles: '來源設定檔', eventTypeRules: '事件類型規則',
+		overview: '概覽', sourceMatching: '來源比對', propertyMapping: '屬性對應', displayDefaults: '顯示預設值', eventCreation: '事件建立', actions: '操作',
+		calendarLanguage: '外掛語言', firstDayOfWeek: '每週第一天', weekendDays: '週末日期', timeZone: '時區', displayDateFormat: '顯示日期格式',
+		propertyDateFormat: '事件屬性日期格式', confirmDailyCreation: '建立每日筆記前確認', maximumIndicators: '每個日期最多顯示的指示器',
+		enabledProfiles: '已啟用設定檔', indexedEvents: '索引事件', indexStatus: '索引狀態', settingsSaveStatus: '設定儲存狀態',
+		openDiagnostics: '開啟診斷', refreshIndex: '重新整理索引', calendarStatus: '日曆狀態', addSourceProfile: '新增來源設定檔', addTypeRule: '新增類型規則',
 	},
 	'zh-CN': {
 		previousMonth: '上个月', nextMonth: '下个月', today: '今天', refreshCalendar: '刷新日历',
@@ -113,6 +224,15 @@ const TRANSLATIONS: Partial<Record<Exclude<CalendarLocale, 'system' | 'en'>, Rec
 	},
 };
 
+const TRANSLATIONS: Record<Exclude<CalendarLocale, 'system' | 'en'>, Record<CalendarTextKey, string>> = {
+	'zh-TW': { ...ENGLISH, ...TRANSLATION_OVERRIDES['zh-TW'] },
+	'zh-CN': { ...ENGLISH, ...TRANSLATION_OVERRIDES['zh-CN'] },
+	ja: { ...ENGLISH, ...TRANSLATION_OVERRIDES.ja },
+	ko: { ...ENGLISH, ...TRANSLATION_OVERRIDES.ko },
+};
+
+export const CALENDAR_TEXT_KEYS = Object.freeze(Object.keys(ENGLISH) as CalendarTextKey[]);
+
 export function calendarText(
 	locale: CalendarLocale,
 	key: CalendarTextKey,
@@ -120,7 +240,7 @@ export function calendarText(
 	systemLocale = getSystemLocale(),
 ): string {
 	const language = translationLocale(locale, systemLocale);
-	const template = language === 'en' ? ENGLISH[key] : TRANSLATIONS[language]?.[key] ?? ENGLISH[key];
+	const template = language === 'en' ? ENGLISH[key] : TRANSLATIONS[language][key];
 	return template.replace(/\{([^}]+)\}/g, (_match, name: string) => String(values[name] ?? ''));
 }
 

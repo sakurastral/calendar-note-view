@@ -2,6 +2,34 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.5.0
+
+### Added
+
+- Add an opt-in Sidebar setup assistant that keeps configuration in a draft and commits one immutable Source Profile only on Finish
+- Add a Source Profile matching inspector that tests one selected cached Markdown note through the production matcher, normalizer, style resolver, and diagnostics
+- Add a localized Sidebar Agenda with inclusive ranges, Source Profile context, note actions, and index-preserved ordering
+- Add fixed Command Palette actions for Today, today's Agenda, Profile-selected creation, Sidebar index refresh, and diagnostics
+- Add time-zone-aware day rollover scheduling that refreshes Today state without rebuilding the Sidebar index
+- Add sanitized support-summary copying with optional, explicitly enabled file paths
+- Add local Profile and Event Type Rule filters for larger settings collections and direct Enable/Disable actions
+
+### Changed
+
+- Split Sidebar date cells into semantic Daily Note, Create Event, Agenda, Event, and overflow buttons without nested interactive controls
+- Add Arrow, Page Up/Down, Shift-year, and Home navigation with focus restoration and localized month announcements
+- Reorganize Source Profile event creation into Basics and a collapsible Advanced section with inline validation and style-source provenance
+- Preserve dirty Create Event fields across Profile changes, remember the last valid Profile by immutable ID, and prevent duplicate submits
+- Expand the existing Calendar language setting across new commands, Sidebar workflows, setup, inspector, Agenda, diagnostics, notices, and tooltips
+- Add first-run and no-create-profile guidance without forcing a modal during plugin load
+
+### Fixed
+
+- Prevent Profile changes in Create Event from overwriting manually edited Type, icon, or color values
+- Restore focus to the initiating Agenda control and keep the viewed month stable across index and settings rerenders
+- Remove native title tooltips from Sidebar Daily Note and Event indicators
+- Keep Bases subscribed only to low-cost Today rerenders while preserving `this.data.data`, `this.data.properties`, and Base-native creation authority
+
 ## 0.4.1
 
 ### Added

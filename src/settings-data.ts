@@ -37,7 +37,7 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 };
 
 export const DEFAULT_SETTINGS: CalendarSettings = {
-	schemaVersion: 8,
+	schemaVersion: 9,
 	calendarLocale: 'system',
 	firstDayOfWeek: 0,
 	weekendDays: [0, 6],
@@ -46,6 +46,7 @@ export const DEFAULT_SETTINGS: CalendarSettings = {
 	eventPropertyDateFormat: 'YYYY-MM-DD',
 	confirmBeforeCreatingDailyNote: true,
 	maxIndicatorsPerDay: 3,
+	lastCreateProfileId: undefined,
 	sourceProfiles: [DEFAULT_EVENT_PROFILE],
 	typeStyleRules: [],
 };
@@ -76,7 +77,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		? Number(raw.firstDayOfWeek)
 		: DEFAULT_SETTINGS.firstDayOfWeek;
 	const settings: CalendarSettings = {
-		schemaVersion: 8,
+		schemaVersion: 9,
 		calendarLocale: normalizeCalendarLocale(raw.calendarLocale),
 		firstDayOfWeek,
 		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
@@ -85,12 +86,13 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 		eventPropertyDateFormat,
 		confirmBeforeCreatingDailyNote: boolean(raw.confirmBeforeCreatingDailyNote, true),
 		maxIndicatorsPerDay: integerInRange(raw.maxIndicatorsPerDay, 1, 8, DEFAULT_SETTINGS.maxIndicatorsPerDay),
+		lastCreateProfileId: text(raw.lastCreateProfileId),
 		sourceProfiles,
 		typeStyleRules,
 	};
 	return {
 		settings,
-		migrated: raw.schemaVersion !== 8 || JSON.stringify(settings) !== JSON.stringify(raw),
+		migrated: raw.schemaVersion !== 9 || JSON.stringify(settings) !== JSON.stringify(raw),
 		warnings,
 	};
 }

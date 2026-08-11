@@ -1,32 +1,34 @@
 import { type App, Modal, Setting } from 'obsidian';
+import { calendarText, type CalendarTextKey } from './calendar-locale';
+import type { CalendarLocale } from './models';
 import type { SourceProfilePreset } from './settings-helpers';
 
-const PROFILE_PRESETS: Array<{ value: SourceProfilePreset; name: string; description: string }> = [
-	{ value: 'folder', name: 'Folder-based', description: 'Start with a profile that matches one or more vault folders.' },
-	{ value: 'tag', name: 'Tag-based', description: 'Start with a profile that matches Properties or inline tags.' },
-	{ value: 'wiki-link', name: 'Wiki Link-based', description: 'Start with a property-scoped Wiki Link target profile.' },
-	{ value: 'start-only', name: 'Start-property-only', description: 'Match any Markdown note containing the configured Start property.' },
-	{ value: 'advanced', name: 'Empty / advanced', description: 'Start with an empty, disabled profile and configure every field yourself.' },
+const PROFILE_PRESETS: Array<{ value: SourceProfilePreset; key: CalendarTextKey }> = [
+	{ value: 'folder', key: 'folderBased' },
+	{ value: 'tag', key: 'tagBased' },
+	{ value: 'wiki-link', key: 'wikiLinkBased' },
+	{ value: 'start-only', key: 'startPropertyOnly' },
+	{ value: 'advanced', key: 'advancedEmpty' },
 ];
 
 export class AddSourceProfileModal extends Modal {
 	constructor(
 		app: App,
 		private readonly onSelect: (preset: SourceProfilePreset) => void,
+		private readonly locale: CalendarLocale = 'en',
 	) {
 		super(app);
 	}
 
 	onOpen(): void {
-		this.setTitle('Add source profile');
+		this.setTitle(calendarText(this.locale, 'addSourceProfile'));
 		this.contentEl.addClass('calendar-note-profile-preset-modal');
-		this.contentEl.createEl('p', { text: 'Choose a starting point. You can change every field later.' });
+		this.contentEl.createEl('p', { text: calendarText(this.locale, 'choosePresetDescription') });
 		for (const preset of PROFILE_PRESETS) {
 			new Setting(this.contentEl)
-				.setName(preset.name)
-				.setDesc(preset.description)
+				.setName(calendarText(this.locale, preset.key))
 				.addButton((button) => button
-					.setButtonText('Choose')
+					.setButtonText(calendarText(this.locale, 'next'))
 					.onClick(() => {
 						this.close();
 						this.onSelect(preset.value);
