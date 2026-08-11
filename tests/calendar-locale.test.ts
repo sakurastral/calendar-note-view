@@ -21,4 +21,11 @@ describe('calendar locale', () => {
 		expect(calendarText('system', 'nextMonth', {}, 'zh-TW')).toBe('下個月');
 		expect(calendarText('system', 'nextMonth', {}, 'fr-FR')).toBe('Next month');
 	});
+
+	it('localizes Agenda, creation, empty state, and invalid-entry UI', () => {
+		expect(calendarText('zh-TW', 'agendaTitle', { date: '2026-08-09', count: 2 })).toBe('2026-08-09 · 2 個事件');
+		expect(calendarText('zh-CN', 'baseQueryEmpty')).toBe('当前 Base 查询没有条目。');
+		expect(calendarText('ja', 'baseCreateTitle')).toBe('Base イベントを作成');
+		expect(calendarText('ko', 'skippedInvalidEntries', { count: 3 })).toBe('날짜가 잘못되어 3개 항목을 건너뛰었습니다.');
+	});
 });

@@ -52,15 +52,23 @@ The view supports:
 
 - Independent Previous Month, Next Month, Today, Year, and Month controls
 - Start, end, title, type, icon, background color, and text color property mapping
-- Icon, Title, Icon + Title, or Visible Base properties event display
-- First day of week and weekend selection
+- Icon + Title, Title, Icon, Title + visible Base properties, or Visible Base properties event content
+- First day of week and readable weekend presets with safe migration from older weekday arrays
 - Adjacent-month date visibility
-- A configurable maximum of 1–12 event rows per day and `+N more`
-- Daily Notes and event creation actions
+- Automatic, 1–12 rows, or Show all event row limits and a contextual `+N more` Agenda action
+- Comfortable, Compact, or container-responsive Automatic density
+- Daily Notes, date Agenda, and Base-native event creation actions
+- Event hover, focus, pressed, tooltip, context-menu, keyboard, and touch feedback
 
 Updating Base data does not reset the month being viewed.
 
-Choose **Visible Base properties** to render the properties currently enabled in the Base properties menu. Their configured display names and current `Value` results are used in order. This continues to use only the filtered, sorted, formula-evaluated, and limited entries in `this.data.data`.
+Choose **Title + visible Base properties** to keep the title prominent and add a truncated secondary summary, or **Visible Base properties** to use only that summary. Empty values are omitted. The Agenda shows the complete selected properties using each public Bases `Value.renderTo()` implementation when available, including links, lists, dates, tags, and formula results. Display names come from the current View configuration.
+
+Selecting a date opens its localized Agenda; the date number remains the explicit Daily Note action, while the plus button is the explicit event creation action. `+N more` opens the Agenda for that exact date. Agenda order, lane precedence, property summaries, and overflow all preserve the order supplied by `this.data.data`; Calendar Note View does not perform a second sort.
+
+On narrow panes, Automatic density switches date cells to event-count indicators and keeps complete event content in the Agenda. The switch uses the Calendar container width rather than the application window, so a narrow split behaves correctly on desktop as well as mobile.
+
+Invalid date values are isolated per entry. The Calendar distinguishes a missing or unavailable Start mapping, an empty Base query, entries with no valid dates, a month without events, and partially skipped entries. The skipped-entry summary can list available file paths without querying the vault for additional events.
 
 ## Daily Notes
 
@@ -149,6 +157,8 @@ Each Source Profile and each Bases Calendar view maps its own properties. Bases 
 Run **Calendar Note View: Create event**, use a calendar date's plus button, or use its context menu. Choose an enabled Source Profile, enter a title and date range, then review the generated file path and properties before creating the note.
 
 The creation service supports nested folders, frontmatter property mapping, note templates, safe file names, and automatic suffixes when a file name already exists.
+
+Bases Calendar creation is intentionally separate. Its plus button opens a compact Base event dialog and calls the public `BasesView.createFileForView()` API. The selected date becomes both Start and inclusive End by default, and the dialog can collect Title and Type with type suggestions. Only mapped `note.*` properties are written; formula and file properties are never modified. If Start is not writable, creation is disabled with an explanation. The Base decides whether the resulting note matches its filter and appears in the Calendar—Source Profiles, their folders, and their templates do not participate.
 
 ## Template variables
 

@@ -600,6 +600,362 @@ settings:
     format: 'hex'
     default-light: '#6b7280'
     default-dark: '#a1a1aa'
+  - id: calendar-note-bases-event-hover-bg-source
+    title: Event hover background
+    description: Used when a Bases event is hovered or pressed. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--background-modifier-hover)'
+    options:
+      - label: Plugin default (Hover background)
+        value: 'var(--background-modifier-hover)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-event-hover-bg)'
+  - id: calendar-note-bases-event-hover-bg
+    title: Custom light and dark color
+    description: Used only when Event hover background is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#dce3ea'
+    default-dark: '#3b3b3b'
+  - id: calendar-note-bases-event-hover-text-source
+    title: Event hover text
+    description: Used for Bases event text while hovered or pressed. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--text-normal)'
+    options:
+      - label: Plugin default (Normal text)
+        value: 'var(--text-normal)'
+      - label: Muted text
+        value: 'var(--text-muted)'
+      - label: Faint text
+        value: 'var(--text-faint)'
+      - label: Accent text
+        value: 'var(--text-accent)'
+      - label: Accent hover text
+        value: 'var(--text-accent-hover)'
+      - label: Text on accent
+        value: 'var(--text-on-accent)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-event-hover-text)'
+  - id: calendar-note-bases-event-hover-text
+    title: Custom light and dark color
+    description: Used only when Event hover text is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#1f2937'
+    default-dark: '#f3f4f6'
+  - id: calendar-note-bases-event-focus-ring-source
+    title: Event focus ring
+    description: Outlines keyboard-focused Bases events. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--interactive-accent)'
+    options:
+      - label: Plugin default (Interactive accent)
+        value: 'var(--interactive-accent)'
+      - label: Border
+        value: 'var(--background-modifier-border)'
+      - label: Border hover
+        value: 'var(--background-modifier-border-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-event-focus-ring)'
+  - id: calendar-note-bases-event-focus-ring
+    title: Custom light and dark color
+    description: Used only when Event focus ring is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#7c3aed'
+    default-dark: '#a78bfa'
+  - id: calendar-note-bases-selected-date-source
+    title: Selected date
+    description: Highlights the date whose Agenda was opened. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--background-modifier-active-hover)'
+    options:
+      - label: Plugin default (theme color)
+        value: 'var(--background-modifier-active-hover)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-selected-date)'
+  - id: calendar-note-bases-selected-date
+    title: Custom light and dark color
+    description: Used only when Selected date is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#dbeafe'
+    default-dark: '#303c50'
+  - id: calendar-note-bases-agenda-bg-source
+    title: Agenda background
+    description: Fills Bases Agenda event cards. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--background-secondary)'
+    options:
+      - label: Plugin default (Secondary background)
+        value: 'var(--background-secondary)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-agenda-bg)'
+  - id: calendar-note-bases-agenda-bg
+    title: Custom light and dark color
+    description: Used only when Agenda background is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#f3f4f6'
+    default-dark: '#252525'
+  - id: calendar-note-bases-agenda-border-source
+    title: Agenda border
+    description: Outlines Bases Agenda event cards. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--background-modifier-border)'
+    options:
+      - label: Plugin default (Border)
+        value: 'var(--background-modifier-border)'
+      - label: Border hover
+        value: 'var(--background-modifier-border-hover)'
+      - label: Interactive accent
+        value: 'var(--interactive-accent)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-agenda-border)'
+  - id: calendar-note-bases-agenda-border
+    title: Custom light and dark color
+    description: Used only when Agenda border is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#d8d8d8'
+    default-dark: '#3a3a3a'
+  - id: calendar-note-bases-compact-indicator-source
+    title: Compact indicator
+    description: Fills event-count indicators in compact layout. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--interactive-accent)'
+    options:
+      - label: Plugin default (Interactive accent)
+        value: 'var(--interactive-accent)'
+      - label: Primary background
+        value: 'var(--background-primary)'
+      - label: Primary alternate background
+        value: 'var(--background-primary-alt)'
+      - label: Secondary background
+        value: 'var(--background-secondary)'
+      - label: Secondary alternate background
+        value: 'var(--background-secondary-alt)'
+      - label: Hover background
+        value: 'var(--background-modifier-hover)'
+      - label: Interactive accent hover
+        value: 'var(--interactive-accent-hover)'
+      - label: Transparent
+        value: 'transparent'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-compact-indicator)'
+  - id: calendar-note-bases-compact-indicator
+    title: Custom light and dark color
+    description: Used only when Compact indicator is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#7c3aed'
+    default-dark: '#a78bfa'
+  - id: calendar-note-bases-invalid-notice-source
+    title: Invalid-entry notice
+    description: Styles the invalid-entry summary. Select Custom to use the light and dark colors in the next setting.
+    type: variable-select
+    default: 'var(--text-warning)'
+    options:
+      - label: Plugin default (theme color)
+        value: 'var(--text-warning)'
+      - label: Normal text
+        value: 'var(--text-normal)'
+      - label: Muted text
+        value: 'var(--text-muted)'
+      - label: Faint text
+        value: 'var(--text-faint)'
+      - label: Accent text
+        value: 'var(--text-accent)'
+      - label: Accent hover text
+        value: 'var(--text-accent-hover)'
+      - label: Text on accent
+        value: 'var(--text-on-accent)'
+      - label: Red
+        value: 'var(--color-red)'
+      - label: Orange
+        value: 'var(--color-orange)'
+      - label: Yellow
+        value: 'var(--color-yellow)'
+      - label: Green
+        value: 'var(--color-green)'
+      - label: Cyan
+        value: 'var(--color-cyan)'
+      - label: Blue
+        value: 'var(--color-blue)'
+      - label: Purple
+        value: 'var(--color-purple)'
+      - label: Pink
+        value: 'var(--color-pink)'
+      - label: Custom
+        value: 'var(--calendar-note-bases-invalid-notice)'
+  - id: calendar-note-bases-invalid-notice
+    title: Custom light and dark color
+    description: Used only when Invalid-entry notice is set to Custom.
+    type: variable-themed-color
+    format: 'hex'
+    default-light: '#b45309'
+    default-dark: '#fbbf24'
   - id: calendar-note-date-cell-heading
     title: Date appearance and states
     type: heading
@@ -1196,6 +1552,14 @@ body {
 	--calendar-note-bases-event-height: 22px;
 	--calendar-note-bases-event-gap: var(--size-2-1);
 	--calendar-note-bases-more-text: var(--text-muted);
+	--calendar-note-bases-event-hover-bg: var(--background-modifier-hover);
+	--calendar-note-bases-event-hover-text: var(--text-normal);
+	--calendar-note-bases-event-focus-ring: var(--interactive-accent);
+	--calendar-note-bases-selected-date: var(--background-modifier-active-hover);
+	--calendar-note-bases-agenda-bg: var(--background-secondary);
+	--calendar-note-bases-agenda-border: var(--background-modifier-border);
+	--calendar-note-bases-compact-indicator: var(--interactive-accent);
+	--calendar-note-bases-invalid-notice: var(--text-warning);
 	--calendar-note-date-cell-bg: transparent;
 	--calendar-note-date-text: var(--text-normal);
 	--calendar-note-date-hover-bg: var(--background-modifier-hover);
@@ -1228,6 +1592,14 @@ body {
 	--calendar-note-bases-cell-border-resolved: var(--calendar-note-bases-cell-border-source, var(--calendar-note-bases-cell-border));
 	--calendar-note-bases-date-bg-resolved: var(--calendar-note-bases-date-bg-source, var(--calendar-note-bases-date-bg));
 	--calendar-note-bases-more-text-resolved: var(--calendar-note-bases-more-text-source, var(--calendar-note-bases-more-text));
+	--calendar-note-bases-event-hover-bg-resolved: var(--calendar-note-bases-event-hover-bg-source, var(--calendar-note-bases-event-hover-bg));
+	--calendar-note-bases-event-hover-text-resolved: var(--calendar-note-bases-event-hover-text-source, var(--calendar-note-bases-event-hover-text));
+	--calendar-note-bases-event-focus-ring-resolved: var(--calendar-note-bases-event-focus-ring-source, var(--calendar-note-bases-event-focus-ring));
+	--calendar-note-bases-selected-date-resolved: var(--calendar-note-bases-selected-date-source, var(--calendar-note-bases-selected-date));
+	--calendar-note-bases-agenda-bg-resolved: var(--calendar-note-bases-agenda-bg-source, var(--calendar-note-bases-agenda-bg));
+	--calendar-note-bases-agenda-border-resolved: var(--calendar-note-bases-agenda-border-source, var(--calendar-note-bases-agenda-border));
+	--calendar-note-bases-compact-indicator-resolved: var(--calendar-note-bases-compact-indicator-source, var(--calendar-note-bases-compact-indicator));
+	--calendar-note-bases-invalid-notice-resolved: var(--calendar-note-bases-invalid-notice-source, var(--calendar-note-bases-invalid-notice));
 	--calendar-note-date-cell-bg-resolved: var(--calendar-note-date-cell-bg-source, var(--calendar-note-date-cell-bg));
 	--calendar-note-date-text-resolved: var(--calendar-note-date-text-source, var(--calendar-note-date-text));
 	--calendar-note-date-hover-bg-resolved: var(--calendar-note-date-hover-bg-source, var(--calendar-note-date-hover-bg));
@@ -1744,8 +2116,22 @@ body {
 	background: var(--calendar-note-bases-cell-bg-resolved, var(--background-primary));
 	color: var(--calendar-note-calendar-text-resolved, var(--text-normal));
 	padding: var(--size-4-2);
-	overflow: auto;
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
 	font-size: var(--calendar-note-font-size, var(--font-ui-small));
+}
+
+.calendar-note-bases-live {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	border: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
 }
 
 .calendar-note-bases-header {
@@ -1852,6 +2238,16 @@ body {
 	color: var(--calendar-note-today-text-resolved, var(--text-normal));
 }
 
+.calendar-note-bases-date-cell.is-selected {
+	box-shadow: inset 0 0 0 2px var(--calendar-note-bases-selected-date-resolved, var(--background-modifier-active-hover));
+}
+
+.calendar-note-bases-date-cell:focus-visible {
+	z-index: 3;
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: -2px;
+}
+
 .calendar-note-bases-date-number,
 .calendar-note-bases-add {
 	position: relative;
@@ -1859,6 +2255,11 @@ body {
 	border: 0;
 	background: var(--calendar-note-bases-date-bg-resolved, var(--background-secondary));
 	box-shadow: none;
+}
+
+.calendar-note-bases-add:disabled {
+	cursor: not-allowed;
+	opacity: 0.35;
 }
 
 .calendar-note-bases .calendar-note-bases-date-number {
@@ -1907,6 +2308,9 @@ body {
 	height: var(--size-2-1);
 	border-radius: var(--radius-round);
 	background: var(--calendar-note-daily-note-indicator-resolved, var(--interactive-accent));
+	border: 0;
+	box-shadow: none;
+	padding: 0;
 }
 
 .calendar-note-bases-events {
@@ -1940,6 +2344,24 @@ body {
 	color: var(--calendar-note-item-text, var(--calendar-note-event-text-resolved, var(--text-normal)));
 	font-size: var(--font-ui-smaller);
 	text-align: start;
+	transition: background-color 100ms ease, color 100ms ease, transform 80ms ease;
+}
+
+.calendar-note-bases-event:hover {
+	background: var(--calendar-note-bases-event-hover-bg-resolved, var(--background-modifier-hover));
+	color: var(--calendar-note-bases-event-hover-text-resolved, var(--text-normal));
+}
+
+.calendar-note-bases-event:focus-visible {
+	z-index: 2;
+	outline: 2px solid var(--calendar-note-bases-event-focus-ring-resolved, var(--interactive-accent));
+	outline-offset: 1px;
+}
+
+.calendar-note-bases-event:active {
+	background: var(--calendar-note-bases-event-hover-bg-resolved, var(--background-modifier-hover));
+	color: var(--calendar-note-bases-event-hover-text-resolved, var(--text-normal));
+	transform: translateY(1px);
 }
 
 .calendar-note-bases-event.continues-before {
@@ -1962,6 +2384,7 @@ body {
 	height: var(--calendar-note-event-icon-size, var(--icon-xs));
 }
 
+.calendar-note-bases-event-content,
 .calendar-note-bases-event-title,
 .calendar-note-bases-event-properties {
 	min-width: 0;
@@ -1970,12 +2393,196 @@ body {
 	white-space: nowrap;
 }
 
+.calendar-note-bases-event-content {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: baseline;
+	gap: var(--size-2-1);
+}
+
+.calendar-note-bases-event-title {
+	flex: 0 1 auto;
+	font-weight: var(--font-medium);
+}
+
+.calendar-note-bases-event-properties {
+	flex: 1 1 auto;
+	color: color-mix(in srgb, currentColor 72%, transparent);
+	font-size: 0.9em;
+}
+
 .calendar-note-bases-more {
 	padding-inline: var(--size-2-1);
 	background: transparent;
 	color: var(--calendar-note-bases-more-text-resolved, var(--text-muted));
 	font-size: var(--font-ui-smaller);
 	text-align: start;
+}
+
+.calendar-note-bases-more:hover,
+.calendar-note-bases-more:focus-visible {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.calendar-note-bases-compact-indicator {
+	position: absolute;
+	right: var(--size-2-1);
+	bottom: var(--size-2-1);
+	left: var(--size-2-1);
+	z-index: 2;
+	min-width: 0;
+	height: 1.75rem;
+	border: 0;
+	border-radius: var(--radius-s);
+	background: var(--calendar-note-bases-compact-indicator-resolved, var(--interactive-accent));
+	color: var(--text-on-accent);
+	box-shadow: none;
+	font-size: var(--font-ui-smaller);
+}
+
+.calendar-note-bases-compact-indicator.continues-before {
+	border-left: 3px solid currentColor;
+}
+
+.calendar-note-bases-compact-indicator.continues-after {
+	border-right: 3px solid currentColor;
+}
+
+.calendar-note-bases.is-layout-compact .calendar-note-bases-week {
+	min-height: max(4.5rem, calc(var(--calendar-note-bases-cell-min-height, 88px) * 0.72));
+}
+
+.calendar-note-bases.is-layout-compact .calendar-note-bases-header {
+	flex-wrap: wrap;
+}
+
+.calendar-note-bases.is-layout-compact .calendar-note-bases-picker {
+	order: -1;
+	flex-basis: 100%;
+	justify-content: center;
+}
+
+.calendar-note-bases.is-layout-compact .calendar-note-bases-weekday {
+	padding-inline: var(--size-2-1);
+}
+
+.calendar-note-bases.is-layout-medium .calendar-note-bases-event-properties {
+	max-width: 8rem;
+}
+
+.calendar-note-bases-inline-feedback {
+	display: flex;
+	min-width: 0;
+	align-items: center;
+	justify-content: center;
+	gap: var(--size-4-2);
+	padding: var(--size-4-2);
+	border: var(--border-width) solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	margin-block: var(--size-2-2);
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	text-align: center;
+}
+
+.calendar-note-bases-inline-feedback.is-warning {
+	color: var(--calendar-note-bases-invalid-notice-resolved, var(--text-warning));
+}
+
+.calendar-note-bases-agenda-list {
+	display: grid;
+	gap: var(--size-4-3);
+}
+
+.calendar-note-bases-agenda-item {
+	min-width: 0;
+	padding: var(--size-4-3);
+	border: var(--border-width) solid var(--calendar-note-bases-agenda-border-resolved, var(--background-modifier-border));
+	border-radius: var(--radius-m);
+	background: var(--calendar-note-bases-agenda-bg-resolved, var(--background-secondary));
+}
+
+.calendar-note-bases-agenda-open {
+	display: flex;
+	width: 100%;
+	min-width: 0;
+	min-height: 2.75rem;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--size-4-2);
+	padding: var(--size-2-2);
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-normal);
+	text-align: start;
+}
+
+.calendar-note-bases-agenda-open:hover,
+.calendar-note-bases-agenda-open:focus-visible {
+	background: var(--background-modifier-hover);
+}
+
+.calendar-note-bases-agenda-title {
+	min-width: 0;
+	font-weight: var(--font-semibold);
+	overflow-wrap: anywhere;
+}
+
+.calendar-note-bases-agenda-range,
+.calendar-note-bases-agenda-label,
+.calendar-note-bases-invalid-reason {
+	color: var(--text-muted);
+}
+
+.calendar-note-bases-agenda-range {
+	flex: 0 0 auto;
+}
+
+.calendar-note-bases-agenda-detail {
+	display: grid;
+	grid-template-columns: minmax(6rem, 0.3fr) minmax(0, 1fr);
+	gap: var(--size-4-2);
+	padding: var(--size-2-2);
+}
+
+.calendar-note-bases-agenda-value {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.calendar-note-bases-agenda-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--size-2-1);
+	margin-top: var(--size-2-2);
+}
+
+.calendar-note-bases-agenda-actions button,
+.calendar-note-bases-invalid-file {
+	min-width: 2.75rem;
+	min-height: 2.75rem;
+}
+
+.calendar-note-bases-invalid-list {
+	display: grid;
+	gap: var(--size-4-2);
+	padding-inline-start: var(--size-4-5);
+}
+
+.calendar-note-bases-invalid-file {
+	max-width: 100%;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-accent);
+	overflow-wrap: anywhere;
+	text-align: start;
+}
+
+.calendar-note-bases-invalid-reason {
+	display: block;
 }
 
 .calendar-note-empty-state {
@@ -2097,6 +2704,11 @@ body {
 		padding-inline: var(--size-2-1);
 	}
 
+	.calendar-note-bases-agenda-detail {
+		grid-template-columns: 1fr;
+		gap: 0;
+	}
+
 	.calendar-note-diagnostics-table thead {
 		display: none;
 	}
@@ -2104,5 +2716,21 @@ body {
 	.calendar-note-diagnostics-table tr,
 	.calendar-note-diagnostics-table td {
 		display: block;
+	}
+}
+
+@media (hover: none), (pointer: coarse) {
+	.calendar-note-bases-add {
+		width: 2.75rem;
+		height: 2.75rem;
+		opacity: 1;
+	}
+
+	.calendar-note-bases-date-number,
+	.calendar-note-bases-daily-indicator,
+	.calendar-note-bases-compact-indicator,
+	.calendar-note-bases-more {
+		min-width: 2.75rem;
+		min-height: 2.75rem;
 	}
 }

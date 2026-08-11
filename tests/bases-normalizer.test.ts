@@ -2,6 +2,7 @@ import type { BasesPropertyId, Value } from 'obsidian';
 import { describe, expect, it } from 'vitest';
 import {
 	BasesCalendarNormalizer,
+	basesPropertyDetails,
 	basesPropertiesToDisplayText,
 	basesValueToDisplayText,
 	basesValueToRaw,
@@ -62,6 +63,19 @@ describe('Bases calendar normalizer', () => {
 		expect(item).not.toHaveProperty('completed');
 	});
 
+	it('reports invalid entries independently so one bad Value cannot break the calendar', () => {
+		const normalizer = new BasesCalendarNormalizer();
+		expect(normalizer.normalizeWithResult(
+			createEntry('Bad-start.md', { [start]: new DateValueShape('not-a-date') }), { start }, 'YYYY-MM-DD',
+		)).toEqual({ issue: 'invalid-start' });
+		expect(normalizer.normalizeWithResult(createEntry('Bad-end.md', {
+			[start]: new DateValueShape('2026-08-09'), [end]: new DateValueShape('2026-02-30'),
+		}), { start, end }, 'YYYY-MM-DD')).toEqual({ issue: 'invalid-end' });
+		expect(normalizer.normalizeWithResult(createEntry('Backwards.md', {
+			[start]: new DateValueShape('2026-08-09'), [end]: new DateValueShape('2026-08-08'),
+		}), { start, end }, 'YYYY-MM-DD')).toEqual({ issue: 'end-before-start' });
+	});
+
 	it('reads the first valid item from a real ListValue-shaped value', () => {
 		const list = new ListValueShape([new LinkValueShape('[[Work]]'), new StringValueShape('Personal')]);
 		const entry = createEntry('Events/List.md', { [start]: new DateValueShape('2026-08-09'), [type]: list });
@@ -81,9 +95,17 @@ describe('Bases calendar normalizer', () => {
 			'Label: Planning · Type: Work, Personal',
 		);
 	});
+
+	it('retains public Bases Values for detail rendering with display names', () => {
+		const value = new RenderableValueShape('[[Projects/Atlas|Atlas]]');
+		const entry = createEntry('Events/Detail.md', { [start]: new DateValueShape('2026-08-09'), [type]: value });
+		const details = basesPropertyDetails(entry, [type], () => 'Category');
+		expect(details).toEqual([expect.objectContaining({ displayName: 'Category', text: 'Atlas' })]);
+		expect(details[0]?.value).toBe(value);
+	});
 });
 
-type ValueShape = StringValueShape | DateValueShape | LinkValueShape | ListValueShape;
+type ValueShape = StringValueShape | DateValueShape | LinkValueShape | ListValueShape | RenderableValueShape;
 
 function createEntry(path: string, values: Record<string, ValueShape>): BasesEntryLike {
 	const name = path.split('/').at(-1) ?? path;
@@ -100,6 +122,10 @@ class StringValueShape {
 }
 
 class LinkValueShape extends StringValueShape {}
+
+class RenderableValueShape extends LinkValueShape {
+	renderTo(): void {}
+}
 
 class DateValueShape extends StringValueShape {
 	dateOnly(): DateValueShape { return this; }

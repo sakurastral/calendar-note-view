@@ -110,25 +110,35 @@ describe('Style Settings colors', () => {
 });
 
 describe('Bases property mapping options', () => {
-	it('uses searchable property selectors without imposed defaults', () => {
-		const mapping = getBasesCalendarOptions()[0];
-		expect(mapping?.type).toBe('group');
-		if (!mapping || mapping.type !== 'group') return;
-		for (const option of mapping.items) {
+	it('groups mappings, content, styling, layout, and advanced options', () => {
+		const groups = getBasesCalendarOptions();
+		expect(groups.map((group) => group.type === 'group' ? group.displayName : '')).toEqual([
+			'Required mapping', 'Event content', 'Event styling', 'Calendar layout', 'Advanced',
+		]);
+		const propertyGroups = groups.slice(0, 3);
+		const propertyOptions = propertyGroups.flatMap((group) => group.type === 'group' ? group.items : [])
+			.filter((option) => option.type === 'property');
+		for (const option of propertyOptions) {
 			expect(option.type).toBe('property');
 			expect('default' in option).toBe(false);
 			expect('placeholder' in option ? option.placeholder : undefined).toBe('Select a property');
 		}
-		expect(mapping.items.map((option) => option.key)).not.toContain('completedProperty');
-		const behavior = getBasesCalendarOptions()[1];
-		if (!behavior || behavior.type !== 'group') return;
-		expect(behavior.items.map((option) => option.key)).not.toEqual(expect.arrayContaining(['hideCompletedTasks', 'dimCompletedTasks']));
-		const displayMode = behavior.items.find((option) => option.key === 'eventDisplayMode');
+		expect(propertyOptions.map((option) => option.key)).not.toContain('completedProperty');
+		const content = groups[1];
+		const layout = groups[3];
+		if (!content || content.type !== 'group' || !layout || layout.type !== 'group') return;
+		const displayMode = content.items.find((option) => option.key === 'eventDisplayMode');
 		expect(displayMode?.type).toBe('dropdown');
 		if (!displayMode || displayMode.type !== 'dropdown') return;
-		expect(displayMode.options).toMatchObject({ properties: 'Visible Base properties' });
-		const maximum = behavior.items.find((option) => option.key === 'maximumVisibleEvents');
-		expect(maximum).toMatchObject({ type: 'slider', min: 1, max: 12 });
+		expect(displayMode.options).toMatchObject({
+			'title-properties': 'Title + visible Base properties', properties: 'Visible Base properties',
+		});
+		const rowLimit = layout.items.find((option) => option.key === 'eventRowLimit');
+		expect(rowLimit).toMatchObject({ type: 'dropdown', default: 'auto' });
+		const weekend = layout.items.find((option) => option.key === 'weekendPreset');
+		expect(weekend).toMatchObject({ type: 'dropdown', default: 'plugin' });
+		expect(groups.flatMap((group) => group.type === 'group' ? group.items : []).map((option) => option.key))
+			.not.toEqual(expect.arrayContaining(['hideCompletedTasks', 'dimCompletedTasks', 'maximumVisibleEvents', 'weekendDays']));
 	});
 });
 

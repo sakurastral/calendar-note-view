@@ -2,6 +2,31 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.4.1
+
+### Added
+
+- Add a Base-native event creation dialog backed by the public `BasesView.createFileForView()` API
+- Add localized, keyboard-accessible date Agendas with public Bases Value rendering and note actions
+- Add container-responsive Comfortable, Compact, and Automatic layouts with touch-friendly compact indicators
+- Add localized empty, invalid-entry, and current-month feedback with a safe skipped-entry list
+- Add event hover, pressed, focus, selected-date, Agenda, compact-indicator, and invalid-notice Style Settings
+
+### Changed
+
+- Preserve the exact order of `this.data.data` through lane allocation, overflow, Agenda, and event details
+- Reorganize Bases view options into Required mapping, Event content, Event styling, Calendar layout, and Advanced
+- Replace raw weekend values and the event-row slider with readable presets while safely migrating existing view configuration
+- Make visible Base properties secondary content beside the title and render their complete public Values in Agenda details
+- Use an Obsidian tooltip and an inclusive date range for every Bases event without a duplicate native tooltip
+
+### Fixed
+
+- Stop Bases date-cell creation from inheriting Source Profile folders, templates, mappings, or filtering behavior
+- Disable creation when Start maps to a formula or file property and skip all other non-writable mappings safely
+- Preserve the viewed month, selected date, and reasonable keyboard focus across Base data updates and responsive rerenders
+- Prevent invalid formula or date Values from aborting the complete Calendar render
+
 ## 0.4.0
 
 ### Added
