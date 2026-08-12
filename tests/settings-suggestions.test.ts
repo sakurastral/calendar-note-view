@@ -122,6 +122,16 @@ describe('settings infrastructure', () => {
 		expect(migrated?.defaultTextColor).toBeUndefined();
 	});
 
+	it('round-trips an explicit transparent Source Profile background', () => {
+		const profile = loadCalendarSettings({
+			schemaVersion: 9,
+			sourceProfiles: [{ id: 'events', startProperty: 'start', defaultBackgroundColor: 'transparent' }],
+		}).settings.sourceProfiles[0];
+		expect(profile?.defaultBackgroundColor).toBe('transparent');
+		expect(loadCalendarSettings({ schemaVersion: 9, sourceProfiles: [profile] }).settings.sourceProfiles[0]?.defaultBackgroundColor)
+			.toBe('transparent');
+	});
+
 	it('recovers invalid data and duplicate IDs without throwing', () => {
 		const result = loadCalendarSettings({
 			firstDayOfWeek: 99,

@@ -46,7 +46,7 @@ When no valid Source Profile exists, the Sidebar explains that Profiles are requ
 
 The Sidebar grid supports Arrow keys between dates, Page Up/Down between months, Shift + Page Up/Down between years, and Home for Today. Month changes are announced to assistive technology, while index and settings rerenders preserve the viewed month and restore a reasonable focus target. Today state updates after midnight in the configured time zone without rebuilding the event index.
 
-Choose **Calendar language** under **Calendar behavior** to localize month and weekday labels, navigation accessibility labels, calendar menus, and status messages. **System default** follows the current device language. Event indicators use Obsidian tooltips without also showing a browser-native title tooltip.
+Choose **Calendar language** under **Calendar behavior** to localize month and weekday labels, navigation accessibility labels, calendar menus, and status messages. **Obsidian language** follows the language selected inside Obsidian instead of the operating-system language. Event indicators use Obsidian tooltips without also showing a browser-native title tooltip.
 
 Refresh safely rebuilds the Sidebar event index while preserving the viewed month.
 

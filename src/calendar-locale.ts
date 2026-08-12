@@ -1,13 +1,20 @@
 import type { CalendarLocale } from './models';
 
 export const CALENDAR_LOCALE_OPTIONS: Record<CalendarLocale, string> = {
-	system: 'System default',
+	system: 'Obsidian language',
 	en: 'English',
 	'zh-TW': '繁體中文',
 	'zh-CN': '简体中文',
 	ja: '日本語',
 	ko: '한국어',
 };
+
+let obsidianLocale = 'en';
+
+/** Sets the public Obsidian app language used by the persisted `system` option. */
+export function setCalendarObsidianLocale(locale: string): void {
+	obsidianLocale = locale.trim() || 'en';
+}
 
 export type CalendarTextKey =
 	| 'previousMonth' | 'nextMonth' | 'today' | 'refreshCalendar'
@@ -237,19 +244,19 @@ export function calendarText(
 	locale: CalendarLocale,
 	key: CalendarTextKey,
 	values: Record<string, string | number> = {},
-	systemLocale = getSystemLocale(),
+	systemLocale = obsidianLocale,
 ): string {
 	const language = translationLocale(locale, systemLocale);
 	const template = language === 'en' ? ENGLISH[key] : TRANSLATIONS[language][key];
 	return template.replace(/\{([^}]+)\}/g, (_match, name: string) => String(values[name] ?? ''));
 }
 
-export function calendarMonthLabels(locale: CalendarLocale, systemLocale = getSystemLocale()): string[] {
+export function calendarMonthLabels(locale: CalendarLocale, systemLocale = obsidianLocale): string[] {
 	const formatter = new Intl.DateTimeFormat(intlLocale(locale, systemLocale), { month: 'short', timeZone: 'UTC' });
 	return Array.from({ length: 12 }, (_value, month) => formatter.format(new Date(Date.UTC(2026, month, 1))));
 }
 
-export function calendarWeekdayLabels(locale: CalendarLocale, systemLocale = getSystemLocale()): string[] {
+export function calendarWeekdayLabels(locale: CalendarLocale, systemLocale = obsidianLocale): string[] {
 	const formatter = new Intl.DateTimeFormat(intlLocale(locale, systemLocale), { weekday: 'short', timeZone: 'UTC' });
 	return Array.from({ length: 7 }, (_value, weekday) => formatter.format(new Date(Date.UTC(2023, 0, 1 + weekday))));
 }
@@ -266,8 +273,4 @@ function translationLocale(locale: CalendarLocale, systemLocale: string): Exclud
 	if (normalized.startsWith('ja')) return 'ja';
 	if (normalized.startsWith('ko')) return 'ko';
 	return 'en';
-}
-
-function getSystemLocale(): string {
-	return typeof navigator === 'undefined' || !navigator.language ? 'en' : navigator.language;
 }

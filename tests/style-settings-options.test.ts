@@ -65,6 +65,7 @@ describe('Style Settings colors', () => {
 		expect(background).not.toContain("value: 'var(--text-normal)'");
 		expect(text).toContain("value: 'var(--text-normal)'");
 		expect(text).not.toContain("value: 'var(--background-primary)'");
+		expect(background).toContain("value: 'transparent'");
 	});
 
 	it('makes Bases date numbers circular with an adjustable radius', () => {
@@ -101,6 +102,16 @@ describe('Style Settings colors', () => {
 		expect(runtimeCss).toContain('color: var(--calendar-note-date-text-resolved, var(--text-normal));');
 		expect(runtimeCss).toContain('.calendar-note-sidebar .calendar-note-date-number');
 		expect(runtimeCss).toContain('color: inherit;');
+	});
+
+	it('applies hover to the complete Sidebar day cell and keeps icon indicators square', () => {
+		const runtimeCss = css.slice(settings.length);
+		expect(runtimeCss).toContain('.calendar-note-date-cell:hover,');
+		expect(runtimeCss).toContain('.calendar-note-date-cell:focus-within');
+		expect(runtimeCss).toContain('.calendar-note-sidebar .calendar-note-date-cell:hover .calendar-note-date-button');
+		expect(runtimeCss).toContain('width: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);');
+		expect(runtimeCss).toContain('aspect-ratio: 1;');
+		expect(runtimeCss).toContain('border-radius: var(--calendar-note-event-radius, var(--radius-s));');
 	});
 
 	it('contains no task fallback or completed-event controls', () => {

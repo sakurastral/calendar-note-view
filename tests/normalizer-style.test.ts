@@ -86,7 +86,7 @@ describe('values and style resolution', () => {
 	it('normalizes equivalent wiki links and validates safe CSS colors', () => {
 		expect(normalizeWikiLinkTarget('[[Target.md|Alias]]')).toBe('Target');
 		expect(normalizeWikiLinkTarget({ path: 'Target.md' })).toBe('Target');
-		for (const color of ['#fff', '#12345678', 'rgb(1 2 3 / 50%)', 'hsl(120 50% 50%)', 'var(--event-color)']) expect(isSafeCssColor(color)).toBe(true);
+		for (const color of ['#fff', '#12345678', 'rgb(1 2 3 / 50%)', 'hsl(120 50% 50%)', 'var(--event-color)', 'transparent']) expect(isSafeCssColor(color)).toBe(true);
 		for (const color of ['url(x)', 'expression(x)', 'javascript:x', '#fff; color:red']) expect(isSafeCssColor(color)).toBe(false);
 	});
 
@@ -115,6 +115,7 @@ describe('values and style resolution', () => {
 			backgroundColor: 'var(--calendar-note-event-bg-resolved, var(--background-secondary))',
 			textColor: 'var(--calendar-note-event-text-resolved, var(--text-normal))',
 		});
+		expect(resolver.resolve(event, source({ defaultBackgroundColor: 'transparent' }), []).style.backgroundColor).toBe('transparent');
 	});
 
 	it('ignores unknown icons and records diagnostics', () => {

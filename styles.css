@@ -2776,19 +2776,23 @@ body {
 	flex-direction: column;
 	border-radius: var(--calendar-note-date-cell-radius, var(--radius-s));
 	background: var(--calendar-note-date-cell-bg-resolved, transparent);
+	color: var(--calendar-note-date-text-resolved, var(--text-normal));
 	overflow: hidden;
 }
 
 .calendar-note-date-cell.is-weekend {
 	background: var(--calendar-note-weekend-bg-resolved, transparent);
+	color: var(--calendar-note-weekend-text-resolved, var(--text-muted));
 }
 
 .calendar-note-date-cell.is-adjacent-month {
 	background: var(--calendar-note-adjacent-bg-resolved, var(--background-primary-alt));
+	color: var(--calendar-note-adjacent-text-resolved, var(--text-faint));
 }
 
 .calendar-note-date-cell.is-today {
 	background: var(--calendar-note-today-bg-resolved, var(--background-modifier-hover));
+	color: var(--calendar-note-today-text-resolved, var(--text-normal));
 }
 
 .calendar-note-date-cell.is-selected {
@@ -2799,12 +2803,26 @@ body {
 	min-height: 2rem;
 	padding: var(--size-2-1);
 	background: transparent;
+	color: inherit;
 }
 
 .calendar-note-date-cell.is-weekend .calendar-note-date-button,
 .calendar-note-date-cell.is-adjacent-month .calendar-note-date-button,
 .calendar-note-date-cell.is-today .calendar-note-date-button {
 	background: transparent;
+	color: inherit;
+}
+
+.calendar-note-date-cell:hover,
+.calendar-note-date-cell:focus-within {
+	background: var(--calendar-note-date-hover-bg-resolved, var(--background-modifier-hover));
+	color: var(--calendar-note-date-hover-text-resolved, var(--text-normal));
+}
+
+.calendar-note-sidebar .calendar-note-date-cell:hover .calendar-note-date-button,
+.calendar-note-sidebar .calendar-note-date-cell:focus-within .calendar-note-date-button {
+	background: transparent;
+	color: inherit;
 }
 
 .calendar-note-date-actions {
@@ -2887,6 +2905,16 @@ body {
 
 .calendar-note-indicator.is-dots {
 	box-sizing: content-box;
+}
+
+.calendar-note-indicator.is-icons {
+	box-sizing: border-box;
+	width: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);
+	height: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);
+	min-width: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);
+	min-height: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);
+	padding: 2px;
+	aspect-ratio: 1;
 }
 
 .calendar-note-overflow {

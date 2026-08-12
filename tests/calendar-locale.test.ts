@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { calendarMonthLabels, calendarText, calendarWeekdayLabels } from '../src/calendar-locale';
+import { readFileSync } from 'node:fs';
+import {
+	CALENDAR_LOCALE_OPTIONS,
+	calendarMonthLabels,
+	calendarText,
+	calendarWeekdayLabels,
+	setCalendarObsidianLocale,
+} from '../src/calendar-locale';
 
 describe('calendar locale', () => {
 	it('localizes calendar controls and interpolated status text', () => {
@@ -17,9 +24,24 @@ describe('calendar locale', () => {
 		expect(weekdays[0]).toMatch(/週日|周日|星期日/);
 	});
 
-	it('resolves System default from the supplied browser locale', () => {
+	it('resolves the legacy system value from the supplied Obsidian locale', () => {
 		expect(calendarText('system', 'nextMonth', {}, 'zh-TW')).toBe('下個月');
 		expect(calendarText('system', 'nextMonth', {}, 'fr-FR')).toBe('Next month');
+	});
+
+	it('follows the configured Obsidian app language by default', () => {
+		setCalendarObsidianLocale('zh-TW');
+		expect(CALENDAR_LOCALE_OPTIONS.system).toBe('Obsidian language');
+		expect(calendarText('system', 'nextMonth')).toBe('下個月');
+		expect(calendarMonthLabels('system')[0]).toMatch(/1月|一月/);
+		setCalendarObsidianLocale('en');
+	});
+
+	it('initializes the default locale from the public Obsidian language API', () => {
+		const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+		expect(main).toContain('getLanguage');
+		expect(main).toContain('setCalendarObsidianLocale(getLanguage())');
+		expect(readFileSync(new URL('../src/calendar-locale.ts', import.meta.url), 'utf8')).not.toContain('navigator.language');
 	});
 
 	it('localizes Agenda, creation, empty state, and invalid-entry UI', () => {

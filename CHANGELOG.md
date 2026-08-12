@@ -2,6 +2,15 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.5.1
+
+### Fixed
+
+- Follow Obsidian's configured app language when Calendar language is set to Obsidian language
+- Restore square Sidebar icon indicators and make their size and corner-radius Style Settings effective
+- Apply Sidebar hover and keyboard-focus colors to the complete day cell instead of only the Daily Note button
+- Restore Transparent as an explicit Source Profile default background option and preserve it through settings reloads
+
 ## 0.5.0
 
 ### Added

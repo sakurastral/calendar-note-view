@@ -36,6 +36,7 @@ export function isSafeCssColor(value: unknown): boolean {
 	if (typeof value !== 'string') return false;
 	const color = value.trim();
 	if (!color || /[;{}]|url\s*\(|expression\s*\(|javascript\s*:/i.test(color)) return false;
+	if (color.toLowerCase() === 'transparent') return true;
 	if (/^#[\da-f]{3,4}$/i.test(color) || /^#[\da-f]{6}([\da-f]{2})?$/i.test(color)) return true;
 	if (/^rgba?\(\s*[\d.%+-]+(?:\s*[, ]\s*[\d.%+-]+){2}(?:\s*[,/]\s*[\d.%+-]+)?\s*\)$/i.test(color)) return true;
 	if (/^hsla?\(\s*[\d.+-]+(?:deg|rad|grad|turn)?\s*[, ]\s*[\d.+-]+%\s*[, ]\s*[\d.+-]+%(?:\s*[,/]\s*[\d.%+-]+)?\s*\)$/i.test(color)) return true;

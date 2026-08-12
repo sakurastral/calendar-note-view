@@ -1,6 +1,6 @@
-import { getAllTags, Plugin, type CachedMetadata, type WorkspaceLeaf } from 'obsidian';
+import { getAllTags, getLanguage, Plugin, type CachedMetadata, type WorkspaceLeaf } from 'obsidian';
 import { CalendarBasesView, CALENDAR_BASES_VIEW_TYPE, getBasesCalendarOptions } from './bases-view';
-import { calendarText } from './calendar-locale';
+import { calendarText, setCalendarObsidianLocale } from './calendar-locale';
 import { registerCalendarCommands } from './commands';
 import { CalendarDayRolloverService } from './day-rollover';
 import { DailyNoteService } from './daily-notes';
@@ -33,6 +33,7 @@ export default class CalendarNoteViewPlugin extends Plugin {
 	sourceMatcher!: CalendarSourceMatcher;
 
 	async onload(): Promise<void> {
+		setCalendarObsidianLocale(getLanguage());
 		const loaded = loadCalendarSettings(await this.loadData());
 		this.settings = loaded.settings;
 		if (loaded.migrated) await this.saveData(this.settings);

@@ -10,6 +10,7 @@ const EXTENDED_COLORS = [
 ] as const;
 
 export const OBSIDIAN_BACKGROUND_COLOR_OPTIONS: Record<string, string> = Object.fromEntries([
+	['transparent', 'Transparent'],
 	['var(--background-primary)', 'Primary background'],
 	['var(--background-primary-alt)', 'Primary alternate background'],
 	['var(--background-secondary)', 'Secondary background'],
