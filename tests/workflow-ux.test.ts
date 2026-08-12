@@ -122,6 +122,16 @@ describe('Sidebar semantics, Agenda, keyboard, and rollover', () => {
 		expect(source).not.toContain('setInterval');
 		expect(source).toContain('window.clearTimeout');
 	});
+
+	it('resizes Sidebar icon frames from actual indicator space and cleans up its observer', () => {
+		const source = readFileSync('src/sidebar-view.ts', 'utf8');
+		expect(source).toContain('new ResizeObserver(() => this.scheduleIndicatorSizing())');
+		expect(source).toContain("indicators.style.setProperty('--calendar-note-indicator-columns'");
+		expect(source).toContain("indicators.style.setProperty('--calendar-note-indicator-rows'");
+		expect(source).toContain('indicators.clientWidth - horizontalPadding');
+		expect(source).toContain('indicators.clientHeight - verticalPadding');
+		expect(source).toContain('this.resizeObserver?.disconnect()');
+	});
 });
 
 describe('Create Event workflow', () => {

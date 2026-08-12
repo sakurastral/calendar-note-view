@@ -104,15 +104,28 @@ describe('Style Settings colors', () => {
 		expect(runtimeCss).toContain('color: inherit;');
 	});
 
-	it('keeps Sidebar day cells and icon indicators square', () => {
+	it('keeps Sidebar day cells and icon indicators square without reserving excess date-button height', () => {
 		const runtimeCss = css.slice(settings.length);
 		expect(runtimeCss).toContain('.calendar-note-date-cell:hover,');
 		expect(runtimeCss).toContain('.calendar-note-date-cell:focus-within');
 		expect(runtimeCss).toContain('.calendar-note-sidebar .calendar-note-date-cell:hover .calendar-note-date-button');
 		expect(runtimeCss).toMatch(/\.calendar-note-date-cell\s*\{[^}]*aspect-ratio:\s*1;/s);
-		expect(runtimeCss).toContain('width: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);');
+		expect(runtimeCss).toMatch(/\.calendar-note-sidebar \.calendar-note-date-button\s*\{[^}]*height:\s*auto;[^}]*min-height:\s*0;/s);
+		expect(runtimeCss).toMatch(/\.calendar-note-indicators\s*\{[^}]*display:\s*grid;[^}]*place-content:\s*center;[^}]*place-items:\s*center;/s);
+		expect(runtimeCss).toContain('var(--calendar-note-indicator-columns, 1)');
+		expect(runtimeCss).toContain('var(--calendar-note-indicator-rows, 1)');
+		expect(runtimeCss).toContain('width: var(--calendar-note-indicator-frame-size, calc(');
+		expect(runtimeCss).toContain('width: var(--calendar-note-sidebar-icon-scale, 76%);');
+		expect(settings).toContain('id: calendar-note-sidebar-icon-scale');
 		expect(runtimeCss).toContain('aspect-ratio: 1;');
 		expect(runtimeCss).toContain('border-radius: var(--calendar-note-event-radius, var(--radius-s));');
+	});
+
+	it('does not force touch icon indicators beyond their responsive frame', () => {
+		const runtimeCss = css.slice(settings.length);
+		const touchBlock = runtimeCss.slice(runtimeCss.lastIndexOf('@media (hover: none), (pointer: coarse)'));
+		expect(touchBlock).toContain('.calendar-note-indicator:not(.is-icons),');
+		expect(touchBlock).not.toContain('.calendar-note-indicator,\n');
 	});
 
 	it('contains no task fallback or completed-event controls', () => {

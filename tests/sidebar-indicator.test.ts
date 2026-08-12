@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getSidebarIndicatorPresentation } from '../src/sidebar-indicator';
+import {
+	getSidebarIndicatorFrameSize,
+	getSidebarIndicatorGrid,
+	getSidebarIndicatorPresentation,
+} from '../src/sidebar-indicator';
 import { DEFAULT_EVENT_PROFILE } from '../src/settings-data';
 
 describe('Sidebar indicator presentation', () => {
@@ -12,5 +16,20 @@ describe('Sidebar indicator presentation', () => {
 			className: 'is-icons',
 			icon: 'calendar-days',
 		});
+	});
+
+	it('allocates responsive rows and columns for the configured visible indicators', () => {
+		expect(getSidebarIndicatorGrid(0)).toEqual({ columns: 1, rows: 1 });
+		expect(getSidebarIndicatorGrid(1)).toEqual({ columns: 1, rows: 1 });
+		expect(getSidebarIndicatorGrid(3)).toEqual({ columns: 3, rows: 1 });
+		expect(getSidebarIndicatorGrid(4)).toEqual({ columns: 3, rows: 2 });
+		expect(getSidebarIndicatorGrid(8)).toEqual({ columns: 4, rows: 2 });
+	});
+
+	it('fills available indicator slots while preserving gaps and a small inset', () => {
+		expect(getSidebarIndicatorFrameSize(78, 46, 1, 4)).toBe(39);
+		expect(getSidebarIndicatorFrameSize(78, 46, 3, 4)).toBe(20);
+		expect(getSidebarIndicatorFrameSize(78, 46, 8, 4)).toBe(14);
+		expect(getSidebarIndicatorFrameSize(0, 46, 1, 4)).toBe(0);
 	});
 });

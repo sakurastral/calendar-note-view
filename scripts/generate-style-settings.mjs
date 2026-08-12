@@ -130,7 +130,8 @@ const settings = [
 	...color('calendar-note-event-bg', 'Event fallback background', 'Used only when an event has no note, type-rule, or Source Profile color override.', 'var(--background-secondary)', '#e5e7eb', '#303030', backgroundOptions),
 	...color('calendar-note-event-text', 'Event fallback text', 'Used only when an event has no note, type-rule, or Source Profile text-color override.', 'var(--text-normal)', '#222222', '#dadada', textOptions),
 	slider('calendar-note-dot-size', 'Sidebar event dot size', 5, 3, 12, 1, 'px', 'Applies when the Sidebar indicator mode is Colored dots.'),
-	slider('calendar-note-event-icon-size', 'Event icon size', 12, 8, 22, 1, 'px', 'Applies to Sidebar icon indicators and Bases event icons.'),
+	slider('calendar-note-event-icon-size', 'Event icon size', 12, 8, 22, 1, 'px', 'Sets Bases event icons and the initial Sidebar fallback before its responsive frame is measured.'),
+	slider('calendar-note-sidebar-icon-scale', 'Sidebar icon scale', 76, 40, 100, 1, '%', 'Sets the icon glyph as a percentage of its responsive Sidebar indicator frame.'),
 	slider('calendar-note-event-radius', 'Event corner radius', 4, 0, 16, 1, 'px', 'Applies to Sidebar indicators and Bases event bars.'),
 	...color('calendar-note-daily-note-indicator', 'Daily Note indicator color', 'Applies to the small dot that marks an existing Daily Note.', 'var(--interactive-accent)', '#7c3aed', '#a78bfa', indicatorOptions),
 ];

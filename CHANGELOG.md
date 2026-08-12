@@ -2,6 +2,17 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.5.3
+
+### Fixed
+
+- Scale Sidebar Event icon frames to the remaining day-cell space and visible indicator grid so large icons are no longer clipped
+- Measure the actual remaining indicator area and use 86% of each available slot instead of leaving unused space below the date
+- Collapse the Sidebar date button to its content height instead of reserving 32px, giving Event indicators the unused lower space while keeping day cells square
+- Center the complete Event indicator grid explicitly within the space below each date, including single-icon and multi-icon cells
+- Add a Sidebar icon scale Style Setting that sizes each glyph as a percentage of its measured frame
+- Stop coarse-pointer touch sizing from forcing icon indicators outside square day cells
+
 ## 0.5.2
 
 ### Changed

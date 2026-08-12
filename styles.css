@@ -1479,13 +1479,22 @@ settings:
     format: 'px'
   - id: calendar-note-event-icon-size
     title: Event icon size
-    description: Applies to Sidebar icon indicators and Bases event icons.
+    description: Sets Bases event icons and the initial Sidebar fallback before its responsive frame is measured.
     type: variable-number-slider
     default: 12
     min: 8
     max: 22
     step: 1
     format: 'px'
+  - id: calendar-note-sidebar-icon-scale
+    title: Sidebar icon scale
+    description: Sets the icon glyph as a percentage of its responsive Sidebar indicator frame.
+    type: variable-number-slider
+    default: 76
+    min: 40
+    max: 100
+    step: 1
+    format: '%'
   - id: calendar-note-event-radius
     title: Event corner radius
     description: Applies to Sidebar indicators and Bases event bars.
@@ -1576,6 +1585,7 @@ body {
 	--calendar-note-event-text: var(--text-normal);
 	--calendar-note-dot-size: 5px;
 	--calendar-note-event-icon-size: var(--icon-xs);
+	--calendar-note-sidebar-icon-scale: 76%;
 	--calendar-note-event-radius: var(--radius-s);
 	--calendar-note-daily-note-indicator: var(--interactive-accent);
 	--calendar-note-navigation-text: var(--text-muted);
@@ -2780,7 +2790,9 @@ body {
 }
 
 .calendar-note-sidebar .calendar-note-date-button {
-	min-height: 2rem;
+	flex: 0 0 auto;
+	height: auto;
+	min-height: 0;
 	padding: var(--size-2-1);
 	background: transparent;
 	color: inherit;
@@ -2815,8 +2827,22 @@ body {
 }
 
 .calendar-note-indicators {
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: repeat(
+		var(--calendar-note-indicator-columns, 1),
+		var(--calendar-note-indicator-frame-size, calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px))
+	);
+	grid-template-rows: repeat(
+		var(--calendar-note-indicator-rows, 1),
+		var(--calendar-note-indicator-frame-size, calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px))
+	);
+	min-width: 0;
+	min-height: 0;
+	flex: 1 1 0;
+	place-content: center;
+	place-items: center;
 	padding: 0 var(--size-2-1) var(--size-2-1);
+	overflow: hidden;
 }
 
 .calendar-note-indicator,
@@ -2849,12 +2875,19 @@ body {
 
 .calendar-note-indicator.is-icons {
 	box-sizing: border-box;
-	width: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);
-	height: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);
-	min-width: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);
-	min-height: calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px);
-	padding: 2px;
+	width: var(--calendar-note-indicator-frame-size, calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px));
+	height: var(--calendar-note-indicator-frame-size, calc(var(--calendar-note-event-icon-size, var(--icon-xs)) + 4px));
+	min-width: 0;
+	min-height: 0;
+	padding: 0;
 	aspect-ratio: 1;
+}
+
+.calendar-note-indicator.is-icons svg {
+	width: var(--calendar-note-sidebar-icon-scale, 76%);
+	height: var(--calendar-note-sidebar-icon-scale, 76%);
+	max-width: 100%;
+	max-height: 100%;
 }
 
 .calendar-note-overflow {
@@ -3059,7 +3092,7 @@ body {
 }
 
 @media (hover: none), (pointer: coarse) {
-	.calendar-note-indicator,
+	.calendar-note-indicator:not(.is-icons),
 	.calendar-note-overflow {
 		min-width: 2.2rem;
 		min-height: 2.2rem;

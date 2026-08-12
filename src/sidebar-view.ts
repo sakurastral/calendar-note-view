@@ -14,7 +14,7 @@ import { hasSourceConditions } from './matcher';
 import type CalendarNoteViewPlugin from './main';
 import type { CalendarItem } from './models';
 import { SetupAssistantModal } from './setup-assistant-modal';
-import { getSidebarIndicatorPresentation } from './sidebar-indicator';
+import { getSidebarIndicatorFrameSize, getSidebarIndicatorGrid, getSidebarIndicatorPresentation } from './sidebar-indicator';
 import { SidebarAgendaModal } from './sidebar-agenda-modal';
 import { CalendarStyleResolver } from './style-resolver';
 
@@ -26,6 +26,8 @@ export class CalendarSidebarView extends ItemView {
 	private selectedDate?: string;
 	private unsubscribeIndex?: () => void;
 	private unsubscribeRollover?: () => void;
+	private resizeObserver?: ResizeObserver;
+	private indicatorSizingFrame?: number;
 	private refreshing = false;
 	private longPressTimer?: number;
 	private suppressNextClick = false;
@@ -56,6 +58,10 @@ export class CalendarSidebarView extends ItemView {
 	async onOpen(): Promise<void> {
 		this.unsubscribeIndex = this.plugin.index.subscribe(() => this.renderCalendar());
 		this.unsubscribeRollover = this.plugin.dayRollover.subscribe(() => this.renderCalendar());
+		if (typeof ResizeObserver !== 'undefined') {
+			this.resizeObserver = new ResizeObserver(() => this.scheduleIndicatorSizing());
+			this.resizeObserver.observe(this.contentEl);
+		}
 		this.renderCalendar();
 		await Promise.resolve();
 	}
@@ -65,6 +71,10 @@ export class CalendarSidebarView extends ItemView {
 		this.unsubscribeIndex = undefined;
 		this.unsubscribeRollover?.();
 		this.unsubscribeRollover = undefined;
+		this.resizeObserver?.disconnect();
+		this.resizeObserver = undefined;
+		if (this.indicatorSizingFrame !== undefined) window.cancelAnimationFrame(this.indicatorSizingFrame);
+		this.indicatorSizingFrame = undefined;
 		if (this.longPressTimer !== undefined) window.clearTimeout(this.longPressTimer);
 		await Promise.resolve();
 	}
@@ -97,6 +107,7 @@ export class CalendarSidebarView extends ItemView {
 		}
 		this.renderGrid();
 		this.restoreFocus(restoreKey);
+		this.scheduleIndicatorSizing();
 	}
 
 	goToToday(): void {
@@ -200,6 +211,11 @@ export class CalendarSidebarView extends ItemView {
 	private renderIndicators(container: HTMLElement, date: string, items: CalendarItem[]): void {
 		const indicators = container.createDiv({ cls: 'calendar-note-indicators' });
 		const maximum = this.plugin.settings.maxIndicatorsPerDay;
+		const visibleCount = Math.min(items.length, maximum) + Number(items.length > maximum);
+		const grid = getSidebarIndicatorGrid(visibleCount);
+		indicators.dataset.visibleCount = String(visibleCount);
+		indicators.style.setProperty('--calendar-note-indicator-columns', String(grid.columns));
+		indicators.style.setProperty('--calendar-note-indicator-rows', String(grid.rows));
 		for (const item of items.slice(0, maximum)) {
 			const profile = this.plugin.settings.sourceProfiles.find((candidate) => candidate.id === item.sourceProfileId);
 			if (!profile) continue;
@@ -232,6 +248,31 @@ export class CalendarSidebarView extends ItemView {
 			setTooltip(overflow, this.text('moreEventsOn', { count: items.length - maximum, date: this.dateLabel(date) }));
 			overflow.addEventListener('click', () => this.showAgenda(date, overflow));
 		}
+	}
+
+	private scheduleIndicatorSizing(): void {
+		if (this.indicatorSizingFrame !== undefined) window.cancelAnimationFrame(this.indicatorSizingFrame);
+		this.indicatorSizingFrame = window.requestAnimationFrame(() => {
+			this.indicatorSizingFrame = undefined;
+			this.updateIndicatorFrameSizes();
+		});
+	}
+
+	private updateIndicatorFrameSizes(): void {
+		this.contentEl.querySelectorAll<HTMLElement>('.calendar-note-indicators').forEach((indicators) => {
+			const visibleCount = Number(indicators.dataset.visibleCount ?? 0);
+			const computed = window.getComputedStyle(indicators);
+			const gap = Number.parseFloat(computed.columnGap || computed.gap) || 0;
+			const horizontalPadding = (Number.parseFloat(computed.paddingLeft) || 0) + (Number.parseFloat(computed.paddingRight) || 0);
+			const verticalPadding = (Number.parseFloat(computed.paddingTop) || 0) + (Number.parseFloat(computed.paddingBottom) || 0);
+			const size = getSidebarIndicatorFrameSize(
+				indicators.clientWidth - horizontalPadding,
+				indicators.clientHeight - verticalPadding,
+				visibleCount,
+				gap,
+			);
+			if (size > 0) indicators.style.setProperty('--calendar-note-indicator-frame-size', `${size}px`);
+		});
 	}
 
 	private addHeaderButton(container: HTMLElement, icon: string, label: string, key: string, action: () => void): HTMLButtonElement {
