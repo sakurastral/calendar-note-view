@@ -128,6 +128,8 @@ describe('Sidebar semantics, Agenda, keyboard, and rollover', () => {
 		expect(source).toContain('new ResizeObserver(() => this.scheduleIndicatorSizing())');
 		expect(source).toContain("indicators.style.setProperty('--calendar-note-indicator-columns'");
 		expect(source).toContain("indicators.style.setProperty('--calendar-note-indicator-rows'");
+		expect(source).toContain("computed.getPropertyValue('--calendar-note-event-icon-size')");
+		expect(source).toContain('preferredFrameSize');
 		expect(source).toContain('indicators.clientWidth - horizontalPadding');
 		expect(source).toContain('indicators.clientHeight - verticalPadding');
 		expect(source).toContain('this.resizeObserver?.disconnect()');

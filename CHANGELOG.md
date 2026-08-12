@@ -2,6 +2,14 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.5.4
+
+### Fixed
+
+- Make the Event icon size Style Setting control the rendered Sidebar badge size instead of being overwritten after responsive measurement
+- Treat the configured size as a preferred target while shrinking indicators automatically when a narrow day cell cannot fit them
+- Keep single and multiple Event indicator grids centered in the remaining area below each date
+
 ## 0.5.3
 
 ### Fixed

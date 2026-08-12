@@ -31,11 +31,16 @@ export function getSidebarIndicatorFrameSize(
 	availableHeight: number,
 	visibleCount: number,
 	gap: number,
+	preferredFrameSize?: number,
 ): number {
 	if (![availableWidth, availableHeight, visibleCount, gap].every(Number.isFinite)) return 0;
 	if (availableWidth <= 0 || availableHeight <= 0 || visibleCount <= 0) return 0;
 	const { columns, rows } = getSidebarIndicatorGrid(visibleCount);
 	const slotWidth = (availableWidth - Math.max(0, columns - 1) * Math.max(0, gap)) / columns;
 	const slotHeight = (availableHeight - Math.max(0, rows - 1) * Math.max(0, gap)) / rows;
-	return Math.max(1, Math.floor(Math.min(slotWidth, slotHeight) * 0.86));
+	const availableFrameSize = Math.min(slotWidth, slotHeight) * 0.86;
+	const preferred = preferredFrameSize !== undefined && Number.isFinite(preferredFrameSize) && preferredFrameSize > 0
+		? preferredFrameSize
+		: availableFrameSize;
+	return Math.max(1, Math.floor(Math.min(availableFrameSize, preferred)));
 }

@@ -32,4 +32,10 @@ describe('Sidebar indicator presentation', () => {
 		expect(getSidebarIndicatorFrameSize(78, 46, 8, 4)).toBe(14);
 		expect(getSidebarIndicatorFrameSize(0, 46, 1, 4)).toBe(0);
 	});
+
+	it('uses the configured icon frame as a target while shrinking to fit narrow cells', () => {
+		expect(getSidebarIndicatorFrameSize(120, 90, 1, 4, 16)).toBe(16);
+		expect(getSidebarIndicatorFrameSize(120, 90, 1, 4, 24)).toBe(24);
+		expect(getSidebarIndicatorFrameSize(20, 20, 1, 4, 24)).toBe(17);
+	});
 });

@@ -265,11 +265,16 @@ export class CalendarSidebarView extends ItemView {
 			const gap = Number.parseFloat(computed.columnGap || computed.gap) || 0;
 			const horizontalPadding = (Number.parseFloat(computed.paddingLeft) || 0) + (Number.parseFloat(computed.paddingRight) || 0);
 			const verticalPadding = (Number.parseFloat(computed.paddingTop) || 0) + (Number.parseFloat(computed.paddingBottom) || 0);
+			const configuredIconSize = Number.parseFloat(computed.getPropertyValue('--calendar-note-event-icon-size'));
+			const preferredFrameSize = Number.isFinite(configuredIconSize) && configuredIconSize > 0
+				? configuredIconSize + 4
+				: undefined;
 			const size = getSidebarIndicatorFrameSize(
 				indicators.clientWidth - horizontalPadding,
 				indicators.clientHeight - verticalPadding,
 				visibleCount,
 				gap,
+				preferredFrameSize,
 			);
 			if (size > 0) indicators.style.setProperty('--calendar-note-indicator-frame-size', `${size}px`);
 		});

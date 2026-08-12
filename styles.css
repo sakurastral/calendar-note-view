@@ -1479,7 +1479,7 @@ settings:
     format: 'px'
   - id: calendar-note-event-icon-size
     title: Event icon size
-    description: Sets Bases event icons and the initial Sidebar fallback before its responsive frame is measured.
+    description: Sets Bases event icons and the target Sidebar badge size. Sidebar badges shrink automatically when a day cell has less space.
     type: variable-number-slider
     default: 12
     min: 8
