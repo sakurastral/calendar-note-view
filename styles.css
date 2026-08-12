@@ -1732,24 +1732,6 @@ body {
 	color: var(--calendar-note-date-hover-text-resolved, var(--text-normal));
 }
 
-.calendar-note-date-add {
-	position: absolute;
-	top: var(--size-2-1);
-	right: var(--size-2-1);
-	display: flex;
-	opacity: 0;
-}
-
-.calendar-note-date-add svg {
-	width: var(--icon-xs);
-	height: var(--icon-xs);
-}
-
-.calendar-note-date-button:hover .calendar-note-date-add,
-.calendar-note-date-button:focus-visible .calendar-note-date-add {
-	opacity: 1;
-}
-
 .calendar-note-daily-indicator {
 	position: absolute;
 	top: var(--size-2-1);
@@ -2665,10 +2647,6 @@ body {
 		min-height: 3.75em;
 	}
 
-	.calendar-note-date-add {
-		opacity: 1;
-	}
-
 	.calendar-note-create-preview-row {
 		grid-template-columns: 1fr;
 		gap: 0;
@@ -2772,7 +2750,9 @@ body {
 .calendar-note-date-cell {
 	position: relative;
 	display: flex;
-	min-height: 4.8rem;
+	min-width: 0;
+	min-height: 0;
+	aspect-ratio: 1;
 	flex-direction: column;
 	border-radius: var(--calendar-note-date-cell-radius, var(--radius-s));
 	background: var(--calendar-note-date-cell-bg-resolved, transparent);
@@ -2825,51 +2805,13 @@ body {
 	color: inherit;
 }
 
-.calendar-note-date-actions {
-	position: absolute;
-	top: 0;
-	right: 0;
-	left: 0;
-	display: flex;
-	min-width: 0;
-	align-items: center;
-	justify-content: space-between;
-	pointer-events: none;
-}
-
-.calendar-note-date-actions > * {
-	pointer-events: auto;
-}
-
-.calendar-note-date-add,
-.calendar-note-date-agenda {
-	position: static;
-	width: 1.5rem;
-	height: 1.5rem;
-	min-width: 1.5rem;
-	padding: 2px;
-	border: 0;
-	background: transparent;
-	opacity: 0.25;
-}
-
-.calendar-note-date-cell:hover .calendar-note-date-add,
-.calendar-note-date-cell:focus-within .calendar-note-date-add,
-.calendar-note-date-cell:hover .calendar-note-date-agenda,
-.calendar-note-date-cell:focus-within .calendar-note-date-agenda {
-	opacity: 1;
-}
-
-.calendar-note-date-add:disabled {
-	cursor: not-allowed;
-	opacity: 0.15;
-}
-
 .calendar-note-daily-indicator {
-	position: static;
+	position: absolute;
+	top: var(--size-2-1);
+	left: var(--size-2-1);
+	z-index: 1;
 	width: var(--size-2-1);
 	height: var(--size-2-1);
-	margin-inline: var(--size-2-2) auto;
 }
 
 .calendar-note-indicators {
@@ -2896,9 +2838,7 @@ body {
 }
 
 .calendar-note-indicator:focus-visible,
-.calendar-note-overflow:focus-visible,
-.calendar-note-date-add:focus-visible,
-.calendar-note-date-agenda:focus-visible {
+.calendar-note-overflow:focus-visible {
 	outline: 2px solid var(--interactive-accent);
 	outline-offset: 1px;
 }
@@ -3116,23 +3056,9 @@ body {
 		grid-template-columns: 1fr;
 	}
 
-	.calendar-note-date-cell {
-		min-height: 5.5rem;
-	}
 }
 
 @media (hover: none), (pointer: coarse) {
-	.calendar-note-date-add,
-	.calendar-note-date-agenda {
-		width: 2.75rem;
-		height: 2.75rem;
-		opacity: 1;
-	}
-
-	.calendar-note-date-cell {
-		min-height: 6.25rem;
-	}
-
 	.calendar-note-indicator,
 	.calendar-note-overflow {
 		min-width: 2.2rem;

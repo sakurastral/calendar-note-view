@@ -86,11 +86,14 @@ describe('matching inspector contract', () => {
 });
 
 describe('Sidebar semantics, Agenda, keyboard, and rollover', () => {
-	it('uses separate semantic buttons for dates, create, events, agenda, and overflow', () => {
+	it('keeps Create Event and Agenda in the date context menu instead of overlay buttons', () => {
 		const source = readFileSync('src/sidebar-view.ts', 'utf8');
-		expect(source).toContain("actions.createEl('button'");
 		expect(source).toContain("indicators.createEl('button'");
 		expect(source).toContain("cls: 'calendar-note-overflow'");
+		expect(source).not.toContain('calendar-note-date-add');
+		expect(source).not.toContain('calendar-note-date-agenda');
+		expect(source).toContain("setTitle(this.text('viewAgenda'))");
+		expect(source).toContain("setTitle(this.text('createEvent'))");
 		expect(source).not.toContain("createSpan({\n\t\t\t\tcls: 'calendar-note-indicator");
 		expect(source).not.toContain('attr: { title:');
 	});

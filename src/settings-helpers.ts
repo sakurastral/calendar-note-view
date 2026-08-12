@@ -1,5 +1,6 @@
 import type { App } from 'obsidian';
 import { isSupportedDateFormat } from './date';
+import { normalizeVaultPath } from './event-template';
 import type { CalendarSourceProfile, CalendarTypeStyleRule } from './models';
 import { DEFAULT_EVENT_PROFILE } from './settings-data';
 import { createSourceProfileId, sortSourceProfiles } from './source-profile';
@@ -183,7 +184,7 @@ export function validateSourceProfile(
 		issues.push({ code: 'duplicate-name', severity: 'warning', message: 'Another profile has this name. Stable IDs keep them separate, but distinct names are easier to identify.' });
 	}
 	if (profile.allowCreate && app) {
-		const folder = profile.createFolder?.trim();
+		const folder = normalizeVaultPath(profile.createFolder ?? '');
 		if (folder && !app.vault.getFolderByPath(folder)) {
 			issues.push({ code: 'missing-folder', severity: 'warning', message: `The creation folder “${folder}” does not exist yet.` });
 		}

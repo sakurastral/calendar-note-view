@@ -40,7 +40,7 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 
 Use the ribbon icon or run **Calendar Note View: Open sidebar calendar**. The header provides Previous Month, Next Month, Today, separate Year and Month controls, and Refresh.
 
-Date cells expose separate semantic controls for the Daily Note, event creation, Agenda, each Event, and `+N` overflow. Date numbers open or create Daily Notes; the plus button creates an Event; the list button and `+N` open the selected date's Sidebar Agenda. Event indicators are keyboard-operable buttons and open their notes directly.
+Sidebar day cells remain square. Date numbers open or create Daily Notes, while Event indicators are keyboard-operable buttons that open their notes directly. Right-click a date—or long-press it on touch devices—to open its menu for the date Agenda and Event creation. A `+N` overflow control opens the Agenda when not every Event indicator fits in the cell.
 
 When no valid Source Profile exists, the Sidebar explains that Profiles are required only for Sidebar events—not Bases Calendar—and offers **Set up Sidebar Calendar**. The setup assistant keeps every step in a temporary draft, supports Back and Next without saving partial state, and creates one immutable Profile only on Finish.
 
@@ -166,7 +166,7 @@ Each Source Profile and each Bases Calendar view maps its own properties. Bases 
 
 ## Event creation
 
-Run **Calendar Note View: Create event**, use a calendar date's plus button, or use its context menu. Basics contain the Profile, title, Start, inclusive End, and Type. Icon/color overrides, collision behavior, style-source provenance, and generated output are grouped under collapsible Advanced details. Profile changes preserve dirty fields, and the last valid Profile is remembered by immutable ID. Cmd/Ctrl + Enter submits once; inline validation keeps invalid input in place.
+Run **Calendar Note View: Create event** or use a Sidebar date's context menu. Basics contain the Profile, title, Start, inclusive End, and Type. Icon/color overrides, collision behavior, style-source provenance, and generated output are grouped under collapsible Advanced details. Profile changes preserve dirty fields, and the last valid Profile is remembered by immutable ID. Cmd/Ctrl + Enter submits once; inline validation keeps invalid input in place.
 
 The creation service supports nested folders, frontmatter property mapping, note templates, safe file names, and automatic suffixes when a file name already exists.
 

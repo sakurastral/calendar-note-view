@@ -137,7 +137,6 @@ export class CalendarSidebarView extends ItemView {
 		const grid = buildCalendarMonthGrid(this.year, this.month, settings.firstDayOfWeek, settings.weekendDays);
 		const today = getTodayCanonical(settings.timeZone);
 		const dailyNotes = this.plugin.dailyNotes.getAll();
-		const canCreate = this.hasCreateProfile();
 		const calendar = this.contentEl.createDiv({ cls: 'calendar-note-month-grid', attr: { role: 'grid' } });
 		calendar.addEventListener('keydown', (event) => this.handleGridKeydown(event));
 		const weekdayLabels = calendarWeekdayLabels(settings.calendarLocale);
@@ -149,6 +148,10 @@ export class CalendarSidebarView extends ItemView {
 			wrapper.toggleClass('is-today', cell.date === today);
 			wrapper.toggleClass('is-selected', cell.date === this.selectedDate);
 			wrapper.dataset.date = cell.date;
+			if (this.plugin.dailyNotes.find(cell.date, dailyNotes)) {
+				const daily = wrapper.createSpan({ cls: 'calendar-note-daily-indicator', attr: { 'aria-label': this.text('dailyNoteIndicator', { date: this.dateLabel(cell.date) }) } });
+				setTooltip(daily, this.text('dailyNoteIndicator', { date: this.dateLabel(cell.date) }));
+			}
 
 			const dateAction = wrapper.createEl('button', {
 				cls: 'calendar-note-date-button',
@@ -163,30 +166,7 @@ export class CalendarSidebarView extends ItemView {
 				void this.plugin.dailyNotes.open(cell.date);
 			});
 
-			const actions = wrapper.createDiv({ cls: 'calendar-note-date-actions' });
-			if (this.plugin.dailyNotes.find(cell.date, dailyNotes)) {
-				const daily = actions.createSpan({ cls: 'calendar-note-daily-indicator', attr: { 'aria-label': this.text('dailyNoteIndicator', { date: this.dateLabel(cell.date) }) } });
-				setTooltip(daily, this.text('dailyNoteIndicator', { date: this.dateLabel(cell.date) }));
-			}
-			const add = actions.createEl('button', { cls: 'clickable-icon calendar-note-date-add', attr: { 'aria-label': this.text('createEventOn', { date: this.dateLabel(cell.date) }) } });
-			add.type = 'button';
-			add.disabled = !canCreate;
-			add.dataset.focusKey = `add:${cell.date}`;
-			this.focusTargets.set(`add:${cell.date}`, add);
-			setIcon(add, 'plus');
-			setTooltip(add, canCreate ? this.text('createEventOn', { date: this.dateLabel(cell.date) }) : this.text('eventCreationUnavailable'));
-			add.addEventListener('click', () => new CreateEventModal(this.plugin, this.plugin.eventCreation, cell.date).open());
-
 			const items = this.plugin.index.getItemsForDate(cell.date);
-			if (items.length > 0) {
-				const agenda = actions.createEl('button', { cls: 'clickable-icon calendar-note-date-agenda', attr: { 'aria-label': this.text('openAgenda', { date: this.dateLabel(cell.date) }) } });
-				agenda.type = 'button';
-				agenda.dataset.focusKey = `agenda:${cell.date}`;
-				this.focusTargets.set(`agenda:${cell.date}`, agenda);
-				setIcon(agenda, 'list');
-				setTooltip(agenda, this.text('openAgenda', { date: this.dateLabel(cell.date) }));
-				agenda.addEventListener('click', () => this.showAgenda(cell.date, agenda));
-			}
 			this.renderIndicators(wrapper, cell.date, items);
 			wrapper.addEventListener('contextmenu', (event) => {
 				event.preventDefault();
@@ -237,6 +217,8 @@ export class CalendarSidebarView extends ItemView {
 			setTooltip(indicator, item.title);
 			indicator.style.setProperty('--calendar-note-item-bg', resolution.style.backgroundColor);
 			indicator.style.setProperty('--calendar-note-item-text', resolution.style.textColor);
+			indicator.style.backgroundColor = resolution.style.backgroundColor;
+			indicator.style.color = resolution.style.textColor;
 			if (presentation.icon) setIcon(indicator, presentation.icon);
 			indicator.addEventListener('click', () => { void this.openEvent(item, false); });
 			indicator.addEventListener('contextmenu', (event) => { event.preventDefault(); event.stopPropagation(); this.showEventMenu(item, event); });

@@ -2,6 +2,18 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.5.2
+
+### Changed
+
+- Restore square Sidebar day cells and remove the per-cell Agenda and Create Event overlay buttons
+- Keep Sidebar Agenda and Event creation available from each date's context menu and touch long-press menu
+
+### Fixed
+
+- Normalize creation-folder separators and surrounding slashes before validating an existing Vault folder
+- Apply resolved Source Profile background and text colors directly to Sidebar indicators so host button styles cannot override them
+
 ## 0.5.1
 
 ### Fixed

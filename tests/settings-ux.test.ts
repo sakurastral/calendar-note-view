@@ -96,6 +96,20 @@ describe('settings UX helpers', () => {
 		]));
 	});
 
+	it('normalizes creation folder separators before checking whether it exists', () => {
+		const profile = {
+			...structuredClone(DEFAULT_EVENT_PROFILE),
+			id: 'one', enabled: true, startProperty: 'start', matchFilesWithStartPropertyOnly: true,
+			allowCreate: true, createFolder: '/Project\\Calendar//',
+		};
+		const getFolderByPath = vi.fn((path: string) => path === 'Project/Calendar' ? { path } : null);
+		const app = { vault: { getFolderByPath, getFileByPath: () => null } };
+		const codes = validateSourceProfile(profile, [profile], app as never).map((issue) => issue.code);
+
+		expect(getFolderByPath).toHaveBeenCalledWith('Project/Calendar');
+		expect(codes).not.toContain('missing-folder');
+	});
+
 	it('normalizes tokens, format modes, names, and accessible move operations', () => {
 		expect(normalizeTagToken('calendar')).toBe('#calendar');
 		expect(normalizeTagToken('##calendar/holiday')).toBe('#calendar/holiday');
