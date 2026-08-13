@@ -40,7 +40,7 @@ Calendar Note View adds a note-backed month calendar to Obsidian. It includes a 
 
 Use the ribbon icon or run **Calendar Note View: Open sidebar calendar**. The header provides Previous Month, Next Month, Today, separate Year and Month controls, and Refresh.
 
-Sidebar day cells remain square. Date numbers open or create Daily Notes, while Event indicators are keyboard-operable buttons that open their notes directly. Right-click a date—or long-press it on touch devices—to open its menu for the date Agenda and Event creation. A `+N` overflow control opens the Agenda when not every Event indicator fits in the cell.
+Sidebar day cells remain square. Date numbers open or create Daily Notes, while Event indicators are keyboard-operable buttons that open their notes directly. Right-click a date—or long-press it on touch devices—to open its menu for the date Agenda and Event creation. Agenda entries display their inclusive date range followed by Event title and type. A `+N` overflow control opens the Agenda when not every Event indicator fits in the cell.
 
 When no valid Source Profile exists, the Sidebar explains that Profiles are required only for Sidebar events—not Bases Calendar—and offers **Set up Sidebar Calendar**. The setup assistant keeps every step in a temporary draft, supports Back and Next without saving partial state, and creates one immutable Profile only on Finish.
 

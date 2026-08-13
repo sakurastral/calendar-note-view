@@ -1,6 +1,6 @@
 {
 	"name": "calendar-note-view",
-	"version": "0.5.4",
+	"version": "0.5.5",
 	"description": "Calendar views backed by Obsidian notes and properties",
 	"main": "main.js",
 	"type": "module",

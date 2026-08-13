@@ -3,6 +3,7 @@ import { calendarText, type CalendarTextKey } from './calendar-locale';
 import { formatCalendarDate } from './date';
 import type CalendarNoteViewPlugin from './main';
 import type { CalendarItem } from './models';
+import { getSidebarAgendaDetails } from './sidebar-agenda';
 
 export class SidebarAgendaModal extends Modal {
 	constructor(
@@ -36,15 +37,13 @@ export class SidebarAgendaModal extends Modal {
 		const row = this.contentEl.createDiv({ cls: 'calendar-note-sidebar-agenda-item' });
 		const main = row.createEl('button', { cls: 'calendar-note-sidebar-agenda-main' });
 		main.type = 'button';
-		main.createDiv({ cls: 'calendar-note-sidebar-agenda-title', text: item.title });
 		const range = item.startDate === item.endDate
 			? this.dateLabel(item.startDate)
 			: `${this.dateLabel(item.startDate)} – ${this.dateLabel(item.endDate)}`;
 		main.createDiv({ cls: 'calendar-note-sidebar-agenda-meta', text: range });
-		const profile = this.plugin.settings.sourceProfiles.find((candidate) => candidate.id === item.sourceProfileId);
-		const details = [item.type, profile?.name].filter((value): value is string => Boolean(value));
-		if (details.length > 0) main.createDiv({ cls: 'calendar-note-sidebar-agenda-meta', text: details.join(' · ') });
-		setTooltip(main, `${item.title}\n${range}`);
+		const details = getSidebarAgendaDetails(item);
+		main.createDiv({ cls: 'calendar-note-sidebar-agenda-title', text: details.join(' · ') });
+		setTooltip(main, [item.title, range, item.type].filter(Boolean).join('\n'));
 		main.addEventListener('click', () => { void this.openEvent(item, false); });
 		const more = row.createEl('button', { cls: 'clickable-icon calendar-note-sidebar-agenda-more' });
 		more.type = 'button';

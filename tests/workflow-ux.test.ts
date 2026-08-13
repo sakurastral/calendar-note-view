@@ -103,6 +103,8 @@ describe('Sidebar semantics, Agenda, keyboard, and rollover', () => {
 		const agenda = readFileSync('src/sidebar-agenda-modal.ts', 'utf8');
 		expect(sidebar).toContain('new SidebarAgendaModal(this.plugin, date, this.plugin.index.getItemsForDate(date)');
 		expect(agenda).toContain('for (const item of this.items)');
+		expect(agenda).toContain('getSidebarAgendaDetails(item)');
+		expect(agenda).not.toContain('profile?.name');
 		expect(agenda).not.toContain('getMarkdownFiles');
 	});
 

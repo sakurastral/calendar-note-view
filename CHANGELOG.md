@@ -2,6 +2,14 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.5.5
+
+### Fixed
+
+- Show each Sidebar Agenda entry as its inclusive date range followed by Event title and Event type
+- Stop using the Source Profile name as Agenda Event metadata, which could display duplicated Type-like labels
+- Avoid repeating the label when an Event title and type are identical
+
 ## 0.5.4
 
 ### Fixed
