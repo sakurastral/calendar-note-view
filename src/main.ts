@@ -22,6 +22,7 @@ import { CalendarSuggestionProvider } from './suggestions';
 export default class CalendarNoteViewPlugin extends Plugin {
 	private settingsPersistence!: CalendarSettingsPersistence;
 	private settingTab!: CalendarNoteSettingTab;
+	private readonly basesCalendars = new Set<CalendarBasesView>();
 	private unloading = false;
 	settings!: CalendarSettings;
 	diagnostics!: CalendarDiagnosticsService;
@@ -64,6 +65,7 @@ export default class CalendarNoteViewPlugin extends Plugin {
 				if (JSON.stringify(previous.timeZone) !== JSON.stringify(next.timeZone)) this.dayRollover.reschedule(true);
 				if (impact === 'index') await this.index.handleSettingsChanged(previous, next);
 				if (impact !== 'save') this.renderSidebarCalendars();
+				if (basesCalendarSettingsChanged(previous, next)) this.renderBasesCalendars();
 			},
 			onStatusChange: (status) => this.settingTab?.setSaveStatus(status),
 		});
@@ -116,6 +118,15 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		}
 	}
 
+	registerBasesCalendar(view: CalendarBasesView): () => void {
+		this.basesCalendars.add(view);
+		return () => this.basesCalendars.delete(view);
+	}
+
+	renderBasesCalendars(): void {
+		for (const view of this.basesCalendars) view.refreshPluginSettings();
+	}
+
 	async activateSidebar(): Promise<void> {
 		let leaf: WorkspaceLeaf | null = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)[0] ?? null;
 		if (!leaf) {
@@ -144,4 +155,14 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		await this.saveSettings(previous, 'index', true);
 		this.settingTab?.update();
 	}
+}
+
+export function basesCalendarSettingsChanged(previous: CalendarSettings, next: CalendarSettings): boolean {
+	return previous.firstDayOfWeek !== next.firstDayOfWeek
+		|| JSON.stringify(previous.weekendDays) !== JSON.stringify(next.weekendDays)
+		|| JSON.stringify(previous.timeZone) !== JSON.stringify(next.timeZone)
+		|| previous.calendarLocale !== next.calendarLocale
+		|| previous.displayDateFormat !== next.displayDateFormat
+		|| previous.eventPropertyDateFormat !== next.eventPropertyDateFormat
+		|| JSON.stringify(previous.typeStyleRules) !== JSON.stringify(next.typeStyleRules);
 }

@@ -397,9 +397,27 @@ settings:
     max: 180
     step: 4
     format: 'px'
+  - id: calendar-note-bases-cell-gap
+    title: Gap between day cells
+    description: Sets horizontal and vertical spacing between Bases day cells.
+    type: variable-number-slider
+    default: 2
+    min: 0
+    max: 16
+    step: 1
+    format: 'px'
+  - id: calendar-note-bases-cell-radius
+    title: Day cell corner radius
+    description: Rounds each Bases day cell independently.
+    type: variable-number-slider
+    default: 6
+    min: 0
+    max: 24
+    step: 1
+    format: 'px'
   - id: calendar-note-bases-cell-bg-source
     title: Default grid cell background
-    description: Fills ordinary Bases day cells; date states below can override it. Select Custom to use the light and dark colors in the next setting.
+    description: Fills only ordinary non-weekend Bases day cells; date states below can override it. Select Custom to use the light and dark colors in the next setting.
     type: variable-select
     default: 'var(--background-primary)'
     options:
@@ -1554,6 +1572,8 @@ body {
 	--calendar-note-bases-weekday-bg: var(--background-secondary);
 	--calendar-note-bases-weekday-text: var(--text-muted);
 	--calendar-note-bases-cell-min-height: 88px;
+	--calendar-note-bases-cell-gap: 2px;
+	--calendar-note-bases-cell-radius: var(--radius-s);
 	--calendar-note-bases-cell-bg: var(--background-primary);
 	--calendar-note-bases-cell-border: var(--background-modifier-border);
 	--calendar-note-bases-date-bg: var(--background-secondary);
@@ -2105,7 +2125,7 @@ body {
 
 .calendar-note-bases {
 	min-width: 0;
-	background: var(--calendar-note-bases-cell-bg-resolved, var(--background-primary));
+	background: var(--background-primary);
 	color: var(--calendar-note-calendar-text-resolved, var(--text-normal));
 	padding: var(--size-4-2);
 	overflow-x: hidden;
@@ -2171,6 +2191,13 @@ body {
 .calendar-note-bases-events {
 	display: grid;
 	grid-template-columns: repeat(7, minmax(0, 1fr));
+	column-gap: var(--calendar-note-bases-cell-gap, 2px);
+}
+
+.calendar-note-bases-month {
+	display: flex;
+	flex-direction: column;
+	gap: var(--calendar-note-bases-cell-gap, 2px);
 }
 
 .calendar-note-bases-weekday {
@@ -2198,18 +2225,15 @@ body {
 .calendar-note-bases-date-cell {
 	position: relative;
 	min-width: 0;
-	border-top: var(--border-width) solid var(--calendar-note-bases-cell-border-resolved, var(--background-modifier-border));
-	border-left: var(--border-width) solid var(--calendar-note-bases-cell-border-resolved, var(--background-modifier-border));
-	background: var(--calendar-note-bases-cell-bg-resolved, var(--background-primary));
+	border: var(--border-width) solid var(--calendar-note-bases-cell-border-resolved, var(--background-modifier-border));
+	border-radius: var(--calendar-note-bases-cell-radius, var(--radius-s));
+	background-color: var(--calendar-note-bases-cell-bg-resolved, var(--background-primary));
 	color: var(--calendar-note-date-text-resolved, var(--text-normal));
+	overflow: hidden;
 }
 
-.calendar-note-bases-date-cell:last-child {
-	border-right: var(--border-width) solid var(--calendar-note-bases-cell-border-resolved, var(--background-modifier-border));
-}
-
-.calendar-note-bases-week:last-child .calendar-note-bases-date-cell {
-	border-bottom: var(--border-width) solid var(--calendar-note-bases-cell-border-resolved, var(--background-modifier-border));
+.calendar-note-bases .calendar-note-bases-date-cell:not(.is-weekend):not(.is-adjacent-month):not(.is-hidden-adjacent) {
+	background-color: var(--calendar-note-bases-cell-bg-resolved, var(--background-primary));
 }
 
 .calendar-note-bases-date-cell.is-weekend {
@@ -2326,21 +2350,21 @@ body {
 	pointer-events: auto;
 }
 
-.calendar-note-bases-event {
+.calendar-note-bases .calendar-note-bases-event {
 	display: flex;
 	align-items: center;
 	gap: var(--size-2-1);
 	padding-inline: var(--size-2-2);
 	border-radius: var(--calendar-note-event-radius, var(--radius-s));
-	background: var(--calendar-note-item-bg, var(--calendar-note-event-bg-resolved, var(--background-secondary)));
+	background-color: var(--calendar-note-item-bg, var(--calendar-note-event-bg-resolved, var(--background-secondary)));
 	color: var(--calendar-note-item-text, var(--calendar-note-event-text-resolved, var(--text-normal)));
 	font-size: var(--font-ui-smaller);
 	text-align: start;
 	transition: background-color 100ms ease, color 100ms ease, transform 80ms ease;
 }
 
-.calendar-note-bases-event:hover {
-	background: var(--calendar-note-bases-event-hover-bg-resolved, var(--background-modifier-hover));
+.calendar-note-bases .calendar-note-bases-event:hover {
+	background-color: var(--calendar-note-bases-event-hover-bg-resolved, var(--background-modifier-hover));
 	color: var(--calendar-note-bases-event-hover-text-resolved, var(--text-normal));
 }
 

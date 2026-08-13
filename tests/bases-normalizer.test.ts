@@ -14,6 +14,7 @@ const end = 'note.end' as BasesPropertyId;
 const title = 'formula.label' as BasesPropertyId;
 const type = 'note.type' as BasesPropertyId;
 const color = 'note.color' as BasesPropertyId;
+const textColor = 'note.text-color' as BasesPropertyId;
 
 describe('Bases calendar normalizer', () => {
 	it('normalizes DateValue, LinkValue, and formula values supplied by a Bases entry', () => {
@@ -34,6 +35,18 @@ describe('Bases calendar normalizer', () => {
 		});
 		expect(item).not.toHaveProperty('kind');
 		expect(item).not.toHaveProperty('completed');
+	});
+
+	it('synchronizes mapped background and text color properties into each Base Event', () => {
+		const entry = createEntry('Events/Styled.md', {
+			[start]: new DateValueShape('2026-08-09'),
+			[color]: new StringValueShape('#123456'),
+			[textColor]: new StringValueShape('var(--text-on-accent)'),
+		});
+		const item = new BasesCalendarNormalizer().normalize(entry, {
+			start, backgroundColor: color, textColor,
+		}, 'YYYY-MM-DD');
+		expect(item).toMatchObject({ backgroundColor: '#123456', textColor: 'var(--text-on-accent)' });
 	});
 
 	it('supports custom date formats and an empty inclusive end', () => {

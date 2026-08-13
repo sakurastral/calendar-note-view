@@ -78,6 +78,25 @@ describe('Style Settings colors', () => {
 		expect(css.slice(settings.length)).toContain('.calendar-note-bases-date-cell.is-today .calendar-note-bases-date-number');
 	});
 
+	it('styles ordinary Bases cells independently with configurable gap and corner radius', () => {
+		const runtimeCss = css.slice(settings.length);
+		expect(settings).toContain('id: calendar-note-bases-cell-gap');
+		expect(settings).toContain('id: calendar-note-bases-cell-radius');
+		expect(runtimeCss).toContain('gap: var(--calendar-note-bases-cell-gap, 2px);');
+		expect(runtimeCss).toContain('column-gap: var(--calendar-note-bases-cell-gap, 2px);');
+		expect(runtimeCss).toContain('border-radius: var(--calendar-note-bases-cell-radius, var(--radius-s));');
+		expect(runtimeCss).toContain('.calendar-note-bases .calendar-note-bases-date-cell:not(.is-weekend):not(.is-adjacent-month):not(.is-hidden-adjacent)');
+		expect(runtimeCss).toContain('background-color: var(--calendar-note-bases-cell-bg-resolved, var(--background-primary));');
+		expect(runtimeCss).not.toMatch(/\.calendar-note-bases\s*\{[^}]*background:\s*var\(--calendar-note-bases-cell-bg-resolved/s);
+	});
+
+	it('keeps mapped and resolved Bases Event colors above host button styles', () => {
+		const runtimeCss = css.slice(settings.length);
+		expect(runtimeCss).toContain('.calendar-note-bases .calendar-note-bases-event {');
+		expect(runtimeCss).toContain('background-color: var(--calendar-note-item-bg, var(--calendar-note-event-bg-resolved, var(--background-secondary)));');
+		expect(runtimeCss).toContain('color: var(--calendar-note-item-text, var(--calendar-note-event-text-resolved, var(--text-normal)));');
+	});
+
 	it('keeps Other month above Weekend and hover above date states', () => {
 		const runtimeCss = css.slice(settings.length);
 		const sidebarWeekend = runtimeCss.indexOf('.calendar-note-date-cell.is-weekend');
@@ -162,6 +181,8 @@ describe('Bases property mapping options', () => {
 		expect(rowLimit).toMatchObject({ type: 'dropdown', default: 'auto' });
 		const weekend = layout.items.find((option) => option.key === 'weekendPreset');
 		expect(weekend).toMatchObject({ type: 'dropdown', default: 'plugin' });
+		const firstDay = layout.items.find((option) => option.key === 'firstDayOfWeek');
+		expect(firstDay).toMatchObject({ type: 'dropdown', default: 'plugin' });
 		expect(groups.flatMap((group) => group.type === 'group' ? group.items : []).map((option) => option.key))
 			.not.toEqual(expect.arrayContaining(['hideCompletedTasks', 'dimCompletedTasks', 'maximumVisibleEvents', 'weekendDays']));
 	});

@@ -42,7 +42,7 @@ export function getBasesCalendarOptions(): BasesAllOptions[] {
 		type: 'group',
 		displayName: 'Calendar layout',
 		items: [
-			{ type: 'dropdown', key: 'firstDayOfWeek', displayName: 'First day of week', default: '0', options: { '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday' } },
+			{ type: 'dropdown', key: 'firstDayOfWeek', displayName: 'First day of week', default: 'plugin', options: { plugin: 'Use plugin default', '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday' } },
 			{
 				type: 'dropdown', key: 'weekendPreset', displayName: 'Weekend preset', default: 'plugin',
 				options: { plugin: 'Use plugin default', 'sat-sun': 'Saturday and Sunday', 'fri-sat': 'Friday and Saturday', sunday: 'Sunday only', saturday: 'Saturday only', none: 'No weekend' },
@@ -58,6 +58,14 @@ export function getBasesCalendarOptions(): BasesAllOptions[] {
 			{ type: 'toggle', key: 'showInvalidEntryNotice', displayName: 'Show invalid-entry summary', default: true },
 		],
 	}];
+}
+
+export function readFirstDayOfWeek(value: unknown, pluginDefault: number): number {
+	const fallback = parseInteger(pluginDefault);
+	const safeDefault = fallback !== null && fallback >= 0 && fallback <= 6 ? fallback : 0;
+	if (value === undefined || value === null || value === '' || value === 'plugin') return safeDefault;
+	const configured = parseInteger(value);
+	return configured !== null && configured >= 0 && configured <= 6 ? configured : safeDefault;
 }
 
 export function readEventDisplayMode(value: unknown): BasesEventDisplayMode {

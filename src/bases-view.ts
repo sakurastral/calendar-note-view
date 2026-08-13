@@ -24,6 +24,7 @@ import {
 import {
 	readEventDisplayMode,
 	readEventRowLimit,
+	readFirstDayOfWeek,
 	readLayoutDensity,
 	readWeekendDays,
 	resolveCompactLayout,
@@ -127,9 +128,15 @@ export class CalendarBasesView extends BasesView {
 		}
 		const unsubscribeRollover = this.plugin.dayRollover?.subscribe(() => this.renderCalendar());
 		if (unsubscribeRollover) this.register(unsubscribeRollover);
+		const unregisterSettings = this.plugin.registerBasesCalendar?.(this);
+		if (unregisterSettings) this.register(unregisterSettings);
 	}
 
 	onDataUpdated(): void {
+		this.renderCalendar();
+	}
+
+	refreshPluginSettings(): void {
 		this.renderCalendar();
 	}
 
@@ -403,7 +410,7 @@ export class CalendarBasesView extends BasesView {
 				backgroundColor: this.config.getAsPropertyId('backgroundColorProperty'),
 				textColor: this.config.getAsPropertyId('textColorProperty'),
 			} : undefined,
-			firstDayOfWeek: integerOption(this.config.get('firstDayOfWeek'), 0, 6, this.plugin.settings.firstDayOfWeek),
+			firstDayOfWeek: readFirstDayOfWeek(this.config.get('firstDayOfWeek'), this.plugin.settings.firstDayOfWeek),
 			weekendDays: readWeekendDays(this.config.get('weekendPreset'), this.config.get('weekendDays'), this.plugin.settings.weekendDays),
 			showAdjacentMonthDates: booleanOption(this.config.get('showAdjacentMonthDates'), true),
 			eventRowLimit: readEventRowLimit(this.config.get('eventRowLimit'), this.config.get('maximumVisibleEvents')),
@@ -632,11 +639,6 @@ export class CalendarBasesView extends BasesView {
 
 function booleanOption(value: unknown, fallback: boolean): boolean {
 	return typeof value === 'boolean' ? value : fallback;
-}
-
-function integerOption(value: unknown, minimum: number, maximum: number, fallback: number): number {
-	const parsed = typeof value === 'string' && value.trim() ? Number(value) : value;
-	return Number.isInteger(parsed) && Number(parsed) >= minimum && Number(parsed) <= maximum ? Number(parsed) : fallback;
 }
 
 function isTextInput(target: EventTarget | null): boolean {

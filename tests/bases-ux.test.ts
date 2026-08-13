@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	readEventDisplayMode,
 	readEventRowLimit,
+	readFirstDayOfWeek,
 	readLayoutDensity,
 	readWeekendDays,
 	readWeekendPreset,
@@ -25,6 +26,13 @@ describe('Bases Calendar option migration and responsive layout', () => {
 		expect(readWeekendDays(undefined, ['0', '6'], [5, 6])).toEqual([0, 6]);
 		expect(readWeekendDays('plugin', undefined, [5, 6])).toEqual([5, 6]);
 		expect(readWeekendDays('none', undefined, [0, 6])).toEqual([]);
+	});
+
+	it('follows the plugin first weekday until the Base explicitly overrides it', () => {
+		expect(readFirstDayOfWeek(undefined, 1)).toBe(1);
+		expect(readFirstDayOfWeek('plugin', 6)).toBe(6);
+		expect(readFirstDayOfWeek('0', 1)).toBe(0);
+		expect(readFirstDayOfWeek('invalid', 2)).toBe(2);
 	});
 
 	it('migrates the legacy event-row slider and resolves automatic rows from the container', () => {

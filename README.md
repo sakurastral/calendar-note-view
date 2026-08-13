@@ -58,6 +58,8 @@ Add a Base view and choose **Calendar** as its view type. Configure its property
 
 The Bases Calendar uses only the Entries supplied by the current Base. Base filters, formulas, properties, sorting, and limits remain authoritative. Source Profiles never rescan or filter Bases Calendar contents.
 
+Bases **First day of week** defaults to **Use plugin default**, so it follows the shared Calendar setting until that Base chooses an explicit weekday. Style Settings can independently control ordinary non-weekend day-cell background, cell gap, corner radius, and border. Event Background/Text property mappings remain the highest-priority Base colors, followed by the first enabled Event Type Rule and the shared Event fallback; Source Profile defaults remain Sidebar-only.
+
 The view supports:
 
 - Independent Previous Month, Next Month, Today, Year, and Month controls

@@ -9,6 +9,11 @@ All notable changes to Calendar Note View are documented in this file.
 - Show each Sidebar Agenda entry as its inclusive date range followed by Event title and Event type
 - Stop using the Source Profile name as Agenda Event metadata, which could display duplicated Type-like labels
 - Avoid repeating the label when an Event title and type are identical
+- Apply the Bases ordinary-day background only to non-weekend cells instead of also coloring the full Calendar container
+- Add Style Settings for Bases day-cell gap and corner radius
+- Let Bases First day of week follow the Plugin Setting by default while preserving an explicit per-Base override
+- Re-render active Bases calendars when shared date, locale, or Event Type Rule settings change
+- Strengthen mapped Background/Text property and shared Event fallback colors against host button styles
 
 ## 0.5.4
 
