@@ -2,6 +2,16 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.5.6
+
+### Fixed
+
+- Defer autocomplete listeners until workspace layout is ready to avoid initial Vault create events
+- Lazily rebuild dirty suggestion caches instead of scanning the Vault on each file or metadata event
+- Collect property and tag suggestions in one metadata pass; invalidate caches on create, rename, delete, metadata changes and resolution
+- Prevent duplicate suggestion subscriptions and initialization after disposal
+- Preserve Sidebar indexing, Bases data authority, event matching and existing styles
+
 ## 0.5.5
 
 ### Fixed

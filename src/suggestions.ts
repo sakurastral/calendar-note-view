@@ -13,28 +13,39 @@ export class CalendarSuggestionProvider {
 	private tags: string[] = [];
 	private wikiLinks: string[] = [];
 	private icons: string[] = [];
+	private iconsLoaded = false;
+	private initialized = false;
+	private ready = false;
+	private disposed = false;
+	private readonly dirty = new Set(['folders', 'metadata', 'wikiLinks']);
 	private refs: Array<{ owner: 'vault' | 'metadata'; ref: EventRef }> = [];
 
 	constructor(private readonly app: App) {}
 
 	initialize(): void {
-		this.refreshFolders();
-		this.refreshProperties();
-		this.refreshTags();
-		this.refreshWikiLinks();
-		this.icons = getIconIds().sort((left, right) => left.localeCompare(right));
+		if (this.initialized || this.disposed) return;
+		this.initialized = true;
+		this.app.workspace.onLayoutReady(() => {
+			if (this.disposed) return;
+			this.ready = true;
+			this.bindEvents();
+		});
+	}
+
+	private bindEvents(): void {
 		this.refs.push(
-			{ owner: 'vault', ref: this.app.vault.on('create', () => this.refreshVaultSuggestions()) },
-			{ owner: 'vault', ref: this.app.vault.on('delete', () => this.refreshVaultSuggestions()) },
-			{ owner: 'vault', ref: this.app.vault.on('rename', () => this.refreshVaultSuggestions()) },
-			{ owner: 'metadata', ref: this.app.metadataCache.on('changed', () => {
-				this.refreshProperties();
-				this.refreshTags();
-			}) },
+			{ owner: 'vault', ref: this.app.vault.on('create', () => this.invalidateVault()) },
+			{ owner: 'vault', ref: this.app.vault.on('delete', () => this.invalidateVault()) },
+			{ owner: 'vault', ref: this.app.vault.on('rename', () => this.invalidateVault()) },
+			{ owner: 'metadata', ref: this.app.metadataCache.on('changed', () => this.dirty.add('metadata')) },
+			{ owner: 'metadata', ref: this.app.metadataCache.on('deleted', () => this.dirty.add('metadata')) },
+			{ owner: 'metadata', ref: this.app.metadataCache.on('resolved', () => this.dirty.add('metadata')) },
 		);
 	}
 
 	dispose(): void {
+		this.disposed = true;
+		this.ready = false;
 		for (const { owner, ref } of this.refs) {
 			if (owner === 'vault') this.app.vault.offref(ref);
 			else this.app.metadataCache.offref(ref);
@@ -43,27 +54,42 @@ export class CalendarSuggestionProvider {
 	}
 
 	getFolderSuggestions(query: string): string[] {
+		if (!this.ready) return [];
+		if (this.dirty.has('folders')) this.refreshFolders();
 		return rankSuggestions(query, this.folders);
 	}
 
 	getPropertySuggestions(query: string): string[] {
+		if (!this.ready) return [];
+		if (this.dirty.has('metadata')) this.refreshMetadata();
 		return rankSuggestions(query, this.properties);
 	}
 
 	getTagSuggestions(query: string): string[] {
+		if (!this.ready) return [];
+		if (this.dirty.has('metadata')) this.refreshMetadata();
 		return rankSuggestions(query.replace(/^#/, ''), this.tags);
 	}
 
 	getWikiLinkSuggestions(query: string): string[] {
+		if (!this.ready) return [];
+		if (this.dirty.has('wikiLinks')) this.refreshWikiLinks();
 		const normalized = query.replace(/^\[\[/, '').replace(/\]\]$/, '').trim();
 		return rankSuggestions(normalized, this.wikiLinks);
 	}
 
 	getMarkdownFileSuggestions(query: string): string[] {
+		if (!this.ready) return [];
+		if (this.dirty.has('wikiLinks')) this.refreshWikiLinks();
 		return rankSuggestions(query, this.wikiLinks.map((value) => value.slice(2, -2) + '.md'));
 	}
 
 	getIconSuggestions(query: string): string[] {
+		if (this.disposed) return [];
+		if (!this.iconsLoaded) {
+			this.icons = getIconIds().sort((left, right) => left.localeCompare(right));
+			this.iconsLoaded = true;
+		}
 		return rankSuggestions(query, this.icons);
 	}
 
@@ -75,46 +101,44 @@ export class CalendarSuggestionProvider {
 		return rankSuggestions(query, getIanaTimeZones());
 	}
 
-	private refreshVaultSuggestions(): void {
-		this.refreshFolders();
-		this.refreshWikiLinks();
+	private invalidateVault(): void {
+		this.dirty.add('folders');
+		this.dirty.add('wikiLinks');
+		this.dirty.add('metadata');
 	}
 
-	refreshFolders(): void {
+	private refreshFolders(): void {
 		this.folders = this.app.vault.getAllLoadedFiles()
 			.filter((file): file is TFolder => file instanceof TFolder && file.path.length > 0)
 			.map((folder) => folder.path)
 			.sort((left, right) => left.localeCompare(right));
+		this.dirty.delete('folders');
 	}
 
-	refreshProperties(): void {
+	/** Properties and tags share a single snapshot, built only when requested. */
+	private refreshMetadata(): void {
 		const properties = new Set<string>();
-		for (const file of this.app.vault.getMarkdownFiles()) {
-			const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-			if (!frontmatter) continue;
-			for (const property of Object.keys(frontmatter)) {
-				if (property !== 'position') properties.add(property);
-			}
-		}
-		this.properties = [...properties].sort((left, right) => left.localeCompare(right));
-	}
-
-	refreshTags(): void {
 		const tags = new Set<string>();
 		for (const file of this.app.vault.getMarkdownFiles()) {
 			const metadata = this.app.metadataCache.getFileCache(file);
+			for (const property of Object.keys(metadata?.frontmatter ?? {})) {
+				if (property !== 'position') properties.add(property);
+			}
 			for (const tag of getAllTags(metadata ?? {}) ?? []) {
 				const normalized = tag.trim().replace(/^#+/, '');
 				if (normalized) tags.add(`#${normalized}`);
 			}
 		}
+		this.properties = [...properties].sort((left, right) => left.localeCompare(right));
 		this.tags = [...tags].sort((left, right) => left.localeCompare(right));
+		this.dirty.delete('metadata');
 	}
 
-	refreshWikiLinks(): void {
+	private refreshWikiLinks(): void {
 		this.wikiLinks = this.app.vault.getMarkdownFiles()
 			.map((file) => `[[${file.path.replace(/\.md$/i, '')}]]`)
 			.sort((left, right) => left.localeCompare(right));
+		this.dirty.delete('wikiLinks');
 	}
 }
 
