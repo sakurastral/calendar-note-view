@@ -39,6 +39,7 @@ export const DEFAULT_EVENT_PROFILE: CalendarSourceProfile = {
 export const DEFAULT_SETTINGS: CalendarSettings = {
 	schemaVersion: 9,
 	calendarLocale: 'system',
+	sidebarSide: 'right',
 	firstDayOfWeek: 0,
 	weekendDays: [0, 6],
 	timeZone: { mode: 'system' },
@@ -86,6 +87,7 @@ export function loadCalendarSettings(raw: unknown): SettingsLoadResult {
 	const settings: CalendarSettings = {
 		schemaVersion: 9,
 		calendarLocale: normalizeCalendarLocale(raw.calendarLocale),
+		sidebarSide: raw.sidebarSide === 'left' ? 'left' : 'right',
 		firstDayOfWeek,
 		weekendDays: weekdayArray(raw.weekendDays, DEFAULT_SETTINGS.weekendDays),
 		timeZone: normalizeTimeZone(raw.timeZone, warnings),

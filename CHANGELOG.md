@@ -2,6 +2,14 @@
 
 All notable changes to Calendar Note View are documented in this file.
 
+## 0.5.7
+
+### Added
+
+- Choose Left sidebar or Right sidebar in Calendar behavior settings; existing configurations default to Right sidebar
+- Apply the chosen location when opening Sidebar Calendar from the ribbon or commands, moving an existing Calendar from the other side after the destination opens successfully
+- Localize the location control and keep the 0.5.6 lazy suggestion caches unchanged
+
 ## 0.5.6
 
 ### Fixed

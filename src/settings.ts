@@ -125,6 +125,7 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 		switch (key) {
 			case 'firstDayOfWeek': return String(this.plugin.settings.firstDayOfWeek);
 			case 'calendarLocale': return this.plugin.settings.calendarLocale;
+			case 'sidebarSide': return this.plugin.settings.sidebarSide;
 			case 'confirmBeforeCreatingDailyNote': return this.plugin.settings.confirmBeforeCreatingDailyNote;
 			case 'maxIndicatorsPerDay': return this.plugin.settings.maxIndicatorsPerDay;
 			case 'timeZoneMode': return this.plugin.settings.timeZone.mode;
@@ -135,6 +136,9 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 	async setControlValue(key: string, value: unknown): Promise<void> {
 		const previous = this.snapshot();
 		switch (key) {
+			case 'sidebarSide':
+				this.plugin.settings.sidebarSide = value === 'left' ? 'left' : 'right';
+				break;
 			case 'calendarLocale':
 				this.plugin.settings.calendarLocale = isCalendarLocale(value) ? value : 'system';
 				break;
@@ -223,6 +227,13 @@ export class CalendarNoteSettingTab extends PluginSettingTab {
 			type: 'group',
 			heading: this.text('calendarBehavior'),
 			items: [{
+				name: this.text('sidebarSide'),
+				desc: this.text('sidebarSideDescription'),
+				control: {
+					type: 'dropdown', key: 'sidebarSide',
+					options: { left: this.text('sidebarLeft'), right: this.text('sidebarRight') },
+				},
+			}, {
 				name: this.text('calendarLanguage'),
 				desc: 'Controls month, weekday, navigation, menu, and calendar status labels.',
 				control: { type: 'dropdown', key: 'calendarLocale', options: CALENDAR_LOCALE_OPTIONS },
@@ -1039,7 +1050,7 @@ type ProfileBooleanKey = 'enabled' | 'matchFilesWithStartPropertyOnly' | 'allowC
 type RuleStringKey = 'typeValue' | 'icon' | 'backgroundColor' | 'textColor';
 
 function controlImpact(key: string): CalendarSettingsImpact {
-	if (key === 'confirmBeforeCreatingDailyNote') return 'save';
+	if (key === 'confirmBeforeCreatingDailyNote' || key === 'sidebarSide') return 'save';
 	return 'render';
 }
 

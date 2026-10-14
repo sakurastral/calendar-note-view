@@ -18,6 +18,7 @@ import {
 import { CalendarNoteSettingTab } from './settings';
 import { CALENDAR_SIDEBAR_VIEW_TYPE, CalendarSidebarView } from './sidebar-view';
 import { CalendarSuggestionProvider } from './suggestions';
+import { openCalendarSidebar } from './sidebar-location';
 
 export default class CalendarNoteViewPlugin extends Plugin {
 	private settingsPersistence!: CalendarSettingsPersistence;
@@ -127,25 +128,17 @@ export default class CalendarNoteViewPlugin extends Plugin {
 		for (const view of this.basesCalendars) view.refreshPluginSettings();
 	}
 
-	async activateSidebar(): Promise<void> {
-		let leaf: WorkspaceLeaf | null = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)[0] ?? null;
-		if (!leaf) {
-			leaf = this.app.workspace.getRightLeaf(false);
-			if (!leaf) return;
-			await leaf.setViewState({ type: CALENDAR_SIDEBAR_VIEW_TYPE, active: true });
-		}
-		await this.app.workspace.revealLeaf(leaf);
+	async activateSidebar(): Promise<WorkspaceLeaf | null> {
+		return openCalendarSidebar(this.app.workspace, this.settings.sidebarSide, CALENDAR_SIDEBAR_VIEW_TYPE);
 	}
 
 	async goToToday(): Promise<void> {
-		await this.activateSidebar();
-		const leaf = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)[0];
+		const leaf = await this.activateSidebar();
 		if (leaf?.view instanceof CalendarSidebarView) leaf.view.goToToday();
 	}
 
 	async showTodaysEvents(): Promise<void> {
-		await this.activateSidebar();
-		const leaf = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE)[0];
+		const leaf = await this.activateSidebar();
 		if (leaf?.view instanceof CalendarSidebarView) leaf.view.showAgenda();
 	}
 

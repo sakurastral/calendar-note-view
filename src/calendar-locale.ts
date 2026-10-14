@@ -17,6 +17,7 @@ export function setCalendarObsidianLocale(locale: string): void {
 }
 
 export type CalendarTextKey =
+	| 'sidebarSide' | 'sidebarSideDescription' | 'sidebarLeft' | 'sidebarRight'
 	| 'previousMonth' | 'nextMonth' | 'today' | 'refreshCalendar'
 	| 'calendarYear' | 'calendarMonth' | 'createEventOn' | 'dailyNoteExists'
 	| 'refreshFailed' | 'openDailyNote' | 'createDailyNote' | 'createEvent'
@@ -69,6 +70,8 @@ export type CalendarTextKey =
 	| 'openDiagnostics' | 'refreshIndex' | 'calendarStatus' | 'addSourceProfile' | 'addTypeRule';
 
 const ENGLISH: Record<CalendarTextKey, string> = {
+	sidebarSide: 'Sidebar opening position', sidebarLeft: 'Left sidebar', sidebarRight: 'Right sidebar',
+	sidebarSideDescription: 'Used the next time you open Sidebar Calendar. An existing Calendar on the other side will move to this side.',
 	previousMonth: 'Previous month', nextMonth: 'Next month', today: 'Today', refreshCalendar: 'Refresh calendar',
 	calendarYear: 'Calendar year', calendarMonth: 'Calendar month', createEventOn: 'Create event on {date}',
 	dailyNoteExists: 'Daily note exists', refreshFailed: 'Could not refresh the calendar index.',
@@ -140,6 +143,8 @@ const ENGLISH: Record<CalendarTextKey, string> = {
 
 const TRANSLATION_OVERRIDES: Record<Exclude<CalendarLocale, 'system' | 'en'>, Partial<Record<CalendarTextKey, string>>> = {
 	'zh-TW': {
+		sidebarSide: '側邊欄開啟位置', sidebarLeft: '左側邊欄', sidebarRight: '右側邊欄',
+		sidebarSideDescription: '下次開啟側邊欄日曆時套用；若日曆已在另一側開啟，會移至所選位置。',
 		previousMonth: '上個月', nextMonth: '下個月', today: '今天', refreshCalendar: '重新整理日曆',
 		calendarYear: '日曆年份', calendarMonth: '日曆月份', createEventOn: '在 {date} 建立事件',
 		dailyNoteExists: '已有每日筆記', refreshFailed: '無法重新整理日曆索引。',
@@ -179,6 +184,8 @@ const TRANSLATION_OVERRIDES: Record<Exclude<CalendarLocale, 'system' | 'en'>, Pa
 		openDiagnostics: '開啟診斷', refreshIndex: '重新整理索引', calendarStatus: '日曆狀態', addSourceProfile: '新增來源設定檔', addTypeRule: '新增類型規則',
 	},
 	'zh-CN': {
+		sidebarSide: '侧边栏打开位置', sidebarLeft: '左侧边栏', sidebarRight: '右侧边栏',
+		sidebarSideDescription: '下次打开侧边栏日历时应用；若日历已在另一侧打开，将移至所选位置。',
 		previousMonth: '上个月', nextMonth: '下个月', today: '今天', refreshCalendar: '刷新日历',
 		calendarYear: '日历年份', calendarMonth: '日历月份', createEventOn: '在 {date} 创建事件',
 		dailyNoteExists: '已有日记', refreshFailed: '无法刷新日历索引。',
@@ -196,6 +203,8 @@ const TRANSLATION_OVERRIDES: Record<Exclude<CalendarLocale, 'system' | 'en'>, Pa
 		invalidStart: '开始日期无效', invalidEnd: '结束日期无效', endBeforeStart: '结束日期早于开始日期', unreadableValue: '无法读取属性值',
 	},
 	ja: {
+		sidebarSide: 'サイドバーの表示位置', sidebarLeft: '左サイドバー', sidebarRight: '右サイドバー',
+		sidebarSideDescription: '次にカレンダーを開くときに適用します。反対側に開いている場合は、選択した側に移動します。',
 		previousMonth: '前の月', nextMonth: '次の月', today: '今日', refreshCalendar: 'カレンダーを更新',
 		calendarYear: 'カレンダーの年', calendarMonth: 'カレンダーの月', createEventOn: '{date} にイベントを作成',
 		dailyNoteExists: 'デイリーノートがあります', refreshFailed: 'カレンダー索引を更新できませんでした。',
@@ -213,6 +222,8 @@ const TRANSLATION_OVERRIDES: Record<Exclude<CalendarLocale, 'system' | 'en'>, Pa
 		invalidStart: '開始日が無効です', invalidEnd: '終了日が無効です', endBeforeStart: '終了日が開始日より前です', unreadableValue: 'プロパティ値を読み取れません',
 	},
 	ko: {
+		sidebarSide: '사이드바 열기 위치', sidebarLeft: '왼쪽 사이드바', sidebarRight: '오른쪽 사이드바',
+		sidebarSideDescription: '다음에 달력을 열 때 적용됩니다. 반대쪽에 열려 있는 달력은 선택한 쪽으로 이동합니다.',
 		previousMonth: '이전 달', nextMonth: '다음 달', today: '오늘', refreshCalendar: '달력 새로고침',
 		calendarYear: '달력 연도', calendarMonth: '달력 월', createEventOn: '{date}에 이벤트 만들기',
 		dailyNoteExists: '데일리 노트가 있습니다', refreshFailed: '달력 색인을 새로고칠 수 없습니다.',

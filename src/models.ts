@@ -62,6 +62,7 @@ export type CalendarLocale = 'system' | 'en' | 'zh-TW' | 'zh-CN' | 'ja' | 'ko';
 export interface CalendarSettings {
 	schemaVersion: 9;
 	calendarLocale: CalendarLocale;
+	sidebarSide: 'left' | 'right';
 	firstDayOfWeek: number;
 	weekendDays: number[];
 	timeZone: CalendarTimeZone;

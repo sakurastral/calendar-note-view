@@ -5,6 +5,10 @@
 
 Calendar Note View adds a note-backed month calendar to Obsidian. It includes a Sidebar Calendar for events collected from across your vault and a Calendar view for Bases entries that have already been filtered by the current Base.
 
+## Sidebar opening position (0.5.7)
+
+In Plugin Settings → Calendar behavior → Sidebar opening position, choose Left sidebar or Right sidebar. The default is Right sidebar. The next time you open Sidebar Calendar from the ribbon or a command, an existing Calendar on the other side moves to the selected side. Changing this preference does not reopen views during startup.
+
 ## Startup performance (0.5.6)
 
 Autocomplete listeners start after workspace layout is ready. File and metadata events only invalidate suggestion caches; the next request rebuilds the relevant cache. Properties and tags share one metadata pass. No autocomplete Vault scan runs until a suggestion is requested after layout readiness. Sidebar indexing and Bases event behavior are unchanged.
